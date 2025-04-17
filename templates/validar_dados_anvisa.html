@@ -14,6 +14,16 @@
       font-weight: 400;
       font-style: normal;
     }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .animate-shake {
+      animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
+    }
     @font-face {
       font-family: 'Rawline';
       src: url("{{ url_for('static', filename='fonts/rawline-400i.1701033bc0b08320.woff2') }}") format('woff2');
@@ -909,7 +919,7 @@
               document.getElementById('opcaoSuccess').classList.remove('hidden');
               
               // Adicionar efeito visual na opção correta
-              element.classList.add('border-green-500');
+              element.classList.add('border-green-500', 'bg-green-50');
               
               // Atualizar estado
               validacaoState.nomeCorretoSelecionado = true;
@@ -924,14 +934,37 @@
               // Mostrar mensagem de erro
               document.getElementById('opcaoError').classList.remove('hidden');
               
-              // Adicionar efeito visual na opção errada
-              element.classList.add('border-red-500');
+              // Adicionar efeito visual na opção errada com destaque maior
+              element.classList.add('border-red-500', 'border-2');
               
-              // Manter a mensagem de erro por mais tempo (8 segundos)
+              // Rolar para a mensagem de erro
+              document.getElementById('opcaoError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Piscar a borda da opção incorreta para chamar mais atenção
+              let blinkCount = 0;
+              const blinkInterval = setInterval(() => {
+                if (blinkCount >= 5) {
+                  clearInterval(blinkInterval);
+                  return;
+                }
+                
+                if (element.classList.contains('border-red-500')) {
+                  element.classList.remove('border-red-500');
+                  element.classList.add('border-red-700', 'bg-red-50');
+                } else {
+                  element.classList.remove('border-red-700', 'bg-red-50');
+                  element.classList.add('border-red-500');
+                }
+                
+                blinkCount++;
+              }, 400);
+              
+              // Manter a mensagem de erro por mais tempo (15 segundos)
               setTimeout(() => {
-                element.classList.remove('border-red-500', 'selected');
+                element.classList.remove('border-red-500', 'border-red-700', 'bg-red-50', 'selected', 'border-2');
                 document.getElementById('opcaoError').classList.add('hidden');
-              }, 8000);
+                clearInterval(blinkInterval);
+              }, 15000);
             }
           }
           
@@ -955,7 +988,7 @@
               document.getElementById('opcaoSuccess').classList.remove('hidden');
               
               // Adicionar efeito visual na opção correta
-              element.classList.add('border-green-500');
+              element.classList.add('border-green-500', 'bg-green-50');
               
               // Atualizar estado
               validacaoState.dataCorretaSelecionada = true;
@@ -969,14 +1002,37 @@
               // Mostrar mensagem de erro
               document.getElementById('opcaoError').classList.remove('hidden');
               
-              // Adicionar efeito visual na opção errada
-              element.classList.add('border-red-500');
+              // Adicionar efeito visual na opção errada com destaque maior
+              element.classList.add('border-red-500', 'border-2');
               
-              // Manter a mensagem de erro por mais tempo (8 segundos)
+              // Rolar para a mensagem de erro
+              document.getElementById('opcaoError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Piscar a borda da opção incorreta para chamar mais atenção
+              let blinkCount = 0;
+              const blinkInterval = setInterval(() => {
+                if (blinkCount >= 5) {
+                  clearInterval(blinkInterval);
+                  return;
+                }
+                
+                if (element.classList.contains('border-red-500')) {
+                  element.classList.remove('border-red-500');
+                  element.classList.add('border-red-700', 'bg-red-50');
+                } else {
+                  element.classList.remove('border-red-700', 'bg-red-50');
+                  element.classList.add('border-red-500');
+                }
+                
+                blinkCount++;
+              }, 400);
+              
+              // Manter a mensagem de erro por mais tempo (15 segundos)
               setTimeout(() => {
-                element.classList.remove('border-red-500', 'selected');
+                element.classList.remove('border-red-500', 'border-red-700', 'bg-red-50', 'selected', 'border-2');
                 document.getElementById('opcaoError').classList.add('hidden');
-              }, 8000);
+                clearInterval(blinkInterval);
+              }, 15000);
             }
           }
           
