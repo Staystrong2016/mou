@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livro Digital - Encceja 2025</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Meta Pixel Code -->
+    {% if meta_pixel_id %}
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ meta_pixel_id }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"/>
+    </noscript>
+    {% endif %}
+    <!-- End Meta Pixel Code -->
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-blue-900 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold">Encceja 2025</div>
+                <div class="hidden md:block">
+                    <nav class="flex space-x-6">
+                        <a href="/" class="hover:text-blue-200 transition-colors">Início</a>
+                        <a href="/encceja" class="hover:text-blue-200 transition-colors">Sobre o Encceja</a>
+                        <a href="/inscricao" class="hover:text-blue-200 transition-colors">Inscrição</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white shadow-lg rounded-lg p-6 md:p-8 max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-900 mb-2">Seu Livro Digital Está Pronto!</h1>
+                <p class="text-lg text-gray-600">Obrigado pelo pagamento de R$ 143,10</p>
+            </div>
+            
+            <div class="mb-8 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800">
+                <div class="flex items-start">
+                    <svg class="h-6 w-6 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h2 class="font-bold text-lg">Pagamento Confirmado!</h2>
+                        <p>Seu pagamento de R$ 143,10 foi processado com sucesso.</p>
+                        {% if customer.name %}
+                        <p class="mt-1"><strong>Nome:</strong> {{ customer.name }}</p>
+                        {% endif %}
+                        {% if customer.cpf %}
+                        <p><strong>CPF:</strong> {{ customer.cpf }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center mb-8 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                    <img src="/static/images/ebook-cover.svg" alt="Capa do E-book" class="h-48 object-contain shadow-lg rounded-md" onerror="this.src='/static/images/placeholder-book.svg'">
+                </div>
+                <div class="md:w-2/3 md:pl-6">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-2">Guia Completo Encceja 2025</h2>
+                    <p class="text-gray-700 mb-4">Este guia completo contém todas as informações e materiais necessários para você se preparar adequadamente para o Encceja 2025 e conquistar seu certificado.</p>
+                    <a href="/static/downloads/guia-encceja-2025.pdf" download class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors inline-block font-semibold flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Baixar E-book (PDF)
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">O que você vai encontrar no seu e-book:</h3>
+                
+                <ul class="space-y-3 text-gray-700">
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Materiais de estudo para todas as áreas de conhecimento</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Exercícios práticos com gabaritos comentados</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Simulados completos para testar seus conhecimentos</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Dicas de redação e como obter pontuação máxima</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-5 w-5 text-green-600 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Plano de estudos personalizado de 60 dias</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <p class="text-gray-600 mb-4">Caso tenha alguma dúvida ou precise de suporte, entre em contato conosco:</p>
+                <a href="mailto:suporte@encceja2025.com.br" class="text-blue-600 hover:underline">suporte@encceja2025.com.br</a>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-xl font-bold mb-2">Encceja 2025</h3>
+                    <p class="text-gray-400">Seu caminho para a certificação de ensino médio</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-2">Links Rápidos</h4>
+                    <ul class="space-y-1">
+                        <li><a href="/" class="text-gray-400 hover:text-white transition-colors">Início</a></li>
+                        <li><a href="/encceja" class="text-gray-400 hover:text-white transition-colors">Sobre o Encceja</a></li>
+                        <li><a href="/inscricao" class="text-gray-400 hover:text-white transition-colors">Inscrição</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center">
+                <p class="text-gray-400">&copy; 2025 Encceja. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

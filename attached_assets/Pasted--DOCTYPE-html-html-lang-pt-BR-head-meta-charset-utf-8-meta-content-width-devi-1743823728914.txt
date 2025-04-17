@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Monjauros | ANVISA - Compra Oficial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    @font-face {
+      font-family: 'Rawline';
+      src: url("fonts/rawline-400.woff2") format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("fonts/rawline-600.woff2") format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("fonts/rawline-700.woff2") format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+    
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #f5f5f5;
+    }
+    .header-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #1a3c34;
+      text-transform: uppercase;
+    }
+    .main-title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #1a3c34;
+      line-height: 2.2rem;
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #555;
+    }
+    .secure-badge {
+      background-color: #e6f3e6;
+      color: #1a3c34;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+    .cta-button {
+      background-color: #1a3c34;
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 30px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    .cta-button:hover {
+      background-color: #132c28;
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+  <script>
+    // Detectar dispositivo móvel
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Redirecionar se não for mobile (ajustado para permitir acesso em desktop)
+    function checkAccess() {
+      if (!isMobile() && window.innerWidth < 768) {
+        window.location.href = "https://www.gov.br/saude/";
+      }
+    }
+
+    window.onload = checkAccess;
+    window.addEventListener('resize', checkAccess);
+  </script>
+</head>
+<body>
+  <!-- Cabeçalho -->
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <img src="https://www.gov.br/anvisa/pt-br/++theme++anvisa-portal-theme/images/logo-anvisa.png" alt="Logo ANVISA" class="h-10">
+        <p class="header-title ml-4">Monjauros - Compra Oficial</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <i class="fas fa-lock text-[#1a3c34]"></i>
+        <span class="text-sm text-[#1a3c34]">Compra Segura</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <div class="text-center mb-8">
+      <h1 class="main-title">Monjauros: Sua Saúde em Primeiro Lugar</h1>
+      <p class="subtitle mt-2">Autorizado pelo Governo Federal e Ministério da Saúde</p>
+      <span class="secure-badge mt-4 inline-block">Disponível exclusivamente no site oficial da ANVISA</span>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <p class="text-gray-700 text-lg mb-4">
+        Chegou a sua chance de cuidar da saúde com <strong>Monjauros</strong>! O Governo Federal e o Ministério da Saúde liberaram a venda oficial pelo site da ANVISA. Seguro, rápido e acessível – compre agora e transforme sua qualidade de vida!
+      </p>
+      <img src="https://via.placeholder.com/600x300?text=Monjauros+Banner" alt="Banner Monjauros" class="w-full rounded-md mb-6">
+      
+      <!-- Passos para compra -->
+      <div class="mt-6">
+        <p class="text-lg font-semibold text-[#1a3c34] mb-4">Como comprar:</p>
+        <ul class="list-disc pl-6 text-gray-700">
+          <li class="mb-2">Clique no botão abaixo para acessar o formulário seguro.</li>
+          <li class="mb-2">Preencha seus dados e escolha a quantidade desejada.</li>
+          <li>Pague com segurança via cartão, boleto ou Pix.</li>
+        </ul>
+        <div class="text-center mt-6">
+          <a href="/compra" class="cta-button">Comprar Monjauros Agora</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informações Adicionais -->
+    <div class="mt-8 text-center text-gray-600 text-sm">
+      <p>Compra 100% segura e validada pela ANVISA | Entrega em todo o Brasil</p>
+      <p class="mt-2">Dúvidas? Ligue para 0800-ANVISA (0800-268472)</p>
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="bg-[#1a3c34] text-white py-4">
+    <div class="container mx-auto px-4 text-center">
+      <p>© 2025 ANVISA - Agência Nacional de Vigilância Sanitária</p>
+      <p class="text-sm">Site oficial do Governo Federal</p>
+    </div>
+  </footer>
+
+  <!-- Ícone de Acessibilidade -->
+  <a href="#" class="vlibras-icon fixed right-4 top-1/2 transform -translate-y-1/2">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Acessibilidade em Libras" class="w-10 h-10">
+  </a>
+</body>
+</html>

