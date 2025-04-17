@@ -706,7 +706,7 @@
               </div>
               
               <button id="continueToPage" type="button" class="btn btn-primary py-3 px-6">
-                <i class="fas fa-check-circle"></i> Preencher Endereço de Recebimento
+                <i class="fas fa-check-circle"></i> Continuar para o Produto
               </button>
             </div>
           </div>
@@ -914,8 +914,8 @@
       // Armazenar no localStorage para uso na página de compra
       localStorage.setItem('questionarioData', JSON.stringify(formDataObject));
       
-      // Redirecionar para a página de cadastro de endereço
-      window.location.href = "/endereco";
+      // Redirecionar para a página de compra do Mounjaro
+      window.location.href = "/compra";
     });
     
     // Eventos para inputs de texto adicionais
