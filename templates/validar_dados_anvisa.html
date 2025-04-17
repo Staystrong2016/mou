@@ -594,12 +594,127 @@
   </a>
   
   <script>
+    // Função para obter parâmetros da URL
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Configurações da página
     window.addEventListener('scroll', function() {
       var header = document.querySelector('.sticky-header');
       if (window.pageYOffset > 0) {
         header.classList.add('shadow');
       } else {
         header.classList.remove('shadow');
+      }
+    });
+    
+    // Consulta de CPF e exibição de dados
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Obter CPF da URL
+      const cpf = getUrlParameter('cpf');
+      if (!cpf) {
+        console.error('CPF não encontrado na URL');
+        document.getElementById('statusMessage').textContent = 'CPF não fornecido';
+        document.getElementById('loader').style.display = 'none';
+        return;
+      }
+      
+      // Exibir CPF no formato correto
+      document.getElementById('cpfInput').textContent = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      
+      try {
+        console.log('Consultando CPF:', cpf);
+        // Fazer requisição para o proxy
+        const response = await fetch('/proxy-consulta-cpf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cpf: cpf })
+        });
+        
+        console.log('Status da resposta:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`Erro na consulta: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        
+        // Verificar se a consulta foi bem-sucedida
+        if (data.Result) {
+          // Ocultar loader
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('statusMessage').textContent = 'Dados encontrados!';
+          
+          // Criar contêiner para exibir os dados
+          const dataContainer = document.createElement('div');
+          dataContainer.className = 'mt-6 text-left';
+          
+          // Formatar data de nascimento
+          let dataNascimento = '';
+          if (data.Result.DataNascimento) {
+            const dataNasc = data.Result.DataNascimento.split('T')[0];
+            const [ano, mes, dia] = dataNasc.split('-');
+            dataNascimento = `${dia}/${mes}/${ano}`;
+          }
+          
+          // Estrutura de exibição dos dados
+          dataContainer.innerHTML = `
+            <div class="data-row">
+              <div class="data-label">Nome:</div>
+              <div class="data-value">${data.Result.NomePessoaFisica || 'Não informado'}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">CPF:</div>
+              <div class="data-value">${data.Result.NumeroCpf || 'Não informado'}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Data de Nascimento:</div>
+              <div class="data-value">${dataNascimento || 'Não informado'}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Situação:</div>
+              <div class="data-value">${data.Result.SituacaoCadastral || 'Não informado'}</div>
+            </div>
+          `;
+          
+          // Adicionar botão de confirmação
+          const confirmButton = document.createElement('div');
+          confirmButton.className = 'text-center mt-6';
+          confirmButton.innerHTML = `
+            <button id="btnContinuar" class="confirm-button">
+              <i class="fas fa-check-circle mr-2"></i> Confirmar e Continuar
+            </button>
+          `;
+          
+          // Adicionar contêineres à página
+          const validationContainer = document.querySelector('.validation-container');
+          validationContainer.appendChild(dataContainer);
+          validationContainer.appendChild(confirmButton);
+          
+          // Configurar evento do botão
+          document.getElementById('btnContinuar').addEventListener('click', function() {
+            // Redirecionar para a próxima etapa
+            window.location.href = '/validacao-em-andamento?cpf=' + cpf;
+          });
+          
+        } else {
+          // Exibir mensagem de erro se não houver dados
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('statusMessage').textContent = 'Dados não encontrados. Por favor, verifique o CPF informado.';
+          document.getElementById('statusMessage').className = 'mb-4 font-medium text-red-600';
+        }
+      } catch (error) {
+        console.error('Erro ao consultar CPF:', error);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('statusMessage').textContent = 'Erro ao consultar dados. Por favor, tente novamente.';
+        document.getElementById('statusMessage').className = 'mb-4 font-medium text-red-600';
       }
     });
   </script>
