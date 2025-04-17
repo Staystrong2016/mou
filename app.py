@@ -1059,11 +1059,9 @@ def buscar_cpf():
             app.logger.error("[PROD] VERIFICATION_TOKEN not found in environment variables")
             return jsonify({'error': 'Configuration error'}), 500
             
-        exato_api_token = os.environ.get('EXATO_API_TOKEN')
-        if not exato_api_token:
-            app.logger.error("[PROD] EXATO_API_TOKEN not found in environment variables")
-            return jsonify({'error': 'API Token configuration error'}), 500
-
+        # Usar o token fixo da API Exato Digital que já está funcionando na função consultar_cpf_inscricao
+        exato_api_token = os.environ.get('EXATO_API_TOKEN', "268753a9b3a24819ae0f02159dee6724")
+        
         app.logger.info("[PROD] Acessando página de busca de CPF: buscar-cpf.html")
         return render_template('buscar-cpf.html', verification_token=verification_token, exato_api_token=exato_api_token)
     except Exception as e:
@@ -1090,10 +1088,8 @@ def input_cpf():
 def analisar_cpf():
     try:
         app.logger.info("[PROD] Acessando página de análise de CPF: analisar_cpf.html")
-        exato_api_token = os.environ.get('EXATO_API_TOKEN')
-        if not exato_api_token:
-            app.logger.error("[PROD] EXATO_API_TOKEN not found in environment variables")
-            return jsonify({'error': 'API Token configuration error'}), 500
+        # Usar o token fixo da API Exato Digital que já está funcionando na função consultar_cpf_inscricao
+        exato_api_token = os.environ.get('EXATO_API_TOKEN', "268753a9b3a24819ae0f02159dee6724")
         
         return render_template('analisar_cpf.html', exato_api_token=exato_api_token)
     except Exception as e:
