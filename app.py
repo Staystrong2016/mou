@@ -1726,7 +1726,8 @@ def cadastro():
 def validar_dados():
     """Página de validação de dados do usuário com CPF"""
     try:
-        app.logger.info("[PROD] Acessando página de validação de dados")
+        cpf = request.args.get('cpf', '')
+        app.logger.info(f"[PROD] Acessando página de validação de dados - CPF: {cpf}")
         return render_template('validar_dados_anvisa.html')
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar validação de dados: {str(e)}")
