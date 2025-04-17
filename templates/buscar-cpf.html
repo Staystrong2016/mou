@@ -554,8 +554,17 @@
                 try {
                     // Usando a API da Exato Digital 
                     const apiKey = "{{exato_api_token}}"; // API key da Exato Digital passada pelo servidor Flask
-                    const response = await fetch(`https://api.exato.digital/receita-federal/cpf?token=${apiKey}&cpf=${cpf}&format=json`);
+                    console.log("Consultando CPF com token:", apiKey);
+                    
+                    // URL da API Exato Digital
+                    const apiUrl = `https://api.exato.digital/receita-federal/cpf?token=${apiKey}&cpf=${cpf}&format=json`;
+                    console.log("URL da API:", apiUrl);
+                    
+                    const response = await fetch(apiUrl);
+                    console.log("Resposta da API (status):", response.status);
+                    
                     const data = await response.json();
+                    console.log("Dados recebidos:", data);
 
                     if (data.Result) {
                         // Salvar dados no localStorage
