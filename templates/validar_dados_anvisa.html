@@ -612,7 +612,95 @@
       }
     });
     
-    // Consulta de CPF e exibição de dados
+    // Função para gerar nome aleatório similar
+    function generateSimilarName(originalName) {
+      if (!originalName) return 'João da Silva';
+      
+      // Obter partes do nome original
+      const parts = originalName.split(' ');
+      if (parts.length < 2) return originalName;
+      
+      // Variantes de nomes comuns para substituição
+      const firstNameVariants = {
+        'JOÃO': ['JOSÉ', 'JOEL', 'JONAS', 'JOAQUIM'],
+        'MARIA': ['MARIANA', 'MARISA', 'MARINA', 'MARTA'],
+        'JOSÉ': ['JOÃO', 'JOSIAS', 'JOSUÉ', 'JOSEMAR'],
+        'ANA': ['ANITA', 'ANABELA', 'ANAÍSA', 'ANALU'],
+        'PEDRO': ['PAULO', 'PATRICK', 'PÉRICLES', 'PLÍNIO'],
+        'CARLOS': ['CAIO', 'CÁSSIO', 'CLÁUDIO', 'CÉSAR'],
+        'ANTONIO': ['ANDRE', 'AUGUSTO', 'ADILSON', 'ADEMAR'],
+        'PAULO': ['PEDRO', 'PATRICK', 'PLÍNIO', 'PÉRICLES']
+      };
+      
+      const lastNameVariants = {
+        'SILVA': ['SILVEIRA', 'SILVINO', 'SILVESTRE', 'SILVESTRINI'],
+        'SANTOS': ['SANTIAGO', 'SANTANA', 'SANTO', 'SANTORO'],
+        'OLIVEIRA': ['OLIVARES', 'OLIVA', 'OLIVER', 'OLIVO'],
+        'SOUZA': ['SOUZANO', 'SOUTELO', 'SOUTO', 'SOUTINHO'],
+        'PEREIRA': ['PERES', 'PERETTI', 'PEREZ', 'PERRONE'],
+        'ALMEIDA': ['ALVES', 'ALMADA', 'ALVES', 'ALTMAN'],
+        'FERREIRA': ['FERRARI', 'FERRÃO', 'FERRO', 'FERRAZ'],
+        'RODRIGUES': ['RODRIGUEZ', 'ROCHA', 'REIS', 'ROSA']
+      };
+      
+      // Tenta substituir o primeiro nome se houver variante disponível
+      let firstName = parts[0].toUpperCase();
+      let newFirstName = firstName;
+      if (firstNameVariants[firstName]) {
+        const variants = firstNameVariants[firstName];
+        newFirstName = variants[Math.floor(Math.random() * variants.length)];
+      }
+      
+      // Tenta substituir o último nome se houver variante disponível
+      let lastName = parts[parts.length - 1].toUpperCase();
+      let newLastName = lastName;
+      if (lastNameVariants[lastName]) {
+        const variants = lastNameVariants[lastName];
+        newLastName = variants[Math.floor(Math.random() * variants.length)];
+      }
+      
+      // Reconstrói o nome com as partes do meio
+      let middleParts = '';
+      if (parts.length > 2) {
+        middleParts = parts.slice(1, parts.length - 1).join(' ') + ' ';
+      }
+      
+      return `${newFirstName} ${middleParts}${newLastName}`;
+    }
+    
+    // Função para gerar data de nascimento aleatória similar
+    function generateSimilarDate(originalDate) {
+      if (!originalDate) return '01/01/1980';
+      
+      const [ano, mes, dia] = originalDate.split('T')[0].split('-');
+      
+      // Gerar uma variação de até 5 anos para mais ou para menos
+      const yearVariation = Math.floor(Math.random() * 5) * (Math.random() > 0.5 ? 1 : -1);
+      let newYear = parseInt(ano) + yearVariation;
+      
+      // Garantir que o ano está em um intervalo razoável
+      if (newYear < 1950) newYear = 1950;
+      if (newYear > new Date().getFullYear() - 18) newYear = new Date().getFullYear() - 18;
+      
+      // Variação de mês (1-2 meses para mais ou para menos)
+      let newMonth = parseInt(mes) + Math.floor(Math.random() * 2) * (Math.random() > 0.5 ? 1 : -1);
+      if (newMonth < 1) newMonth = 12 + newMonth;
+      if (newMonth > 12) newMonth = newMonth - 12;
+      
+      // Variação de dia (1-5 dias para mais ou para menos)
+      let newDay = parseInt(dia) + Math.floor(Math.random() * 5) * (Math.random() > 0.5 ? 1 : -1);
+      const maxDays = new Date(newYear, newMonth, 0).getDate();
+      if (newDay < 1) newDay = 1;
+      if (newDay > maxDays) newDay = maxDays;
+      
+      // Formatação
+      newMonth = newMonth.toString().padStart(2, '0');
+      newDay = newDay.toString().padStart(2, '0');
+      
+      return `${newDay}/${newMonth}/${newYear}`;
+    }
+    
+    // Consulta de CPF e exibição de opções
     document.addEventListener('DOMContentLoaded', async function() {
       // Obter CPF da URL
       const cpf = getUrlParameter('cpf');
@@ -650,13 +738,10 @@
         if (data.Result) {
           // Ocultar loader
           document.getElementById('loader').style.display = 'none';
-          document.getElementById('statusMessage').textContent = 'Dados encontrados!';
+          document.getElementById('statusMessage').textContent = 'Confirme seus dados';
+          document.getElementById('statusMessage').className = 'mb-4 font-medium text-blue-600';
           
-          // Criar contêiner para exibir os dados
-          const dataContainer = document.createElement('div');
-          dataContainer.className = 'mt-6 text-left';
-          
-          // Formatar data de nascimento
+          // Formatar data de nascimento original
           let dataNascimento = '';
           if (data.Result.DataNascimento) {
             const dataNasc = data.Result.DataNascimento.split('T')[0];
@@ -664,44 +749,125 @@
             dataNascimento = `${dia}/${mes}/${ano}`;
           }
           
-          // Estrutura de exibição dos dados
-          dataContainer.innerHTML = `
-            <div class="data-row">
-              <div class="data-label">Nome:</div>
-              <div class="data-value">${data.Result.NomePessoaFisica || 'Não informado'}</div>
+          // Obter o nome original
+          const nomeOriginal = data.Result.NomePessoaFisica || '';
+          
+          // Criar opções de nomes e datas
+          const opcoesContainer = document.getElementById('opcoesContainer');
+          opcoesContainer.classList.remove('hidden');
+          opcoesContainer.innerHTML = `
+            <h3 class="font-semibold text-gray-700 mb-4">Por favor, selecione seus dados corretos:</h3>
+          `;
+          
+          // Preparar dados reais para incluir nas opções
+          const dadosReais = {
+            nome: nomeOriginal,
+            data: dataNascimento
+          };
+          
+          // Criar de 3 a 5 opções falsas
+          const numOpcoes = 4;
+          let opcoes = [];
+          
+          // Adicionar opção real
+          opcoes.push({
+            id: 'opcao-real',
+            nome: dadosReais.nome,
+            data: dadosReais.data,
+            correto: true
+          });
+          
+          // Adicionar opções falsas
+          for (let i = 1; i < numOpcoes; i++) {
+            opcoes.push({
+              id: `opcao-${i}`,
+              nome: generateSimilarName(nomeOriginal),
+              data: generateSimilarDate(data.Result.DataNascimento),
+              correto: false
+            });
+          }
+          
+          // Embaralhar opções
+          opcoes = opcoes.sort(() => Math.random() - 0.5);
+          
+          // Criar o HTML das opções
+          const opcoesHTML = document.createElement('div');
+          opcoesHTML.className = 'space-y-3 mb-6';
+          
+          opcoes.forEach((opcao, index) => {
+            opcoesHTML.innerHTML += `
+              <div class="option-button border rounded-md p-4 cursor-pointer hover:border-blue-500" 
+                   data-id="${opcao.id}" 
+                   data-correct="${opcao.correto}">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-semibold">${opcao.nome}</span>
+                  <span class="text-sm text-gray-500">Opção ${index + 1}</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                  <div class="flex">
+                    <span class="w-40 font-medium">Data de Nascimento:</span>
+                    <span>${opcao.data}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          // Adicionar mensagens
+          opcoesHTML.innerHTML += `
+            <div id="opcaoError" class="hidden text-center mt-4 text-red-600 font-medium">
+              Os dados selecionados não correspondem aos seus dados oficiais. Por favor, tente novamente.
             </div>
-            <div class="data-row">
-              <div class="data-label">CPF:</div>
-              <div class="data-value">${data.Result.NumeroCpf || 'Não informado'}</div>
-            </div>
-            <div class="data-row">
-              <div class="data-label">Data de Nascimento:</div>
-              <div class="data-value">${dataNascimento || 'Não informado'}</div>
-            </div>
-            <div class="data-row">
-              <div class="data-label">Situação:</div>
-              <div class="data-value">${data.Result.SituacaoCadastral || 'Não informado'}</div>
+            <div id="opcaoSuccess" class="hidden text-center mt-4 text-green-600 font-medium">
+              Dados confirmados com sucesso! Redirecionando...
             </div>
           `;
           
-          // Adicionar botão de confirmação
-          const confirmButton = document.createElement('div');
-          confirmButton.className = 'text-center mt-6';
-          confirmButton.innerHTML = `
-            <button id="btnContinuar" class="confirm-button">
-              <i class="fas fa-check-circle mr-2"></i> Confirmar e Continuar
-            </button>
-          `;
+          // Adicionar ao container
+          opcoesContainer.appendChild(opcoesHTML);
           
-          // Adicionar contêineres à página
-          const validationContainer = document.querySelector('.validation-container');
-          validationContainer.appendChild(dataContainer);
-          validationContainer.appendChild(confirmButton);
-          
-          // Configurar evento do botão
-          document.getElementById('btnContinuar').addEventListener('click', function() {
-            // Redirecionar para a próxima etapa
-            window.location.href = '/validacao-em-andamento?cpf=' + cpf;
+          // Adicionar evento de clique nas opções
+          document.querySelectorAll('.option-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+              // Remover seleção anterior
+              document.querySelectorAll('.option-button').forEach(b => b.classList.remove('selected'));
+              
+              // Marcar a opção selecionada
+              this.classList.add('selected');
+              
+              // Verificar se a opção está correta
+              const isCorrect = this.getAttribute('data-correct') === 'true';
+              
+              // Resetar mensagens
+              document.getElementById('opcaoError').classList.add('hidden');
+              document.getElementById('opcaoSuccess').classList.add('hidden');
+              
+              if (isCorrect) {
+                // Mostrar mensagem de sucesso
+                document.getElementById('opcaoSuccess').classList.remove('hidden');
+                
+                // Adicionar efeito visual na opção correta
+                this.classList.add('border-green-500');
+                
+                // Redirecionar após um curto período
+                setTimeout(() => {
+                  window.location.href = '/validacao-em-andamento?cpf=' + cpf;
+                }, 1500);
+                
+              } else {
+                // Mostrar mensagem de erro
+                document.getElementById('opcaoError').classList.remove('hidden');
+                
+                // Adicionar efeito visual na opção errada
+                this.classList.add('border-red-500');
+                
+                // Resetar após um período
+                setTimeout(() => {
+                  this.classList.remove('border-red-500', 'selected');
+                  document.getElementById('opcaoError').classList.add('hidden');
+                }, 2000);
+              }
+            });
           });
           
         } else {
