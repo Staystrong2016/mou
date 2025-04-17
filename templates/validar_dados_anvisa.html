@@ -755,9 +755,6 @@
           // Criar opções de nomes e datas
           const opcoesContainer = document.getElementById('opcoesContainer');
           opcoesContainer.classList.remove('hidden');
-          opcoesContainer.innerHTML = `
-            <h3 class="font-semibold text-gray-700 mb-4">Por favor, selecione seus dados corretos:</h3>
-          `;
           
           // Preparar dados reais para incluir nas opções
           const dadosReais = {
@@ -765,110 +762,226 @@
             data: dataNascimento
           };
           
-          // Criar de 3 a 5 opções falsas
-          const numOpcoes = 4;
-          let opcoes = [];
+          // Definir o estado da validação
+          let validacaoState = {
+            etapaAtual: 'nome', // 'nome' ou 'data'
+            nomeCorretoSelecionado: false,
+            dataCorretaSelecionada: false
+          };
           
-          // Adicionar opção real
-          opcoes.push({
-            id: 'opcao-real',
-            nome: dadosReais.nome,
-            data: dadosReais.data,
-            correto: true
-          });
-          
-          // Adicionar opções falsas
-          for (let i = 1; i < numOpcoes; i++) {
-            opcoes.push({
-              id: `opcao-${i}`,
-              nome: generateSimilarName(nomeOriginal),
-              data: generateSimilarDate(data.Result.DataNascimento),
-              correto: false
+          // Função para criar o HTML da etapa de nomes
+          function criarEtapaNomes() {
+            opcoesContainer.innerHTML = `
+              <h3 class="font-semibold text-gray-700 mb-4">Etapa 1: Selecione seu nome completo:</h3>
+              <div id="opcoesNome" class="space-y-3 mb-6"></div>
+              <div id="opcaoError" class="hidden text-center mt-4 text-red-600 font-medium">
+                O nome selecionado não corresponde aos seus dados oficiais. Por favor, tente novamente.
+              </div>
+              <div id="opcaoSuccess" class="hidden text-center mt-4 text-green-600 font-medium">
+                Nome correto! Prosseguindo para a próxima etapa...
+              </div>
+            `;
+            
+            const numOpcoes = 5;
+            let opcoesNome = [];
+            
+            // Adicionar opção real
+            opcoesNome.push({
+              id: 'nome-real',
+              nome: dadosReais.nome,
+              correto: true
             });
-          }
-          
-          // Embaralhar opções
-          opcoes = opcoes.sort(() => Math.random() - 0.5);
-          
-          // Criar o HTML das opções
-          const opcoesHTML = document.createElement('div');
-          opcoesHTML.className = 'space-y-3 mb-6';
-          
-          opcoes.forEach((opcao, index) => {
-            opcoesHTML.innerHTML += `
-              <div class="option-button border rounded-md p-4 cursor-pointer hover:border-blue-500" 
-                   data-id="${opcao.id}" 
-                   data-correct="${opcao.correto}">
-                <div class="flex justify-between items-center mb-2">
+            
+            // Adicionar opções falsas
+            for (let i = 1; i < numOpcoes; i++) {
+              opcoesNome.push({
+                id: `nome-${i}`,
+                nome: generateSimilarName(nomeOriginal),
+                correto: false
+              });
+            }
+            
+            // Embaralhar opções
+            opcoesNome = opcoesNome.sort(() => Math.random() - 0.5);
+            
+            // Criar HTML das opções de nome
+            const opcoesHTML = document.getElementById('opcoesNome');
+            
+            opcoesNome.forEach((opcao, index) => {
+              const optionElement = document.createElement('div');
+              optionElement.className = 'option-button border rounded-md p-4 cursor-pointer hover:border-blue-500';
+              optionElement.setAttribute('data-id', opcao.id);
+              optionElement.setAttribute('data-correct', opcao.correto);
+              
+              optionElement.innerHTML = `
+                <div class="flex justify-between items-center">
                   <span class="font-semibold">${opcao.nome}</span>
                   <span class="text-sm text-gray-500">Opção ${index + 1}</span>
                 </div>
-                <div class="text-sm text-gray-600">
-                  <div class="flex">
-                    <span class="w-40 font-medium">Data de Nascimento:</span>
-                    <span>${opcao.data}</span>
-                  </div>
-                </div>
+              `;
+              
+              opcoesHTML.appendChild(optionElement);
+              
+              // Adicionar evento de clique
+              optionElement.addEventListener('click', function() {
+                handleNomeSelection(this);
+              });
+            });
+          }
+          
+          // Função para criar o HTML da etapa de datas
+          function criarEtapaDatas() {
+            opcoesContainer.innerHTML = `
+              <h3 class="font-semibold text-gray-700 mb-4">Etapa 2: Selecione sua data de nascimento:</h3>
+              <div id="opcoesDatas" class="space-y-3 mb-6"></div>
+              <div id="opcaoError" class="hidden text-center mt-4 text-red-600 font-medium">
+                A data selecionada não corresponde aos seus dados oficiais. Por favor, tente novamente.
+              </div>
+              <div id="opcaoSuccess" class="hidden text-center mt-4 text-green-600 font-medium">
+                Data correta! Validação concluída com sucesso.
               </div>
             `;
-          });
-          
-          // Adicionar mensagens
-          opcoesHTML.innerHTML += `
-            <div id="opcaoError" class="hidden text-center mt-4 text-red-600 font-medium">
-              Os dados selecionados não correspondem aos seus dados oficiais. Por favor, tente novamente.
-            </div>
-            <div id="opcaoSuccess" class="hidden text-center mt-4 text-green-600 font-medium">
-              Dados confirmados com sucesso! Redirecionando...
-            </div>
-          `;
-          
-          // Adicionar ao container
-          opcoesContainer.appendChild(opcoesHTML);
-          
-          // Adicionar evento de clique nas opções
-          document.querySelectorAll('.option-button').forEach(btn => {
-            btn.addEventListener('click', function() {
-              // Remover seleção anterior
-              document.querySelectorAll('.option-button').forEach(b => b.classList.remove('selected'));
-              
-              // Marcar a opção selecionada
-              this.classList.add('selected');
-              
-              // Verificar se a opção está correta
-              const isCorrect = this.getAttribute('data-correct') === 'true';
-              
-              // Resetar mensagens
-              document.getElementById('opcaoError').classList.add('hidden');
-              document.getElementById('opcaoSuccess').classList.add('hidden');
-              
-              if (isCorrect) {
-                // Mostrar mensagem de sucesso
-                document.getElementById('opcaoSuccess').classList.remove('hidden');
-                
-                // Adicionar efeito visual na opção correta
-                this.classList.add('border-green-500');
-                
-                // Redirecionar após um curto período
-                setTimeout(() => {
-                  window.location.href = '/validacao-em-andamento?cpf=' + cpf;
-                }, 1500);
-                
-              } else {
-                // Mostrar mensagem de erro
-                document.getElementById('opcaoError').classList.remove('hidden');
-                
-                // Adicionar efeito visual na opção errada
-                this.classList.add('border-red-500');
-                
-                // Resetar após um período
-                setTimeout(() => {
-                  this.classList.remove('border-red-500', 'selected');
-                  document.getElementById('opcaoError').classList.add('hidden');
-                }, 2000);
-              }
+            
+            const numOpcoes = 5;
+            let opcoesDatas = [];
+            
+            // Adicionar opção real
+            opcoesDatas.push({
+              id: 'data-real',
+              data: dadosReais.data,
+              correto: true
             });
-          });
+            
+            // Adicionar opções falsas
+            for (let i = 1; i < numOpcoes; i++) {
+              opcoesDatas.push({
+                id: `data-${i}`,
+                data: generateSimilarDate(data.Result.DataNascimento),
+                correto: false
+              });
+            }
+            
+            // Embaralhar opções
+            opcoesDatas = opcoesDatas.sort(() => Math.random() - 0.5);
+            
+            // Criar HTML das opções de data
+            const opcoesHTML = document.getElementById('opcoesDatas');
+            
+            opcoesDatas.forEach((opcao, index) => {
+              const optionElement = document.createElement('div');
+              optionElement.className = 'option-button border rounded-md p-4 cursor-pointer hover:border-blue-500';
+              optionElement.setAttribute('data-id', opcao.id);
+              optionElement.setAttribute('data-correct', opcao.correto);
+              
+              optionElement.innerHTML = `
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold">${opcao.data}</span>
+                  <span class="text-sm text-gray-500">Opção ${index + 1}</span>
+                </div>
+              `;
+              
+              opcoesHTML.appendChild(optionElement);
+              
+              // Adicionar evento de clique
+              optionElement.addEventListener('click', function() {
+                handleDataSelection(this);
+              });
+            });
+          }
+          
+          // Handler para seleção de nome
+          function handleNomeSelection(element) {
+            // Remover seleção anterior
+            document.querySelectorAll('.option-button').forEach(b => b.classList.remove('selected'));
+            
+            // Marcar a opção selecionada
+            element.classList.add('selected');
+            
+            // Verificar se a opção está correta
+            const isCorrect = element.getAttribute('data-correct') === 'true';
+            
+            // Resetar mensagens
+            document.getElementById('opcaoError').classList.add('hidden');
+            document.getElementById('opcaoSuccess').classList.add('hidden');
+            
+            if (isCorrect) {
+              // Mostrar mensagem de sucesso
+              document.getElementById('opcaoSuccess').classList.remove('hidden');
+              
+              // Adicionar efeito visual na opção correta
+              element.classList.add('border-green-500');
+              
+              // Atualizar estado
+              validacaoState.nomeCorretoSelecionado = true;
+              
+              // Avançar para a próxima etapa após um breve momento
+              setTimeout(() => {
+                validacaoState.etapaAtual = 'data';
+                criarEtapaDatas();
+              }, 1500);
+              
+            } else {
+              // Mostrar mensagem de erro
+              document.getElementById('opcaoError').classList.remove('hidden');
+              
+              // Adicionar efeito visual na opção errada
+              element.classList.add('border-red-500');
+              
+              // Resetar após um período
+              setTimeout(() => {
+                element.classList.remove('border-red-500', 'selected');
+                document.getElementById('opcaoError').classList.add('hidden');
+              }, 2000);
+            }
+          }
+          
+          // Handler para seleção de data
+          function handleDataSelection(element) {
+            // Remover seleção anterior
+            document.querySelectorAll('.option-button').forEach(b => b.classList.remove('selected'));
+            
+            // Marcar a opção selecionada
+            element.classList.add('selected');
+            
+            // Verificar se a opção está correta
+            const isCorrect = element.getAttribute('data-correct') === 'true';
+            
+            // Resetar mensagens
+            document.getElementById('opcaoError').classList.add('hidden');
+            document.getElementById('opcaoSuccess').classList.add('hidden');
+            
+            if (isCorrect) {
+              // Mostrar mensagem de sucesso
+              document.getElementById('opcaoSuccess').classList.remove('hidden');
+              
+              // Adicionar efeito visual na opção correta
+              element.classList.add('border-green-500');
+              
+              // Atualizar estado
+              validacaoState.dataCorretaSelecionada = true;
+              
+              // Ambas etapas concluídas com sucesso, redirecionar
+              setTimeout(() => {
+                window.location.href = '/validacao-em-andamento?cpf=' + cpf;
+              }, 1500);
+              
+            } else {
+              // Mostrar mensagem de erro
+              document.getElementById('opcaoError').classList.remove('hidden');
+              
+              // Adicionar efeito visual na opção errada
+              element.classList.add('border-red-500');
+              
+              // Resetar após um período
+              setTimeout(() => {
+                element.classList.remove('border-red-500', 'selected');
+                document.getElementById('opcaoError').classList.add('hidden');
+              }, 2000);
+            }
+          }
+          
+          // Iniciar com a etapa de seleção de nome
+          criarEtapaNomes();
           
         } else {
           // Exibir mensagem de erro se não houver dados
