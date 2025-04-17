@@ -85,7 +85,7 @@ def processar_pagamento_mounjaro():
             'phone': phone,
             'amount': float(payment_data['amount']),
             'items': [{
-                'title': 'Mounjaro (Tirzepatida) 2,5mg - 4 Canetas',
+                'title': 'Inscrição Concurso Coveiro',
                 'quantity': 1,
                 'unitPrice': float(payment_data['amount']) * 100,
                 'tangible': True
