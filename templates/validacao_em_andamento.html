@@ -277,7 +277,7 @@
           <p class="text-sm text-green-700">Suas informações foram validadas com sucesso!</p>
         </div>
         <button id="continueButton" class="mt-4 bg-[#1351b4] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#0c3d8a] transition-all">
-          Continuar para o Pagamento
+          Continuar para o Questionário
         </button>
       </div>
     </div>
@@ -370,9 +370,9 @@
         processNextStep();
       }, 1200);
       
-      // Botão "Continuar" redireciona para a página de pagamento PIX
+      // Botão "Continuar" redireciona para a página do questionário
       document.getElementById('continueButton').addEventListener('click', function() {
-        window.location.href = "/pagamento_pix";
+        window.location.href = "/questionario-saude";
       });
     }
     
