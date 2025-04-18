@@ -13,6 +13,7 @@ from flask import request
 # Configurações da API Utmify
 UTMIFY_API_URL = "https://api.utmify.com.br/api-credentials/orders"
 UTMIFY_TOKEN = "u9DXHd26PMNTG6uRQScHcIHpc6jjS0WP8XcL"  # Token fornecido no exemplo
+UTMIFY_X_API_KEY = "mSv9bhkTG2MtZ5Gj4OczV1KdQpHUYiGXnSGE"  # X-API-KEY fornecida
 
 # Configuração de log
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -232,4 +233,189 @@ def update_order_status_in_utmify(
         return {
             'success': False,
             'message': f'Erro ao atualizar status: {str(e)}'
+        }
+
+
+def process_payment_webhook(payment_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Processa um webhook de pagamento confirmado e envia os dados para a Utmify.
+    
+    Baseado no código PHP fornecido.
+    
+    Args:
+        payment_data: Dados do pagamento confirmado
+        
+    Returns:
+        Dict contendo sucesso/falha e mensagem
+    """
+    logger.info(f"📥 Dados recebidos para processamento: {json.dumps(payment_data, indent=2)}")
+    
+    # Verificar se o status é de pagamento confirmado (ignorar outros status)
+    status = payment_data.get('status', '').lower()
+    if status not in ['paid', 'approved', 'completed', 'confirmed']:
+        logger.info(f"⏭️ Status ignorado: {status}")
+        return {
+            'success': True,
+            'message': f'Status ignorado: {status}'
+        }
+    
+    # Obter os dados necessários do payment_data
+    try:
+        # Dados básicos da transação
+        transaction_id = payment_data.get('orderId') or payment_data.get('id')
+        if not transaction_id:
+            raise ValueError("ID da transação não encontrado nos dados")
+        
+        # Verificar se temos as datas
+        created_at = payment_data.get('createdAt')
+        paid_at = payment_data.get('paidAt') or payment_data.get('approvedDate') or datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Dados do cliente
+        customer = payment_data.get('customer', {})
+        customer_name = customer.get('name', '')
+        customer_email = customer.get('email', '')
+        
+        # Tentar obter o CPF de diferentes locais possíveis na estrutura
+        customer_document = ''
+        if 'document' in customer:
+            if isinstance(customer['document'], dict):
+                customer_document = customer['document'].get('number', '')
+            else:
+                customer_document = customer.get('document', '')
+        
+        # Produtos/itens
+        items = payment_data.get('items', [])
+        products = []
+        
+        if items:
+            for item in items:
+                product = {
+                    'id': item.get('id', f'prod_{transaction_id}_{len(products)}'),
+                    'name': item.get('title', item.get('name', 'Produto')),
+                    'planId': None,
+                    'planName': None,
+                    'quantity': item.get('quantity', 1),
+                    'priceInCents': item.get('unitPrice', 0)
+                }
+                products.append(product)
+        else:
+            # Se não houver itens, criar um produto padrão
+            product_name = payment_data.get('productName', 'Mounjaro (Tirzepatida) 5mg')
+            product_price = payment_data.get('amount', 0)
+            if isinstance(product_price, str):
+                try:
+                    product_price = int(float(product_price) * 100)
+                except:
+                    product_price = 0
+            
+            products.append({
+                'id': f'prod_{transaction_id}',
+                'name': product_name,
+                'planId': None,
+                'planName': None,
+                'quantity': 1,
+                'priceInCents': product_price
+            })
+        
+        # Parâmetros de rastreamento (UTM)
+        utm_params = payment_data.get('trackingParameters', {})
+        
+        # Informações de comissão/taxas
+        amount = payment_data.get('amount', 0)
+        if isinstance(amount, str):
+            try:
+                amount = int(float(amount) * 100)
+            except:
+                amount = 0
+        
+        fees = payment_data.get('fee', {})
+        fixed_fee = fees.get('fixedAmount', 0)
+        net_amount = fees.get('netAmount', amount)
+        
+        # Preparar os dados para envio à Utmify
+        utmify_data = {
+            'orderId': transaction_id,
+            'platform': 'For4Payments',
+            'paymentMethod': 'pix',
+            'status': 'paid',
+            'createdAt': created_at,
+            'approvedDate': paid_at,
+            'refundedAt': None,
+            'customer': {
+                'name': customer_name,
+                'email': customer_email,
+                'phone': None,
+                'document': customer_document,
+                'country': 'BR',
+                'ip': request.remote_addr if request else None
+            },
+            'products': products,
+            'trackingParameters': {
+                'src': utm_params.get('src'),
+                'sck': utm_params.get('sck'),
+                'utm_source': utm_params.get('utm_source'),
+                'utm_campaign': utm_params.get('utm_campaign'),
+                'utm_medium': utm_params.get('utm_medium'),
+                'utm_content': utm_params.get('utm_content'),
+                'utm_term': utm_params.get('utm_term'),
+                'xcod': utm_params.get('xcod'),
+                'fbclid': utm_params.get('fbclid'),
+                'gclid': utm_params.get('gclid'),
+                'ttclid': utm_params.get('ttclid')
+            },
+            'commission': {
+                'totalPriceInCents': amount,
+                'gatewayFeeInCents': fixed_fee,
+                'userCommissionInCents': net_amount
+            },
+            'isTest': False
+        }
+        
+        logger.info(f"📤 Dados formatados para Utmify: {json.dumps(utmify_data, indent=2)}")
+        
+        # Enviar para a Utmify
+        try:
+            headers = {
+                "Content-Type": "application/json",
+                "x-api-token": UTMIFY_TOKEN,
+                "x-api-key": UTMIFY_X_API_KEY
+            }
+            
+            logger.info(f"📡 Enviando requisição para Utmify: {UTMIFY_API_URL}")
+            
+            response = requests.post(
+                UTMIFY_API_URL,
+                headers=headers,
+                json=utmify_data
+            )
+            
+            logger.info(f"✅ Resposta da API Utmify - Status: {response.status_code}, Resposta: {response.text}")
+            
+            if response.status_code == 200:
+                return {
+                    'success': True,
+                    'message': 'Dados enviados com sucesso para Utmify'
+                }
+            else:
+                error_msg = f"Erro na API Utmify. HTTP Code: {response.status_code}"
+                logger.error(f"❌ {error_msg}, Resposta: {response.text}")
+                return {
+                    'success': False,
+                    'message': error_msg
+                }
+        
+        except Exception as e:
+            error_msg = f"Erro ao enviar para Utmify: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            return {
+                'success': False,
+                'message': error_msg
+            }
+    
+    except Exception as e:
+        error_msg = f"Erro ao processar dados de pagamento: {str(e)}"
+        logger.error(f"❌ {error_msg}")
+        return {
+            'success': False,
+            'message': error_msg
         }

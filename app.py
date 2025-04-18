@@ -14,6 +14,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, abort, make_response
 from for4payments import create_payment_api
 from api_security import create_jwt_token, verify_jwt_token, generate_csrf_token, secure_api, verify_referer
+from utmify_integration import process_payment_webhook
 from transaction_tracker import (
     get_client_ip, track_transaction_attempt, is_transaction_ip_banned, cleanup_transaction_tracking,
     TRANSACTION_ATTEMPTS, CLIENT_DATA_TRACKING, NAME_TRANSACTION_COUNT, CPF_TRANSACTION_COUNT, 
@@ -2612,6 +2613,40 @@ def consultar_cpf_inscricao():
     except Exception as e:
         app.logger.error(f"Erro ao buscar CPF na API Exato: {str(e)}")
         return jsonify({"error": f"Erro ao buscar CPF: {str(e)}"}), 500
+
+@app.route('/utmify-webhook', methods=['POST'])
+def utmify_webhook():
+    """
+    Webhook para receber notificações de pagamento e enviar para a Utmify.
+    
+    Este endpoint recebe dados de pagamento (POST) e os encaminha para a Utmify
+    seguindo o formato esperado pela API Utmify.
+    """
+    try:
+        app.logger.info("[PROD] Recebendo webhook de pagamento")
+        
+        # Verificar se o conteúdo é JSON
+        if not request.is_json:
+            app.logger.error("[PROD] Webhook recebido com formato inválido (não é JSON)")
+            return jsonify({'error': 'Formato inválido, esperado JSON'}), 400
+            
+        # Obter os dados do webhook
+        webhook_data = request.json
+        app.logger.info(f"[PROD] Dados recebidos no webhook: {json.dumps(webhook_data, indent=2)[:1000]}...")
+        
+        # Processar os dados do webhook e enviar para a Utmify
+        result = process_payment_webhook(webhook_data)
+        
+        if result.get('success'):
+            app.logger.info(f"[PROD] Webhook processado com sucesso: {result.get('message')}")
+            return jsonify({'success': True, 'message': result.get('message')}), 200
+        else:
+            app.logger.error(f"[PROD] Erro ao processar webhook: {result.get('message')}")
+            return jsonify({'success': False, 'message': result.get('message')}), 500
+            
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao processar webhook: {str(e)}")
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
