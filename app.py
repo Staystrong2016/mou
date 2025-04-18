@@ -162,9 +162,12 @@ def processar_pagamento_mounjaro():
                 app.logger.warning(f"[PROD] Campo obrigatório ausente: {field}")
                 return jsonify({'success': False, 'message': f'Campo obrigatório ausente: {field}'}), 400
 
-        # Criar instância da API de pagamento
+        # Criar instância da API de pagamento usando o gateway configurado
         try:
-            payment_api = create_payment_api()
+            from payment_gateway import get_payment_gateway
+            payment_api = get_payment_gateway()
+            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
+            app.logger.info(f"[PROD] Processando pagamento usando gateway: {gateway_choice}")
         except Exception as e:
             app.logger.error(f"[PROD] Erro ao criar instância da API de pagamento: {str(e)}")
             return jsonify({'success': False, 'message': 'Erro de configuração do serviço de pagamento'}), 500
