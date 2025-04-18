@@ -798,6 +798,9 @@
       // Limpar conteúdo existente
       featuresContainer.innerHTML = '';
       
+      // Lista para armazenar cards válidos para exibição
+      const validCards = [];
+      
       // Dados do objeto que conhecemos: {"peso":"60a80","altura":"150a165","motivoInteresse":"diabetes",
       // "usoMedicamentos":"nao","condicoesSaude":"pressaoAlta","atividadeFisica":"asVezes",
       // "habitoAlimentar":"tentaSaudavel","localResidencia":"pequenaCidade","acessoFarmacia":"dificil",
@@ -1440,23 +1443,44 @@
       }
     });
     
-    // Função para limitar o número de cards exibidos
+    // Função para limitar o número de cards exibidos e remover cards vazios
     function limitarCardsRelevantes() {
       const featuresContainer = document.getElementById('personalizedFeatures');
       if (!featuresContainer) return;
       
       // Obter todos os cards existentes
       const cards = featuresContainer.querySelectorAll('.feature-card');
-      if (cards.length <= 6) return; // Se tiver 6 ou menos, mantém todos
+      let validCards = [];
+      
+      // Verificar cards com texto vazio ou apenas com ícone
+      cards.forEach((card) => {
+        const textElement = card.querySelector('.feature-text');
+        const titleElement = card.querySelector('.feature-title');
+        
+        // Verificar se o card contém apenas um ícone sem texto
+        const onlyIconPattern = /<i class="[^"]+"><\/i>\s*$/;
+        const titleContent = titleElement ? titleElement.innerHTML : '';
+        const hasOnlyIcon = onlyIconPattern.test(titleContent.trim());
+        
+        // Verificar se o card tem conteúdo de texto válido
+        if (textElement && textElement.textContent.trim() !== '' && 
+            titleElement && titleElement.textContent.trim().length > 2 &&
+            !hasOnlyIcon) {
+          validCards.push(card);
+        } else {
+          card.style.display = 'none';
+          console.log('Card removido por estar vazio ou incompleto');
+        }
+      });
       
       // Limitar a exibição a 6 cards
-      cards.forEach((card, index) => {
+      validCards.forEach((card, index) => {
         if (index >= 6) {
           card.style.display = 'none';
         }
       });
       
-      console.log(`Limitando exibição a 6 cards de ${cards.length} disponíveis`);
+      console.log(`Exibindo ${Math.min(validCards.length, 6)} cards válidos de ${cards.length} totais`);
     }
     
     // Executar o limitador após o carregamento da página
