@@ -242,12 +242,25 @@ def processar_pagamento_mounjaro():
             
             app.logger.info(f"[PROD] Dados de pagamento obtidos - ID: {transaction_id}, PIX Code: {'Obtido' if pix_code else 'Não encontrado'}, QR Code: {'Obtido' if pix_qrcode else 'Não encontrado'}")
             
+            # Extrair e armazenar parâmetros UTM e outros na sessão para acompanhamento durante o funil
+            utm_params = payment_data.get('utm_params', {})
+            if utm_params:
+                app.logger.info(f"[PROD] Parâmetros UTM recebidos: {utm_params}")
+                
+                # Armazenar na sessão para uso posterior
+                session['utm_params'] = utm_params
+                
+                # Armazenar individualmente parâmetros UTM para facilitar acesso
+                for param_name, param_value in utm_params.items():
+                    session[param_name] = param_value
+            
             return jsonify({
                 'success': True,
                 'transaction_id': transaction_id,
                 'pix_code': pix_code,
                 'pix_qrcode': pix_qrcode,
-                'amount': payment_data['amount']
+                'amount': payment_data['amount'],
+                'utm_params': utm_params  # Retornar UTM parâmetros na resposta
             })
 
         except Exception as e:
@@ -309,7 +322,16 @@ def verificar_pagamento_mounjaro():
                     # Não interrompemos o fluxo se houver erro com a Utmify
                     app.logger.error(f"[PROD] Erro ao atualizar status na Utmify: {str(e)}")
                 
-                return jsonify({'success': True, 'status': 'paid', 'message': 'Pagamento confirmado'})
+                # Recuperar parâmetros UTM e outros da sessão
+                utm_params = session.get('utm_params', {})
+                app.logger.info(f"[PROD] Recuperados parâmetros UTM da sessão: {utm_params}")
+                
+                return jsonify({
+                    'success': True, 
+                    'status': 'paid', 
+                    'message': 'Pagamento confirmado', 
+                    'utm_params': utm_params  # Retornar UTM parâmetros na resposta
+                })
             elif status in ['pending', 'waiting', 'processing']:
                 return jsonify({'success': True, 'status': 'pending', 'message': 'Aguardando pagamento'})
             elif status in ['cancelled', 'canceled', 'failed', 'rejected']:
@@ -350,10 +372,27 @@ def compra_sucesso():
 
         # Obter a data atual
         order_date = datetime.now().strftime("%d/%m/%Y %H:%M")
+        
+        # Recuperar parâmetros UTM da sessão para passar para a página
+        utm_params = session.get('utm_params', {})
+        app.logger.info(f"[PROD] Parâmetros UTM passados para página de sucesso: {utm_params}")
+        
+        # Extrair parâmetros UTM específicos para facilitar o uso na página
+        utm_source = utm_params.get('utm_source', '')
+        utm_medium = utm_params.get('utm_medium', '')
+        utm_campaign = utm_params.get('utm_campaign', '')
+        utm_content = utm_params.get('utm_content', '')
+        utm_term = utm_params.get('utm_term', '')
 
         return render_template('compra_sucesso.html', 
                               order_number=order_number, 
-                              order_date=order_date)
+                              order_date=order_date,
+                              utm_params=utm_params,
+                              utm_source=utm_source,
+                              utm_medium=utm_medium,
+                              utm_campaign=utm_campaign,
+                              utm_content=utm_content,
+                              utm_term=utm_term)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de confirmação de compra: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
