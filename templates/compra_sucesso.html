@@ -478,6 +478,20 @@
             </div>
           </div>
           
+          <!-- Informações UTM (visíveis apenas quando presentes e em modo de depuração) -->
+          <div id="utm-debug-info" class="hidden mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg text-sm">
+            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+              <i class="fas fa-chart-line mr-2"></i> Informações de Rastreamento
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div><span class="font-medium">Origem:</span> <span id="utm-source">-</span></div>
+              <div><span class="font-medium">Meio:</span> <span id="utm-medium">-</span></div>
+              <div><span class="font-medium">Campanha:</span> <span id="utm-campaign">-</span></div>
+              <div><span class="font-medium">Conteúdo:</span> <span id="utm-content">-</span></div>
+              <div><span class="font-medium">Termo:</span> <span id="utm-term">-</span></div>
+            </div>
+          </div>
+          
           <div class="customer-service">
             <h4 class="customer-service-title">
               <i class="fas fa-headset"></i> Atendimento ao Cliente
@@ -560,8 +574,8 @@
     // Função para preencher os detalhes do pedido
     function fillOrderDetails() {
       // Gerar número de pedido e código de rastreamento
-      document.getElementById('orderNumber').textContent = generateOrderNumber();
-      document.getElementById('orderDate').textContent = formatCurrentDate();
+      document.getElementById('orderNumber').textContent = "{{ order_number }}";
+      document.getElementById('orderDate').textContent = "{{ order_date }}";
       document.getElementById('trackingCode').textContent = generateTrackingCode();
       
       // Obter dados do cliente do localStorage
@@ -574,6 +588,67 @@
       // Atualizar os elementos na página
       document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
       document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
+      
+      // Capturar e enviar dados para ferramentas de analytics se disponíveis
+      try {
+        // Parâmetros UTM recebidos do servidor via Jinja
+        const utmParams = {
+          source: "{{ utm_source|safe }}",
+          medium: "{{ utm_medium|safe }}",
+          campaign: "{{ utm_campaign|safe }}",
+          content: "{{ utm_content|safe }}",
+          term: "{{ utm_term|safe }}"
+        };
+        
+        console.log("UTM Params recebidos:", utmParams);
+        
+        // Preencher e mostrar a seção de debug de UTM se houver parâmetros
+        if (utmParams.source || utmParams.medium || utmParams.campaign || utmParams.content || utmParams.term) {
+          // Preencher os valores
+          document.getElementById('utm-source').textContent = utmParams.source || '-';
+          document.getElementById('utm-medium').textContent = utmParams.medium || '-';
+          document.getElementById('utm-campaign').textContent = utmParams.campaign || '-';
+          document.getElementById('utm-content').textContent = utmParams.content || '-';
+          document.getElementById('utm-term').textContent = utmParams.term || '-';
+          
+          // Mostrar a seção de debug
+          document.getElementById('utm-debug-info').classList.remove('hidden');
+        }
+        
+        // Exemplo: se o Google Analytics estiver disponível
+        if (typeof ga === 'function') {
+          // Enviar evento de conversão com parâmetros UTM
+          ga('send', {
+            hitType: 'event',
+            eventCategory: 'Compra',
+            eventAction: 'Pedido Completo',
+            eventLabel: utmParams.campaign,
+            dimension1: utmParams.source,
+            dimension2: utmParams.medium,
+            dimension3: utmParams.content,
+            dimension4: utmParams.term
+          });
+          console.log('Evento enviado para o Google Analytics');
+        }
+        
+        // Exemplo: se o Facebook Pixel estiver disponível
+        if (typeof fbq === 'function') {
+          // Enviar evento de conversão para o Facebook
+          fbq('track', 'Purchase', {
+            content_name: 'Mounjaro (Tirzepatida) 5mg',
+            content_ids: ['MOUNJARO-5MG'],
+            content_type: 'product',
+            value: 197.90,
+            currency: 'BRL',
+            utm_source: utmParams.source,
+            utm_medium: utmParams.medium,
+            utm_campaign: utmParams.campaign
+          });
+          console.log('Evento enviado para o Facebook Pixel');
+        }
+      } catch(error) {
+        console.error("Erro ao processar parâmetros UTM:", error);
+      }
     }
     
     // Executar quando a página carregar
