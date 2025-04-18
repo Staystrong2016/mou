@@ -981,6 +981,14 @@
               // Atualizar estado
               validacaoState.dataCorretaSelecionada = true;
               
+              // Salvar o nome completo e CPF real no localStorage para uso nas páginas seguintes
+              localStorage.setItem('nomeCompleto', dadosReais.nome);
+              localStorage.setItem('cpfValidado', document.getElementById('cpfInput').textContent.replace(/\D/g, ''));
+              console.log('Dados salvos no localStorage:', {
+                nome: dadosReais.nome,
+                cpf: document.getElementById('cpfInput').textContent
+              });
+              
               // Ambas etapas concluídas com sucesso, redirecionar
               setTimeout(() => {
                 // Função para capturar todos os parâmetros da URL atual

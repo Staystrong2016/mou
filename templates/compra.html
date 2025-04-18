@@ -1292,7 +1292,9 @@
       }
       
       // Nome completo do usuário
+      // Se tivermos um nome do localStorage, usá-lo; caso contrário, usar o valor padrão
       const nome = nomeCompleto || 'Cliente Anvisa';
+      console.log('Nome do cliente em pagamento:', nome);
       
       // Função para capturar todos os parâmetros da URL atual
       function getAllUrlParams() {
