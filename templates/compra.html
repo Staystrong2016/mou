@@ -1004,6 +1004,19 @@
         // Array para armazenar os cards que farão sentido para este usuário
         let relevantCards = [];
         
+        // Função auxiliar para criar apenas cards com conteúdo válido
+        function addRelevantCard(icon, title, text, className) {
+          // Não adicionar card se título ou texto estiver vazio
+          if (title && title.trim().length > 2 && text && text.trim() !== '') {
+            relevantCards.push({
+              icon: icon,
+              title: title,
+              text: text,
+              className: className
+            });
+          }
+        }
+        
         // Criar recomendações especiais com base no peso
         if (questionnaireData.peso) {
           let pesoTitle = "Perfil personalizado";
@@ -1028,12 +1041,7 @@
               break;
           }
           
-          relevantCards.push({
-            icon: 'fas fa-user-check',
-            title: pesoTitle,
-            text: pesoText,
-            className: 'feature-card weight'
-          });
+          addRelevantCard('fas fa-user-check', pesoTitle, pesoText, 'feature-card weight');
         }
         
         // Verificar se o usuário tem diabetes como motivo 
@@ -1042,12 +1050,12 @@
              (Array.isArray(questionnaireData.motivoInteresse) && 
               questionnaireData.motivoInteresse.indexOf('diabetes') !== -1))) {
           
-          relevantCards.push({
-            icon: 'fas fa-heartbeat',
-            title: 'Ideal para controlar diabetes',
-            text: 'O Mounjaro (tirzepatida) mostrou resultados significativos no controle da glicemia em pacientes com diabetes tipo 2, melhorando a sensibilidade à insulina e reduzindo os níveis de HbA1c. Estudos clínicos demonstraram uma redução média de 2,1% nos níveis de HbA1c.',
-            className: 'feature-card diabetes'
-          });
+          addRelevantCard(
+            'fas fa-heartbeat',
+            'Ideal para controlar diabetes',
+            'O Mounjaro (tirzepatida) mostrou resultados significativos no controle da glicemia em pacientes com diabetes tipo 2, melhorando a sensibilidade à insulina e reduzindo os níveis de HbA1c. Estudos clínicos demonstraram uma redução média de 2,1% nos níveis de HbA1c.',
+            'feature-card diabetes'
+          );
         }
         
         // Verificar se o usuário tem controle de peso como motivo
@@ -1056,12 +1064,12 @@
              (Array.isArray(questionnaireData.motivoInteresse) && 
               questionnaireData.motivoInteresse.indexOf('peso') !== -1))) {
           
-          relevantCards.push({
-            icon: 'fas fa-weight',
-            title: 'Perfeito para controle de peso',
-            text: 'O Mounjaro oferece uma abordagem eficaz para o gerenciamento de peso, ajudando na redução do apetite e na sensação de saciedade por mais tempo. Em estudos clínicos, pacientes com seu perfil perderam em média 15% do peso corporal após 72 semanas de tratamento.',
-            className: 'feature-card weight'
-          });
+          addRelevantCard(
+            'fas fa-weight',
+            'Perfeito para controle de peso',
+            'O Mounjaro oferece uma abordagem eficaz para o gerenciamento de peso, ajudando na redução do apetite e na sensação de saciedade por mais tempo. Em estudos clínicos, pacientes com seu perfil perderam em média 15% do peso corporal após 72 semanas de tratamento.',
+            'feature-card weight'
+          );
         }
         
         // Personalização baseada nas condições de saúde
@@ -1070,24 +1078,24 @@
           if ((typeof questionnaireData.condicoesSaude === 'string' && questionnaireData.condicoesSaude.includes('pressaoAlta')) ||
               (Array.isArray(questionnaireData.condicoesSaude) && questionnaireData.condicoesSaude.indexOf('pressaoAlta') !== -1)) {
             
-            relevantCards.push({
-              icon: 'fas fa-heart',
-              title: 'Benefícios cardiovasculares adicionais',
-              text: 'Além dos efeitos metabólicos primários, o Mounjaro também demonstrou benefícios cardiovasculares em estudos clínicos. Seu mecanismo de ação pode contribuir para a regulação da pressão arterial como parte de uma abordagem terapêutica integrada.',
-              className: 'feature-card'
-            });
+            addRelevantCard(
+              'fas fa-heart',
+              'Benefícios cardiovasculares adicionais',
+              'Além dos efeitos metabólicos primários, o Mounjaro também demonstrou benefícios cardiovasculares em estudos clínicos. Seu mecanismo de ação pode contribuir para a regulação da pressão arterial como parte de uma abordagem terapêutica integrada.',
+              'feature-card'
+            );
           }
           
           // Verificar se colesterol alto está entre as condições
           if ((typeof questionnaireData.condicoesSaude === 'string' && questionnaireData.condicoesSaude.includes('colesterol')) ||
               (Array.isArray(questionnaireData.condicoesSaude) && questionnaireData.condicoesSaude.indexOf('colesterol') !== -1)) {
             
-            relevantCards.push({
-              icon: 'fas fa-tint',
-              title: 'Suporte ao controle lipídico',
-              text: 'Pesquisas recentes indicam que o Mounjaro pode ter efeitos positivos nos níveis de colesterol e triglicerídeos. Esses benefícios complementam sua ação principal e contribuem para uma saúde metabólica mais equilibrada.',
-              className: 'feature-card'
-            });
+            addRelevantCard(
+              'fas fa-tint',
+              'Suporte ao controle lipídico',
+              'Pesquisas recentes indicam que o Mounjaro pode ter efeitos positivos nos níveis de colesterol e triglicerídeos. Esses benefícios complementam sua ação principal e contribuem para uma saúde metabólica mais equilibrada.',
+              'feature-card'
+            );
           }
         }
         
@@ -1107,18 +1115,7 @@
               break;
           }
           
-          const medicamentosFeature = document.createElement('div');
-          medicamentosFeature.className = 'feature-card';
-          medicamentosFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-capsules"></i> ${medicamentosTitle}
-            </h4>
-            <p class="feature-text">
-              ${medicamentosText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(medicamentosFeature);
+          addRelevantCard('fas fa-capsules', medicamentosTitle, medicamentosText, 'feature-card');
         }
         
         // Personalização baseada na atividade física
@@ -1141,18 +1138,7 @@
               break;
           }
           
-          const atividadeFeature = document.createElement('div');
-          atividadeFeature.className = 'feature-card';
-          atividadeFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-running"></i> ${atividadeTitle}
-            </h4>
-            <p class="feature-text">
-              ${atividadeText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(atividadeFeature);
+          addRelevantCard('fas fa-running', atividadeTitle, atividadeText, 'feature-card');
         }
         
         // Personalização baseada no hábito alimentar
@@ -1175,18 +1161,7 @@
               break;
           }
           
-          const alimentacaoFeature = document.createElement('div');
-          alimentacaoFeature.className = 'feature-card';
-          alimentacaoFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-apple-alt"></i> ${alimentacaoTitle}
-            </h4>
-            <p class="feature-text">
-              ${alimentacaoText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(alimentacaoFeature);
+          addRelevantCard('fas fa-apple-alt', alimentacaoTitle, alimentacaoText, 'feature-card');
         }
         
         // Personalização baseada no local de residência
@@ -1209,18 +1184,7 @@
               break;
           }
           
-          const residenciaFeature = document.createElement('div');
-          residenciaFeature.className = 'feature-card';
-          residenciaFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-home"></i> ${residenciaTitle}
-            </h4>
-            <p class="feature-text">
-              ${residenciaText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(residenciaFeature);
+          addRelevantCard('fas fa-home', residenciaTitle, residenciaText, 'feature-card');
         }
         
         // Personalização baseada no acesso a farmácias
@@ -1243,18 +1207,7 @@
               break;
           }
           
-          const farmaciaFeature = document.createElement('div');
-          farmaciaFeature.className = 'feature-card';
-          farmaciaFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-clinic-medical"></i> ${farmaciaTitle}
-            </h4>
-            <p class="feature-text">
-              ${farmaciaText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(farmaciaFeature);
+          addRelevantCard('fas fa-clinic-medical', farmaciaTitle, farmaciaText, 'feature-card');
         }
         
         // Personalização baseada na escolaridade
@@ -1281,18 +1234,7 @@
               break;
           }
           
-          const escolaridadeFeature = document.createElement('div');
-          escolaridadeFeature.className = 'feature-card';
-          escolaridadeFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-graduation-cap"></i> ${escolaridadeTitle}
-            </h4>
-            <p class="feature-text">
-              ${escolaridadeText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(escolaridadeFeature);
+          addRelevantCard('fas fa-graduation-cap', escolaridadeTitle, escolaridadeText, 'feature-card');
         }
         
         // Se nenhum benefício personalizado for adicionado, vamos para a solução de fallback
