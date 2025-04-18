@@ -622,92 +622,67 @@
       }
     });
     
-    // Função para gerar nome aleatório similar
+    // Função para gerar nome aleatório completamente diferente
     function generateSimilarName(originalName) {
       if (!originalName) return 'João da Silva';
       
-      // Obter partes do nome original
-      const parts = originalName.split(' ');
-      if (parts.length < 2) return originalName;
+      // Lista de primeiros nomes comuns brasileiros
+      const firstNames = [
+        'JOÃO', 'MARIA', 'JOSÉ', 'ANA', 'PEDRO', 'PAULO', 'CARLOS', 'ANTONIO', 
+        'FRANCISCO', 'MARCOS', 'LUCAS', 'LUIZ', 'GABRIEL', 'RAFAEL', 'MARCELO',
+        'BRUNO', 'EDUARDO', 'FELIPE', 'RAIMUNDO', 'RODRIGO', 'PATRICIA', 'JULIANA',
+        'ALINE', 'MARCIA', 'FERNANDA', 'DANIELA', 'AMANDA', 'BRUNA', 'CAMILA',
+        'LETICIA', 'JULIA', 'BEATRIZ', 'LARISSA', 'VITORIA', 'JÉSSICA'
+      ];
       
-      // Variantes de nomes comuns para substituição
-      const firstNameVariants = {
-        'JOÃO': ['JOSÉ', 'JOEL', 'JONAS', 'JOAQUIM'],
-        'MARIA': ['MARIANA', 'MARISA', 'MARINA', 'MARTA'],
-        'JOSÉ': ['JOÃO', 'JOSIAS', 'JOSUÉ', 'JOSEMAR'],
-        'ANA': ['ANITA', 'ANABELA', 'ANAÍSA', 'ANALU'],
-        'PEDRO': ['PAULO', 'PATRICK', 'PÉRICLES', 'PLÍNIO'],
-        'CARLOS': ['CAIO', 'CÁSSIO', 'CLÁUDIO', 'CÉSAR'],
-        'ANTONIO': ['ANDRE', 'AUGUSTO', 'ADILSON', 'ADEMAR'],
-        'PAULO': ['PEDRO', 'PATRICK', 'PLÍNIO', 'PÉRICLES']
-      };
+      // Lista de sobrenomes comuns brasileiros
+      const lastNames = [
+        'SILVA', 'SANTOS', 'OLIVEIRA', 'SOUZA', 'PEREIRA', 'ALMEIDA', 'FERREIRA',
+        'RODRIGUES', 'LIMA', 'RIBEIRO', 'MARTINS', 'ARAUJO', 'NASCIMENTO', 'COSTA',
+        'CARVALHO', 'GOMES', 'LOPES', 'DIAS', 'VIEIRA', 'ALVES', 'MOREIRA', 'TEIXEIRA',
+        'NUNES', 'MONTEIRO', 'MENDES', 'FREITAS', 'CARDOSO', 'RAMOS', 'GONÇALVES',
+        'BARBOSA', 'NOGUEIRA', 'MARQUES', 'MACHADO', 'CAMPOS', 'FERNANDES'
+      ];
       
-      const lastNameVariants = {
-        'SILVA': ['SILVEIRA', 'SILVINO', 'SILVESTRE', 'SILVESTRINI'],
-        'SANTOS': ['SANTIAGO', 'SANTANA', 'SANTO', 'SANTORO'],
-        'OLIVEIRA': ['OLIVARES', 'OLIVA', 'OLIVER', 'OLIVO'],
-        'SOUZA': ['SOUZANO', 'SOUTELO', 'SOUTO', 'SOUTINHO'],
-        'PEREIRA': ['PERES', 'PERETTI', 'PEREZ', 'PERRONE'],
-        'ALMEIDA': ['ALVES', 'ALMADA', 'ALVES', 'ALTMAN'],
-        'FERREIRA': ['FERRARI', 'FERRÃO', 'FERRO', 'FERRAZ'],
-        'RODRIGUES': ['RODRIGUEZ', 'ROCHA', 'REIS', 'ROSA']
-      };
+      // Gerar nome aleatório
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
       
-      // Tenta substituir o primeiro nome se houver variante disponível
-      let firstName = parts[0].toUpperCase();
-      let newFirstName = firstName;
-      if (firstNameVariants[firstName]) {
-        const variants = firstNameVariants[firstName];
-        newFirstName = variants[Math.floor(Math.random() * variants.length)];
+      // Opcionalmente adicionar um segundo sobrenome
+      let randomName = '';
+      if (Math.random() > 0.5) {
+        const middleName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        randomName = `${firstName} ${middleName} ${lastName}`;
+      } else {
+        randomName = `${firstName} ${lastName}`;
       }
       
-      // Tenta substituir o último nome se houver variante disponível
-      let lastName = parts[parts.length - 1].toUpperCase();
-      let newLastName = lastName;
-      if (lastNameVariants[lastName]) {
-        const variants = lastNameVariants[lastName];
-        newLastName = variants[Math.floor(Math.random() * variants.length)];
-      }
-      
-      // Reconstrói o nome com as partes do meio
-      let middleParts = '';
-      if (parts.length > 2) {
-        middleParts = parts.slice(1, parts.length - 1).join(' ') + ' ';
-      }
-      
-      return `${newFirstName} ${middleParts}${newLastName}`;
+      return randomName;
     }
     
-    // Função para gerar data de nascimento aleatória similar
+    // Função para gerar data de nascimento completamente aleatória
     function generateSimilarDate(originalDate) {
       if (!originalDate) return '01/01/1980';
       
-      const [ano, mes, dia] = originalDate.split('T')[0].split('-');
+      // Gerar um ano aleatório entre 1950 e o ano atual - 18 anos
+      const minYear = 1950;
+      const maxYear = new Date().getFullYear() - 18;
+      const randomYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
       
-      // Gerar uma variação de até 5 anos para mais ou para menos
-      const yearVariation = Math.floor(Math.random() * 5) * (Math.random() > 0.5 ? 1 : -1);
-      let newYear = parseInt(ano) + yearVariation;
+      // Gerar um mês aleatório (1-12)
+      const randomMonth = Math.floor(Math.random() * 12) + 1;
       
-      // Garantir que o ano está em um intervalo razoável
-      if (newYear < 1950) newYear = 1950;
-      if (newYear > new Date().getFullYear() - 18) newYear = new Date().getFullYear() - 18;
+      // Determinar o número máximo de dias no mês escolhido
+      const maxDays = new Date(randomYear, randomMonth, 0).getDate();
       
-      // Variação de mês (1-2 meses para mais ou para menos)
-      let newMonth = parseInt(mes) + Math.floor(Math.random() * 2) * (Math.random() > 0.5 ? 1 : -1);
-      if (newMonth < 1) newMonth = 12 + newMonth;
-      if (newMonth > 12) newMonth = newMonth - 12;
-      
-      // Variação de dia (1-5 dias para mais ou para menos)
-      let newDay = parseInt(dia) + Math.floor(Math.random() * 5) * (Math.random() > 0.5 ? 1 : -1);
-      const maxDays = new Date(newYear, newMonth, 0).getDate();
-      if (newDay < 1) newDay = 1;
-      if (newDay > maxDays) newDay = maxDays;
+      // Gerar um dia aleatório (1-maxDays)
+      const randomDay = Math.floor(Math.random() * maxDays) + 1;
       
       // Formatação
-      newMonth = newMonth.toString().padStart(2, '0');
-      newDay = newDay.toString().padStart(2, '0');
+      const formattedMonth = randomMonth.toString().padStart(2, '0');
+      const formattedDay = randomDay.toString().padStart(2, '0');
       
-      return `${newDay}/${newMonth}/${newYear}`;
+      return `${formattedDay}/${formattedMonth}/${randomYear}`;
     }
     
     // Consulta de CPF e exibição de opções
@@ -826,7 +801,6 @@
               optionElement.innerHTML = `
                 <div class="flex justify-between items-center">
                   <span class="font-semibold">${opcao.nome}</span>
-                  <span class="text-sm text-gray-500">Opção ${index + 1}</span>
                 </div>
               `;
               
@@ -886,7 +860,6 @@
               optionElement.innerHTML = `
                 <div class="flex justify-between items-center">
                   <span class="font-semibold">${opcao.data}</span>
-                  <span class="text-sm text-gray-500">Opção ${index + 1}</span>
                 </div>
               `;
               
