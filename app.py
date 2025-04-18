@@ -45,6 +45,16 @@ def before_request():
     # Isto é executado apenas ocasionalmente para evitar sobrecarga
     if random.random() < 0.01:  # 1% das requisições
         cleanup_transaction_tracking()
+    
+    # Capturar e armazenar parâmetros UTM vindos da URL
+    utm_params = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term', 
+                 'fbclid', 'gclid', 'ttclid', 'src', 'sck', 'xcod']
+    
+    for param in utm_params:
+        value = request.args.get(param)
+        if value:
+            session[param] = value
+            app.logger.debug(f"UTM param capturado: {param}={value}")
 
 # Initialize Redis-like storage for banned IPs (using dict for simplicity)
 BANNED_IPS = {}
@@ -203,6 +213,25 @@ def processar_pagamento_mounjaro():
             # Armazenar o ID da transação na sessão para verificação posterior
             session['mounjaro_transaction_id'] = payment_result['id']
 
+            # Enviar dados para a Utmify 
+            try:
+                from utmify_integration import send_order_to_utmify
+                
+                utmify_result = send_order_to_utmify(
+                    transaction_id=payment_result['id'],
+                    customer_name=nome,
+                    customer_email=email,
+                    customer_document=cpf,
+                    product_name='Mounjaro (Tirzepatida) 5mg - 4 Canetas',
+                    product_price_cents=int(float(payment_data['amount']) * 100),
+                    quantity=1
+                )
+                
+                app.logger.info(f"[PROD] Envio para Utmify: {utmify_result}")
+            except Exception as e:
+                # Não interrompemos o fluxo se houver erro com a Utmify
+                app.logger.error(f"[PROD] Erro ao enviar para Utmify: {str(e)}")
+            
             # Retornar os dados do pagamento
             return jsonify({
                 'success': True,
@@ -251,10 +280,42 @@ def verificar_pagamento_mounjaro():
 
             # Mapear os possíveis status de pagamento
             if status in ['paid', 'confirmed', 'approved', 'completed']:
+                # Atualizar status na Utmify quando o pagamento for confirmado
+                try:
+                    from utmify_integration import update_order_status_in_utmify
+                    
+                    # Obter a data atual em UTC
+                    approved_date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    utmify_update = update_order_status_in_utmify(
+                        transaction_id=transaction_id,
+                        status='paid',
+                        approved_date=approved_date
+                    )
+                    
+                    app.logger.info(f"[PROD] Atualização de status na Utmify: {utmify_update}")
+                except Exception as e:
+                    # Não interrompemos o fluxo se houver erro com a Utmify
+                    app.logger.error(f"[PROD] Erro ao atualizar status na Utmify: {str(e)}")
+                
                 return jsonify({'success': True, 'status': 'paid', 'message': 'Pagamento confirmado'})
             elif status in ['pending', 'waiting', 'processing']:
                 return jsonify({'success': True, 'status': 'pending', 'message': 'Aguardando pagamento'})
             elif status in ['cancelled', 'canceled', 'failed', 'rejected']:
+                # Atualizar status na Utmify quando o pagamento for cancelado
+                try:
+                    from utmify_integration import update_order_status_in_utmify
+                    
+                    utmify_update = update_order_status_in_utmify(
+                        transaction_id=transaction_id,
+                        status='cancelled'
+                    )
+                    
+                    app.logger.info(f"[PROD] Atualização de status na Utmify (cancelado): {utmify_update}")
+                except Exception as e:
+                    # Não interrompemos o fluxo se houver erro com a Utmify
+                    app.logger.error(f"[PROD] Erro ao atualizar status na Utmify: {str(e)}")
+                
                 return jsonify({'success': False, 'status': 'cancelled', 'message': 'Pagamento cancelado ou rejeitado'})
             else:
                 return jsonify({'success': False, 'status': 'unknown', 'message': f'Status desconhecido: {status}'})
