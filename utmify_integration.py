@@ -91,7 +91,7 @@ def send_order_to_utmify(
     # Formatação dos dados conforme esperado pela API da Utmify
     utmify_data = {
         'orderId': transaction_id,
-        'platform': 'For4Payments',  # Adaptar conforme sua plataforma
+        'platform': 'NovaEraPagamentos',  # Adaptar conforme sua plataforma
         'paymentMethod': 'pix',
         'status': 'waiting_payment',
         'createdAt': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),  # UTC
@@ -335,7 +335,7 @@ def process_payment_webhook(payment_data: Dict[str, Any]) -> Dict[str, Any]:
         # Preparar os dados para envio à Utmify
         utmify_data = {
             'orderId': transaction_id,
-            'platform': 'For4Payments',
+            'platform': 'NovaEraPagamentos',
             'paymentMethod': 'pix',
             'status': 'paid',
             'createdAt': created_at,
