@@ -998,11 +998,11 @@
         // Limpar conteúdo existente
         featuresContainer.innerHTML = '';
         
+        // Array para armazenar os cards que farão sentido para este usuário
+        let relevantCards = [];
+        
         // Criar recomendações especiais com base no peso
         if (questionnaireData.peso) {
-          const pesoFeature = document.createElement('div');
-          pesoFeature.className = 'feature-card weight';
-          
           let pesoTitle = "Perfil personalizado";
           let pesoText = "";
           
@@ -1025,16 +1025,12 @@
               break;
           }
           
-          pesoFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-user-check"></i> ${pesoTitle}
-            </h4>
-            <p class="feature-text">
-              ${pesoText}
-            </p>
-          `;
-          
-          featuresContainer.appendChild(pesoFeature);
+          relevantCards.push({
+            icon: 'fas fa-user-check',
+            title: pesoTitle,
+            text: pesoText,
+            className: 'feature-card weight'
+          });
         }
         
         // Verificar se o usuário tem diabetes como motivo 
@@ -1043,18 +1039,12 @@
              (Array.isArray(questionnaireData.motivoInteresse) && 
               questionnaireData.motivoInteresse.indexOf('diabetes') !== -1))) {
           
-          const diabetesFeature = document.createElement('div');
-          diabetesFeature.className = 'feature-card diabetes';
-          diabetesFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-heartbeat"></i> Ideal para controlar diabetes
-            </h4>
-            <p class="feature-text">
-              O Mounjaro (tirzepatida) mostrou resultados significativos no controle da glicemia em pacientes com diabetes tipo 2, melhorando a sensibilidade à insulina e reduzindo os níveis de HbA1c. Estudos clínicos demonstraram uma redução média de 2,1% nos níveis de HbA1c.
-            </p>
-          `;
-          
-          featuresContainer.appendChild(diabetesFeature);
+          relevantCards.push({
+            icon: 'fas fa-heartbeat',
+            title: 'Ideal para controlar diabetes',
+            text: 'O Mounjaro (tirzepatida) mostrou resultados significativos no controle da glicemia em pacientes com diabetes tipo 2, melhorando a sensibilidade à insulina e reduzindo os níveis de HbA1c. Estudos clínicos demonstraram uma redução média de 2,1% nos níveis de HbA1c.',
+            className: 'feature-card diabetes'
+          });
         }
         
         // Verificar se o usuário tem controle de peso como motivo
@@ -1063,18 +1053,12 @@
              (Array.isArray(questionnaireData.motivoInteresse) && 
               questionnaireData.motivoInteresse.indexOf('peso') !== -1))) {
           
-          const weightFeature = document.createElement('div');
-          weightFeature.className = 'feature-card weight';
-          weightFeature.innerHTML = `
-            <h4 class="feature-title">
-              <i class="fas fa-weight"></i> Perfeito para controle de peso
-            </h4>
-            <p class="feature-text">
-              O Mounjaro oferece uma abordagem eficaz para o gerenciamento de peso, ajudando na redução do apetite e na sensação de saciedade por mais tempo. Em estudos clínicos, pacientes com seu perfil perderam em média 15% do peso corporal após 72 semanas de tratamento.
-            </p>
-          `;
-          
-          featuresContainer.appendChild(weightFeature);
+          relevantCards.push({
+            icon: 'fas fa-weight',
+            title: 'Perfeito para controle de peso',
+            text: 'O Mounjaro oferece uma abordagem eficaz para o gerenciamento de peso, ajudando na redução do apetite e na sensação de saciedade por mais tempo. Em estudos clínicos, pacientes com seu perfil perderam em média 15% do peso corporal após 72 semanas de tratamento.',
+            className: 'feature-card weight'
+          });
         }
         
         // Personalização baseada nas condições de saúde
@@ -1083,36 +1067,24 @@
           if ((typeof questionnaireData.condicoesSaude === 'string' && questionnaireData.condicoesSaude.includes('pressaoAlta')) ||
               (Array.isArray(questionnaireData.condicoesSaude) && questionnaireData.condicoesSaude.indexOf('pressaoAlta') !== -1)) {
             
-            const pressaoFeature = document.createElement('div');
-            pressaoFeature.className = 'feature-card';
-            pressaoFeature.innerHTML = `
-              <h4 class="feature-title">
-                <i class="fas fa-heart"></i> Benefícios cardiovasculares adicionais
-              </h4>
-              <p class="feature-text">
-                Além dos efeitos metabólicos primários, o Mounjaro também demonstrou benefícios cardiovasculares em estudos clínicos. Seu mecanismo de ação pode contribuir para a regulação da pressão arterial como parte de uma abordagem terapêutica integrada.
-              </p>
-            `;
-            
-            featuresContainer.appendChild(pressaoFeature);
+            relevantCards.push({
+              icon: 'fas fa-heart',
+              title: 'Benefícios cardiovasculares adicionais',
+              text: 'Além dos efeitos metabólicos primários, o Mounjaro também demonstrou benefícios cardiovasculares em estudos clínicos. Seu mecanismo de ação pode contribuir para a regulação da pressão arterial como parte de uma abordagem terapêutica integrada.',
+              className: 'feature-card'
+            });
           }
           
           // Verificar se colesterol alto está entre as condições
           if ((typeof questionnaireData.condicoesSaude === 'string' && questionnaireData.condicoesSaude.includes('colesterol')) ||
               (Array.isArray(questionnaireData.condicoesSaude) && questionnaireData.condicoesSaude.indexOf('colesterol') !== -1)) {
             
-            const colesterolFeature = document.createElement('div');
-            colesterolFeature.className = 'feature-card';
-            colesterolFeature.innerHTML = `
-              <h4 class="feature-title">
-                <i class="fas fa-tint"></i> Suporte ao controle lipídico
-              </h4>
-              <p class="feature-text">
-                Pesquisas recentes indicam que o Mounjaro pode ter efeitos positivos nos níveis de colesterol e triglicerídeos. Esses benefícios complementam sua ação principal e contribuem para uma saúde metabólica mais equilibrada.
-              </p>
-            `;
-            
-            featuresContainer.appendChild(colesterolFeature);
+            relevantCards.push({
+              icon: 'fas fa-tint',
+              title: 'Suporte ao controle lipídico',
+              text: 'Pesquisas recentes indicam que o Mounjaro pode ter efeitos positivos nos níveis de colesterol e triglicerídeos. Esses benefícios complementam sua ação principal e contribuem para uma saúde metabólica mais equilibrada.',
+              className: 'feature-card'
+            });
           }
         }
         
@@ -1466,6 +1438,30 @@
       } else {
         header.classList.remove('shadow');
       }
+    });
+    
+    // Função para limitar o número de cards exibidos
+    function limitarCardsRelevantes() {
+      const featuresContainer = document.getElementById('personalizedFeatures');
+      if (!featuresContainer) return;
+      
+      // Obter todos os cards existentes
+      const cards = featuresContainer.querySelectorAll('.feature-card');
+      if (cards.length <= 6) return; // Se tiver 6 ou menos, mantém todos
+      
+      // Limitar a exibição a 6 cards
+      cards.forEach((card, index) => {
+        if (index >= 6) {
+          card.style.display = 'none';
+        }
+      });
+      
+      console.log(`Limitando exibição a 6 cards de ${cards.length} disponíveis`);
+    }
+    
+    // Executar o limitador após o carregamento da página
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(limitarCardsRelevantes, 500);
     });
   </script>
 </body>
