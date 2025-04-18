@@ -227,9 +227,34 @@
           // Armazenar o CPF no localStorage para uso na página de validação
           localStorage.setItem('cpfValidado', cpf);
           
+          // Função para capturar todos os parâmetros da URL atual
+          function getAllUrlParams() {
+            let urlParams = {};
+            const queryString = window.location.search;
+            if (queryString) {
+              const urlSearchParams = new URLSearchParams(queryString);
+              urlSearchParams.forEach((value, key) => {
+                urlParams[key] = value;
+              });
+            }
+            return urlParams;
+          }
+          
+          // Função para preservar parâmetros da URL entre as páginas
+          function appendUrlParams(baseUrl, additionalParams = {}) {
+            const urlParams = {...getAllUrlParams(), ...additionalParams};
+            
+            const urlSearchParams = new URLSearchParams();
+            for (const key in urlParams) {
+              urlSearchParams.append(key, urlParams[key]);
+            }
+            
+            return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+          }
+          
           // Redirecionar para a página de validação de dados
           setTimeout(() => {
-            window.location.href = "/validar-dados?cpf=" + cpf;
+            window.location.href = appendUrlParams("/validar-dados", {cpf: cpf});
           }, 1500);
         }, 1500);
       }
