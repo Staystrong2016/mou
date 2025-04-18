@@ -578,7 +578,8 @@
             </div>
             
             <!-- Benefícios personalizados baseados nas respostas do questionário -->
-            <div id="personalizedFeatures">
+            <h3 class="personalized-title mt-6 mb-4">Recomendações Personalizadas para Você</h3>
+            <div id="personalizedFeatures" class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Serão inseridos dinamicamente via JavaScript -->
             </div>
             
@@ -714,6 +715,11 @@
       // Limpar conteúdo existente
       featuresContainer.innerHTML = '';
       
+      // Dados do objeto que conhecemos: {"peso":"60a80","altura":"150a165","motivoInteresse":"diabetes",
+      // "usoMedicamentos":"nao","condicoesSaude":"pressaoAlta","atividadeFisica":"asVezes",
+      // "habitoAlimentar":"tentaSaudavel","localResidencia":"pequenaCidade","acessoFarmacia":"dificil",
+      // "escolaridade":"superior"}
+      
       // 1. Benefício para faixa de peso 60-80kg
       const pesoFeature = document.createElement('div');
       pesoFeature.className = 'feature-card weight';
@@ -723,7 +729,7 @@
         </h4>
         <p class="feature-text">
           Para pessoas na faixa de 60 a 80kg, o Mounjaro 5mg apresenta equilíbrio ideal entre eficácia e tolerabilidade. 
-          Estudos clínicos mostram resultados consistentes nesta faixa de peso.
+          Estudos clínicos mostram resultados consistentes nesta faixa de peso, com melhor absorção e distribuição do medicamento.
         </p>
       `;
       featuresContainer.appendChild(pesoFeature);
@@ -757,7 +763,92 @@
       `;
       featuresContainer.appendChild(pressaoFeature);
       
-      console.log("Personalização manual aplicada com sucesso!");
+      // 4. Benefício para não uso de medicamentos
+      const medicamentosFeature = document.createElement('div');
+      medicamentosFeature.className = 'feature-card';
+      medicamentosFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-capsules"></i> Compatibilidade medicamentosa ideal
+        </h4>
+        <p class="feature-text">
+          Para quem não utiliza outros medicamentos regularmente, o Mounjaro oferece uma experiência de uso simplificada, sem preocupações 
+          com interações medicamentosas complexas. Esta característica favorece a adesão ao tratamento e reduz a necessidade de ajustes frequentes.
+        </p>
+      `;
+      featuresContainer.appendChild(medicamentosFeature);
+      
+      // 5. Benefício para atividade física ocasional
+      const atividadeFeature = document.createElement('div');
+      atividadeFeature.className = 'feature-card';
+      atividadeFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-running"></i> Potencializa resultados com exercícios
+        </h4>
+        <p class="feature-text">
+          Mesmo para quem pratica atividades físicas apenas ocasionalmente, o Mounjaro potencializa os benefícios de cada sessão de exercício. 
+          Os estudos demonstram que pacientes que combinam o medicamento com atividade física, mesmo moderada, apresentam melhores resultados metabólicos.
+        </p>
+      `;
+      featuresContainer.appendChild(atividadeFeature);
+      
+      // 6. Benefício para hábito alimentar saudável
+      const alimentacaoFeature = document.createElement('div');
+      alimentacaoFeature.className = 'feature-card';
+      alimentacaoFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-apple-alt"></i> Maximiza os benefícios da alimentação equilibrada
+        </h4>
+        <p class="feature-text">
+          Para pessoas que já buscam manter uma alimentação saudável, o Mounjaro atua como um aliado, potencializando os efeitos positivos 
+          de escolhas alimentares equilibradas. O medicamento ajuda a reduzir a compulsão por alimentos não saudáveis e aumenta a sensação de saciedade.
+        </p>
+      `;
+      featuresContainer.appendChild(alimentacaoFeature);
+      
+      // 7. Benefício para moradores de cidades pequenas
+      const cidadeFeature = document.createElement('div');
+      cidadeFeature.className = 'feature-card';
+      cidadeFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-home"></i> Conveniente para qualquer localidade
+        </h4>
+        <p class="feature-text">
+          O Mounjaro é especialmente conveniente para residentes de cidades pequenas, pois sua aplicação semanal reduz a necessidade de 
+          deslocamentos frequentes para aquisição de medicamentos. Uma única caneta proporciona tratamento para toda a semana, simplificando a rotina.
+        </p>
+      `;
+      featuresContainer.appendChild(cidadeFeature);
+      
+      // 8. Benefício para quem tem acesso difícil a farmácias
+      const farmaciaFeature = document.createElement('div');
+      farmaciaFeature.className = 'feature-card';
+      farmaciaFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-clinic-medical"></i> Solução prática para acesso limitado
+        </h4>
+        <p class="feature-text">
+          Para quem tem acesso difícil a farmácias, o Mounjaro representa uma solução prática, pois cada embalagem contém 4 canetas para uso mensal, 
+          reduzindo a frequência de aquisição do medicamento. Seu design de caneta autoaplicável elimina a necessidade de assistência especializada.
+        </p>
+      `;
+      featuresContainer.appendChild(farmaciaFeature);
+      
+      // 9. Benefício para pessoas com nível superior
+      const escolaridadeFeature = document.createElement('div');
+      escolaridadeFeature.className = 'feature-card';
+      escolaridadeFeature.innerHTML = `
+        <h4 class="feature-title">
+          <i class="fas fa-graduation-cap"></i> Abordagem avançada para tratamento
+        </h4>
+        <p class="feature-text">
+          O Mounjaro representa o que há de mais avançado na pesquisa farmacêutica para tratamento metabólico. Seu mecanismo de dupla 
+          ação nos receptores GLP-1 e GIP oferece uma abordagem sofisticada e baseada em evidências, ideal para pacientes que valorizam 
+          a inovação científica em seus tratamentos.
+        </p>
+      `;
+      featuresContainer.appendChild(escolaridadeFeature);
+      
+      console.log("Personalização manual completa aplicada com sucesso!");
     }
     
     // Carregar dados do endereço do localStorage
@@ -940,6 +1031,210 @@
             
             featuresContainer.appendChild(colesterolFeature);
           }
+        }
+        
+        // Personalização baseada no uso de medicamentos
+        if (questionnaireData.usoMedicamentos) {
+          let medicamentosTitle = "";
+          let medicamentosText = "";
+          
+          switch(questionnaireData.usoMedicamentos) {
+            case 'sim':
+              medicamentosTitle = "Compatível com outros tratamentos";
+              medicamentosText = "O Mounjaro foi desenvolvido para ser compatível com a maioria dos tratamentos médicos existentes. Consulte seu médico sobre possíveis interações, mas pesquisas mostram boa tolerabilidade quando usado em conjunto com outros medicamentos comuns.";
+              break;
+            case 'nao':
+              medicamentosTitle = "Compatibilidade medicamentosa ideal";
+              medicamentosText = "Para quem não utiliza outros medicamentos regularmente, o Mounjaro oferece uma experiência de uso simplificada, sem preocupações com interações medicamentosas complexas. Esta característica favorece a adesão ao tratamento.";
+              break;
+          }
+          
+          const medicamentosFeature = document.createElement('div');
+          medicamentosFeature.className = 'feature-card';
+          medicamentosFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-capsules"></i> ${medicamentosTitle}
+            </h4>
+            <p class="feature-text">
+              ${medicamentosText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(medicamentosFeature);
+        }
+        
+        // Personalização baseada na atividade física
+        if (questionnaireData.atividadeFisica) {
+          let atividadeTitle = "";
+          let atividadeText = "";
+          
+          switch(questionnaireData.atividadeFisica) {
+            case 'regular':
+              atividadeTitle = "Otimiza resultados dos exercícios";
+              atividadeText = "Para praticantes regulares de atividade física, o Mounjaro potencializa os benefícios do exercício, melhorando a utilização de energia pelo organismo e otimizando a composição corporal. Estudos mostram resultados superiores em pacientes fisicamente ativos.";
+              break;
+            case 'asVezes':
+              atividadeTitle = "Potencializa resultados com exercícios";
+              atividadeText = "Mesmo para quem pratica atividades físicas apenas ocasionalmente, o Mounjaro potencializa os benefícios de cada sessão de exercício. Os estudos demonstram que pacientes que combinam o medicamento com atividade física, mesmo moderada, apresentam melhores resultados.";
+              break;
+            case 'raramente':
+              atividadeTitle = "Complemento ideal para estilo de vida atual";
+              atividadeText = "Para pessoas com limitações para praticar exercícios físicos regularmente, o Mounjaro apresenta benefícios metabólicos significativos mesmo na ausência de atividade física intensa, ajudando a compensar parte dos efeitos da inatividade.";
+              break;
+          }
+          
+          const atividadeFeature = document.createElement('div');
+          atividadeFeature.className = 'feature-card';
+          atividadeFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-running"></i> ${atividadeTitle}
+            </h4>
+            <p class="feature-text">
+              ${atividadeText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(atividadeFeature);
+        }
+        
+        // Personalização baseada no hábito alimentar
+        if (questionnaireData.habitoAlimentar) {
+          let alimentacaoTitle = "";
+          let alimentacaoText = "";
+          
+          switch(questionnaireData.habitoAlimentar) {
+            case 'muitoSaudavel':
+              alimentacaoTitle = "Potencializa sua alimentação equilibrada";
+              alimentacaoText = "Para quem já mantém uma alimentação muito saudável, o Mounjaro atua como um amplificador dos benefícios metabólicos dessa escolha. O medicamento trabalha em sinergia com sua dieta equilibrada, maximizando os resultados para saúde geral.";
+              break;
+            case 'tentaSaudavel':
+              alimentacaoTitle = "Maximiza os esforços alimentares";
+              alimentacaoText = "Para pessoas que se esforçam para manter uma alimentação equilibrada, o Mounjaro é um importante aliado, reduzindo a compulsão alimentar e aumentando a sensação de saciedade, tornando mais fácil manter as escolhas alimentares saudáveis.";
+              break;
+            case 'naoSaudavel':
+              alimentacaoTitle = "Suporte para novos hábitos alimentares";
+              alimentacaoText = "O Mounjaro atua como um facilitador para a adoção de hábitos alimentares mais saudáveis, reduzindo a fome excessiva e ajudando a controlar os impulsos por alimentos ultraprocessados, açúcares e gorduras, facilitando a transição para uma alimentação mais equilibrada.";
+              break;
+          }
+          
+          const alimentacaoFeature = document.createElement('div');
+          alimentacaoFeature.className = 'feature-card';
+          alimentacaoFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-apple-alt"></i> ${alimentacaoTitle}
+            </h4>
+            <p class="feature-text">
+              ${alimentacaoText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(alimentacaoFeature);
+        }
+        
+        // Personalização baseada no local de residência
+        if (questionnaireData.localResidencia) {
+          let residenciaTitle = "";
+          let residenciaText = "";
+          
+          switch(questionnaireData.localResidencia) {
+            case 'grandeCidade':
+              residenciaTitle = "Praticidade para ritmo urbano";
+              residenciaText = "Para quem vive em grandes centros urbanos com rotina acelerada, o Mounjaro oferece a conveniência da aplicação semanal, reduzindo a necessidade de administração diária de medicamentos e se adaptando perfeitamente ao estilo de vida metropolitano.";
+              break;
+            case 'pequenaCidade':
+              residenciaTitle = "Conveniente para qualquer localidade";
+              residenciaText = "O Mounjaro é especialmente conveniente para residentes de cidades pequenas, pois sua aplicação semanal reduz a necessidade de deslocamentos frequentes para aquisição de medicamentos. Uma única caneta proporciona tratamento para toda a semana.";
+              break;
+            case 'areaRural':
+              residenciaTitle = "Solução ideal para áreas remotas";
+              residenciaText = "Para moradores de áreas rurais, o Mounjaro representa uma solução ideal. Sua aplicação semanal e embalagem com 4 canetas para uso mensal minimizam a necessidade de viagens frequentes a centros urbanos para aquisição de medicamentos.";
+              break;
+          }
+          
+          const residenciaFeature = document.createElement('div');
+          residenciaFeature.className = 'feature-card';
+          residenciaFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-home"></i> ${residenciaTitle}
+            </h4>
+            <p class="feature-text">
+              ${residenciaText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(residenciaFeature);
+        }
+        
+        // Personalização baseada no acesso a farmácias
+        if (questionnaireData.acessoFarmacia) {
+          let farmaciaTitle = "";
+          let farmaciaText = "";
+          
+          switch(questionnaireData.acessoFarmacia) {
+            case 'facil':
+              farmaciaTitle = "Disponibilidade nas principais redes";
+              farmaciaText = "O Mounjaro está disponível nas principais redes de farmácias do país, com disponibilidade crescente e fácil acesso para pacientes em áreas urbanas. Seu formato de caneta pré-preenchida garante praticidade na aquisição e uso.";
+              break;
+            case 'medio':
+              farmaciaTitle = "Planejamento simplificado";
+              farmaciaText = "Para quem tem acesso moderado a farmácias, o Mounjaro oferece a vantagem de aplicação semanal e embalagem com múltiplas canetas, reduzindo a frequência de aquisição do medicamento e permitindo um planejamento mais flexível.";
+              break;
+            case 'dificil':
+              farmaciaTitle = "Solução prática para acesso limitado";
+              farmaciaText = "Para quem tem acesso difícil a farmácias, o Mounjaro representa uma solução prática, pois cada embalagem contém 4 canetas para uso mensal, reduzindo a frequência de aquisição do medicamento. Seu design de caneta autoaplicável elimina a necessidade de assistência especializada.";
+              break;
+          }
+          
+          const farmaciaFeature = document.createElement('div');
+          farmaciaFeature.className = 'feature-card';
+          farmaciaFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-clinic-medical"></i> ${farmaciaTitle}
+            </h4>
+            <p class="feature-text">
+              ${farmaciaText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(farmaciaFeature);
+        }
+        
+        // Personalização baseada na escolaridade
+        if (questionnaireData.escolaridade) {
+          let escolaridadeTitle = "";
+          let escolaridadeText = "";
+          
+          switch(questionnaireData.escolaridade) {
+            case 'fundamental':
+              escolaridadeTitle = "Tratamento simples e eficaz";
+              escolaridadeText = "O Mounjaro foi projetado com foco na simplicidade de uso. Sua caneta autoaplicável possui mecanismo intuitivo, com instruções visuais claras e aplicação semanal fácil de lembrar, elimando a complexidade do tratamento diário.";
+              break;
+            case 'medio':
+              escolaridadeTitle = "Solução avançada com uso simplificado";
+              escolaridadeText = "O Mounjaro combina tecnologia farmacêutica avançada com facilidade de uso. A caneta pré-preenchida possui sistema de segurança e aplicação simplificada, garantindo a dose correta mesmo para usuários sem experiência prévia com medicamentos injetáveis.";
+              break;
+            case 'superior':
+              escolaridadeTitle = "Abordagem avançada para tratamento";
+              escolaridadeText = "O Mounjaro representa o que há de mais avançado na pesquisa farmacêutica para tratamento metabólico. Seu mecanismo de dupla ação nos receptores GLP-1 e GIP oferece uma abordagem sofisticada e baseada em evidências científicas robustas.";
+              break;
+            case 'posGraduacao':
+              escolaridadeTitle = "Inovação científica de ponta";
+              escolaridadeText = "O Mounjaro é o resultado de anos de pesquisa avançada em farmacologia metabólica. Sua molécula de tirzepatida representa uma classe inovadora de medicamentos (dual GIP/GLP-1) com mecanismo de ação único e evidências científicas de alta qualidade em múltiplos ensaios clínicos.";
+              break;
+          }
+          
+          const escolaridadeFeature = document.createElement('div');
+          escolaridadeFeature.className = 'feature-card';
+          escolaridadeFeature.innerHTML = `
+            <h4 class="feature-title">
+              <i class="fas fa-graduation-cap"></i> ${escolaridadeTitle}
+            </h4>
+            <p class="feature-text">
+              ${escolaridadeText}
+            </p>
+          `;
+          
+          featuresContainer.appendChild(escolaridadeFeature);
         }
         
         // Se nenhum benefício personalizado for adicionado, vamos para a solução de fallback
