@@ -655,7 +655,13 @@
               return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
             }
             
-            window.location.href = appendUrlParams('/compra_sucesso');
+            // Obter UTM params da resposta se disponível
+            const utmParamsFromResponse = data.utm_params || {};
+            
+            // Mesclar com os parâmetros da URL atual para garantir que nada seja perdido
+            const allParams = {...urlParams, ...utmParamsFromResponse};
+            
+            window.location.href = appendUrlParams('/compra_sucesso', allParams);
           } else if (!isAutoCheck) {
             alert('Pagamento ainda não confirmado. Por favor, aguarde ou verifique se o pagamento foi realizado corretamente.');
           }

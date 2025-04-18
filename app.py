@@ -244,6 +244,26 @@ def processar_pagamento_mounjaro():
             
             # Extrair e armazenar parâmetros UTM e outros na sessão para acompanhamento durante o funil
             utm_params = payment_data.get('utm_params', {})
+            
+            # Se não houver parâmetros UTM no payment_data, tentar extrair da URL atual
+            if not utm_params:
+                # Extrair parâmetros UTM da URL atual via request.args
+                utm_source = request.args.get('utm_source', '')
+                utm_medium = request.args.get('utm_medium', '')
+                utm_campaign = request.args.get('utm_campaign', '')
+                utm_content = request.args.get('utm_content', '')
+                utm_term = request.args.get('utm_term', '')
+                
+                # Construir dicionário de parâmetros UTM
+                if any([utm_source, utm_medium, utm_campaign, utm_content, utm_term]):
+                    utm_params = {
+                        'utm_source': utm_source,
+                        'utm_medium': utm_medium,
+                        'utm_campaign': utm_campaign,
+                        'utm_content': utm_content,
+                        'utm_term': utm_term
+                    }
+            
             if utm_params:
                 app.logger.info(f"[PROD] Parâmetros UTM recebidos: {utm_params}")
                 
@@ -324,6 +344,29 @@ def verificar_pagamento_mounjaro():
                 
                 # Recuperar parâmetros UTM e outros da sessão
                 utm_params = session.get('utm_params', {})
+                
+                # Se utm_params não estiver na sessão, tente recuperar dos parâmetros de URL
+                if not utm_params:
+                    # Extrair parâmetros UTM da URL atual
+                    utm_source = request.args.get('utm_source', '')
+                    utm_medium = request.args.get('utm_medium', '')
+                    utm_campaign = request.args.get('utm_campaign', '')
+                    utm_content = request.args.get('utm_content', '')
+                    utm_term = request.args.get('utm_term', '')
+                    
+                    # Construir dicionário de parâmetros UTM
+                    if any([utm_source, utm_medium, utm_campaign, utm_content, utm_term]):
+                        utm_params = {
+                            'utm_source': utm_source,
+                            'utm_medium': utm_medium,
+                            'utm_campaign': utm_campaign,
+                            'utm_content': utm_content,
+                            'utm_term': utm_term
+                        }
+                        
+                        # Salvar na sessão para uso futuro
+                        session['utm_params'] = utm_params
+                
                 app.logger.info(f"[PROD] Recuperados parâmetros UTM da sessão: {utm_params}")
                 
                 return jsonify({
@@ -375,6 +418,29 @@ def compra_sucesso():
         
         # Recuperar parâmetros UTM da sessão para passar para a página
         utm_params = session.get('utm_params', {})
+        
+        # Se utm_params não estiver na sessão, tentar extrair da URL
+        if not utm_params:
+            # Extrair parâmetros UTM da URL atual
+            utm_source = request.args.get('utm_source', '')
+            utm_medium = request.args.get('utm_medium', '')
+            utm_campaign = request.args.get('utm_campaign', '')
+            utm_content = request.args.get('utm_content', '')
+            utm_term = request.args.get('utm_term', '')
+            
+            # Construir dicionário de parâmetros UTM
+            if any([utm_source, utm_medium, utm_campaign, utm_content, utm_term]):
+                utm_params = {
+                    'utm_source': utm_source,
+                    'utm_medium': utm_medium,
+                    'utm_campaign': utm_campaign,
+                    'utm_content': utm_content,
+                    'utm_term': utm_term
+                }
+                
+                # Salvar na sessão para uso futuro
+                session['utm_params'] = utm_params
+        
         app.logger.info(f"[PROD] Parâmetros UTM passados para página de sucesso: {utm_params}")
         
         # Extrair parâmetros UTM específicos para facilitar o uso na página
@@ -383,6 +449,9 @@ def compra_sucesso():
         utm_campaign = utm_params.get('utm_campaign', '')
         utm_content = utm_params.get('utm_content', '')
         utm_term = utm_params.get('utm_term', '')
+        
+        # Obter o nome do cliente da sessão
+        customer_name = session.get('nome', '')
 
         return render_template('compra_sucesso.html', 
                               order_number=order_number, 
@@ -392,7 +461,8 @@ def compra_sucesso():
                               utm_medium=utm_medium,
                               utm_campaign=utm_campaign,
                               utm_content=utm_content,
-                              utm_term=utm_term)
+                              utm_term=utm_term,
+                              customer_name=customer_name)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de confirmação de compra: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500

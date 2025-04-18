@@ -579,14 +579,20 @@
       document.getElementById('trackingCode').textContent = generateTrackingCode();
       
       // Obter dados do cliente do localStorage
-      const nomeCompleto = localStorage.getItem('nomeCompleto') || '';
+      let nomeCompleto = localStorage.getItem('nomeCompleto') || '';
       const cpfValidado = localStorage.getItem('cpfValidado') || '';
+      
+      // Se o nome não estiver no localStorage, verificar se está disponível como variável da página
+      if (!nomeCompleto) {
+        // Tentar obter do customer.name da API ou de outros campos caso existam
+        nomeCompleto = "{{ customer_name | safe }}" || '';
+      }
       
       // Formatar CPF
       const cpfFormatado = formatCPF(cpfValidado);
       
       // Atualizar os elementos na página
-      document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
+      document.getElementById('clientName').textContent = nomeCompleto || 'Cliente';
       document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
       
       // Capturar e enviar dados para ferramentas de analytics se disponíveis
