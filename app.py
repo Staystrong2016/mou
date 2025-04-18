@@ -191,19 +191,13 @@ def processar_pagamento_mounjaro():
         # Log de validação
         app.logger.info(f"[PROD] Dados processados para pagamento: {nome}, CPF: {cpf[:3]}...{cpf[-2:]}, Phone: {phone}, Email: {email}")
 
-        # Formatar os dados para a API For4Payments
+        # Formatar os dados para a API de pagamento (formato genérico compatível com NovaEra e For4Payments)
         pix_data = {
             'name': nome,
             'email': email,
             'cpf': cpf,
             'phone': phone,
-            'amount': float(payment_data['amount']),
-            'items': [{
-                'title': 'Inscrição Concurso Coveiro',
-                'quantity': 1,
-                'unitPrice': float(payment_data['amount']) * 100,
-                'tangible': True
-            }]
+            'amount': float(payment_data['amount'])
         }
 
         # Criar o pagamento PIX
@@ -234,11 +228,22 @@ def processar_pagamento_mounjaro():
                 app.logger.error(f"[PROD] Erro ao enviar para Utmify: {str(e)}")
             
             # Retornar os dados do pagamento
+            # Adaptando para suportar diferentes formatos de resposta (NovaEra e For4Payments)
+            transaction_id = payment_result.get('id')
+            
+            # Tentar obter o código PIX em diferentes formatos
+            pix_code = payment_result.get('pix_code') or payment_result.get('pixCode') or payment_result.get('copy_paste')
+            
+            # Tentar obter a URL do QR code em diferentes formatos
+            pix_qrcode = payment_result.get('pix_qr_code') or payment_result.get('pixQrCode') or payment_result.get('qr_code_image')
+            
+            app.logger.info(f"[PROD] Dados de pagamento obtidos - ID: {transaction_id}, PIX Code: {'Obtido' if pix_code else 'Não encontrado'}, QR Code: {'Obtido' if pix_qrcode else 'Não encontrado'}")
+            
             return jsonify({
                 'success': True,
-                'transaction_id': payment_result['id'],
-                'pix_code': payment_result['pixCode'],
-                'pix_qrcode': payment_result['pixQrCode'],
+                'transaction_id': transaction_id,
+                'pix_code': pix_code,
+                'pix_qrcode': pix_qrcode,
                 'amount': payment_data['amount']
             })
 
@@ -264,9 +269,11 @@ def verificar_pagamento_mounjaro():
 
         app.logger.info(f"[PROD] Verificando status do pagamento: {transaction_id}")
 
-        # Criar instância da API de pagamento
+        # Criar instância da API de pagamento usando o gateway configurado (NovaEra ou For4)
         try:
-            payment_api = create_payment_api()
+            from payment_gateway import get_payment_gateway
+            payment_api = get_payment_gateway()
+            app.logger.info(f"[PROD] Usando gateway de pagamento: {os.environ.get('GATEWAY_CHOICE', 'NOVAERA')}")
         except Exception as e:
             app.logger.error(f"[PROD] Erro ao criar instância da API de pagamento: {str(e)}")
             return jsonify({'success': False, 'status': 'error', 'message': 'Erro de configuração do serviço de pagamento'}), 500

@@ -6,20 +6,22 @@ import json
 import requests
 import time
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# URL base do seu servidor (ajuste para seu ambiente)
-BASE_URL = "http://localhost:5000"
+# URL base do servidor no Replit
+BASE_URL = "https://8dd09415-4474-4643-9048-f5e50eeca860-00-2etefm45q69jz.kirk.replit.dev"
 
 def generate_test_payment_webhook():
     """Gera dados de teste simulando um pagamento confirmado"""
     order_id = f"TEST-{int(time.time())}-{random.randint(1000, 9999)}"
     now = datetime.now()
+    # Garantir que a data seja atual, pois a API rejeita datas antigas
+    five_min_ago = now - timedelta(minutes=5)
     
     return {
         "orderId": order_id,
         "status": "PAID",
-        "createdAt": (now - (now - datetime(2024, 4, 18))).strftime("%Y-%m-%d %H:%M:%S"),
+        "createdAt": five_min_ago.strftime("%Y-%m-%d %H:%M:%S"),
         "paidAt": now.strftime("%Y-%m-%d %H:%M:%S"),
         "customer": {
             "name": "Cliente Teste Webhook",
