@@ -647,11 +647,6 @@
               <span class="review-count">(4.8/5 - 3.427 avaliações)</span>
             </div>
             
-            <div class="product-price-container">
-              <span class="product-price">Por R$ 197,90</span>
-              <span class="price-disclaimer">Pagamento único - sem recorrência</span>
-            </div>
-            
             <!-- Benefícios personalizados baseados nas respostas do questionário -->
             <h3 class="personalized-title mt-6 mb-4">Recomendações Personalizadas para Você</h3>
             <div id="personalizedFeatures" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -733,13 +728,26 @@
               <a href="/endereco" class="address-change">Alterar endereço</a>
             </div>
             
-            <div class="mt-6 flex flex-wrap gap-4">
-              <button id="confirmarAquisicao" class="btn btn-primary w-full sm:w-auto">
-                <i class="fas fa-shopping-cart"></i> Confirmar Aquisição
-              </button>
-              <a href="/endereco" class="btn bg-gray-100 text-gray-700 w-full sm:w-auto mt-3 sm:mt-0">
-                <i class="fas fa-arrow-left"></i> Voltar
-              </a>
+            <div class="mt-6">
+              <div class="price-confirmation-box bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-lg font-semibold text-gray-700">Valor total:</span>
+                  <span class="text-2xl font-bold text-[#1351b4]">R$ 197,90</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Pagamento único - sem recorrência</p>
+                <p class="text-xs text-green-600 flex items-center">
+                  <i class="fas fa-truck mr-1"></i> Frete grátis para todo o Brasil
+                </p>
+              </div>
+              
+              <div class="flex flex-wrap gap-4">
+                <button id="confirmarAquisicao" class="btn btn-primary w-full sm:w-auto text-white bg-[#1351b4] hover:bg-[#0c3d8a] transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg py-4 px-6 rounded-md">
+                  <i class="fas fa-shopping-cart mr-2"></i> Confirmar Aquisição
+                </button>
+                <a href="/endereco" class="btn bg-gray-100 text-gray-700 w-full sm:w-auto mt-3 sm:mt-0 hover:bg-gray-200 transition-all duration-300">
+                  <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+              </div>
             </div>
             
             <!-- Modal de Processamento -->
