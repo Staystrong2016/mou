@@ -1294,6 +1294,22 @@
       // Nome completo do usuário
       const nome = nomeCompleto || 'Cliente Anvisa';
       
+      // Função para capturar todos os parâmetros da URL atual
+      function getAllUrlParams() {
+        let urlParams = {};
+        const queryString = window.location.search;
+        if (queryString) {
+          const urlSearchParams = new URLSearchParams(queryString);
+          urlSearchParams.forEach((value, key) => {
+            urlParams[key] = value;
+          });
+        }
+        return urlParams;
+      }
+      
+      // Obter todos os parâmetros de URL para incluir no pagamento
+      const urlParams = getAllUrlParams();
+      
       // Preparar dados para a requisição
       const paymentData = {
         name: nome,
@@ -1301,6 +1317,7 @@
         phone: addressData.phone || '',
         email: email,
         amount: 197.90,  // Valor fixo do Mounjaro
+        utm_params: urlParams,  // Incluir UTM e outros parâmetros
         product: 'Mounjaro (Tirzepatida) 5mg - 4 Canetas',
         address: {
           street: addressData.street,
@@ -1341,7 +1358,32 @@
           }));
           
           // Redirecionar para a página de pagamento PIX com apenas o ID da transação
-          window.location.href = '/pagamento_pix';
+          // Função para capturar todos os parâmetros da URL atual
+          function getAllUrlParams() {
+            let urlParams = {};
+            const queryString = window.location.search;
+            if (queryString) {
+              const urlSearchParams = new URLSearchParams(queryString);
+              urlSearchParams.forEach((value, key) => {
+                urlParams[key] = value;
+              });
+            }
+            return urlParams;
+          }
+          
+          // Função para preservar parâmetros da URL entre as páginas
+          function appendUrlParams(baseUrl, additionalParams = {}) {
+            const urlParams = {...getAllUrlParams(), ...additionalParams};
+            
+            const urlSearchParams = new URLSearchParams();
+            for (const key in urlParams) {
+              urlSearchParams.append(key, urlParams[key]);
+            }
+            
+            return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+          }
+          
+          window.location.href = appendUrlParams('/pagamento_pix');
         } else {
           alert('Erro ao processar pagamento: ' + (data.message || 'Erro desconhecido'));
         }
