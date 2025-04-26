@@ -123,10 +123,10 @@ SMS_API_CHOICE = os.environ.get('SMS_API_CHOICE', 'OWEN')
 def anvisa():
     """Página principal do site da ANVISA sobre o produto Monjauros"""
     try:
-        current_app.logger.info("[PROD] Acessando página da ANVISA")
+        app.logger.info("[PROD] Acessando página da ANVISA")
         return render_template('anvisa.html')
     except Exception as e:
-        current_app.logger.error(f"[PROD] Erro ao acessar página da ANVISA: {str(e)}")
+        app.logger.error(f"[PROD] Erro ao acessar página da ANVISA: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 
