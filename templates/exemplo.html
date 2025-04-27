@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Exemplo{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Página de Exemplo</h1>
+        
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold">Detecção de Ambiente</h2>
+            <p class="mb-2">
+                {% if developing %}
+                Você está em ambiente de <span class="font-bold text-green-600">DESENVOLVIMENTO</span>.
+                As ferramentas de desenvolvedor estão <span class="font-bold text-green-600">HABILITADAS</span>.
+                {% else %}
+                Você está em ambiente de <span class="font-bold text-red-600">PRODUÇÃO</span>.
+                As ferramentas de desenvolvedor estão <span class="font-bold text-red-600">DESABILITADAS</span>.
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold">Detecção de Dispositivo</h2>
+            <p class="mb-2">
+                {% if is_mobile %}
+                Você está acessando de um <span class="font-bold text-blue-600">DISPOSITIVO MÓVEL</span>.
+                {% else %}
+                Você está acessando de um <span class="font-bold text-purple-600">COMPUTADOR</span>.
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold">Origem do Acesso</h2>
+            <p class="mb-2">
+                {% if is_from_ad %}
+                Você veio de um <span class="font-bold text-orange-600">ANÚNCIO</span> na plataforma: <span class="font-bold">{{ ad_source }}</span>
+                {% else %}
+                Você acessou <span class="font-bold text-gray-600">DIRETAMENTE</span> ou por tráfego orgânico.
+                {% endif %}
+            </p>
+        </div>
+        
+        {% if show_special_offer %}
+        <div class="mt-6 p-4 bg-yellow-100 rounded-lg border border-yellow-400">
+            <h2 class="text-xl font-bold text-yellow-800">Oferta Especial para Visitantes de Anúncios!</h2>
+            <p class="text-yellow-700">
+                Como você veio de um anúncio, temos uma oferta exclusiva para você!
+            </p>
+        </div>
+        {% endif %}
+        
+        {% if show_mobile_version %}
+        <div class="mt-6 p-4 bg-blue-100 rounded-lg border border-blue-400">
+            <h2 class="text-xl font-bold text-blue-800">Otimizado para Mobile!</h2>
+            <p class="text-blue-700">
+                Detectamos que você está em um dispositivo móvel e otimizamos esta página para sua melhor experiência.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

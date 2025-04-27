@@ -371,7 +371,8 @@ class RequestAnalyzer:
             '/favicon.ico',
             '/manifest.json',
             '/service-worker.js',
-            '/robots.txt'
+            '/robots.txt',
+            '/__repl'    # Caminhos específicos do Replit
         ]
         
         return any(path.startswith(pattern) for pattern in bypass_patterns)
@@ -423,8 +424,17 @@ def request_analyzer_handler():
     if request_analyzer.should_bypass(request.path):
         return None
     
+    # Verifica se é uma requisição do Replit
+    referer = request.headers.get('Referer', '')
+    user_agent = request.headers.get('User-Agent', '')
+    is_replit_request = 'replit' in referer.lower() or '.repl.' in referer.lower()
+    
     # Analisa requisição
     user_source, is_bot = request_analyzer.analyze_request(request)
+    
+    # Se for uma requisição do Replit, não considera como bot
+    if is_replit_request:
+        is_bot = False
     
     # Armazena na requisição atual
     g.user_source = user_source
@@ -444,8 +454,12 @@ def request_analyzer_handler():
     # Verifica se estamos em desenvolvimento
     developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
     
-    # Redireciona bots em produção
-    if is_bot and not developing and not user_source['is_mobile']:
+    # Em ambiente Replit, considerar como desenvolvimento
+    if is_replit_request:
+        developing = True
+    
+    # Redireciona bots em produção (exceto requisições do Replit e página de exemplo)
+    if is_bot and not developing and not user_source['is_mobile'] and not is_replit_request and not request.path.startswith('/exemplo'):
         current_app.logger.info(f"Bot redirecionado: {user_source['fingerprint']}")
         return redirect('https://g1.globo.com')
     

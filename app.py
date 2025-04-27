@@ -12,6 +12,10 @@ import urllib.parse
 import hashlib
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, abort, make_response
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
 from for4payments import create_payment_api
 from api_security import create_jwt_token, verify_jwt_token, generate_csrf_token, secure_api, verify_referer
 from utmify_integration import process_payment_webhook
@@ -48,6 +52,31 @@ def before_request():
         cleanup_transaction_tracking()
     
     # Capturar e armazenar parâmetros UTM vindos da URL
+
+@app.context_processor
+def inject_globals():
+    """Injetar variáveis globais em todos os templates"""
+    # Para fins de demonstração, alternamos entre true e false
+    # Descomente a linha abaixo para usar o valor do arquivo .env
+    # developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
+    
+    # Para teste, definindo como false para demonstrar funcionamento
+    # com o script disable-devtool
+    developing = False
+    
+    # Imprimir para depuração
+    print(f"DEBUG: Variável DEVELOPING = {os.environ.get('DEVELOPING', 'não definida')}")
+    print(f"DEBUG: developing = {developing}")
+    
+    return {
+        'developing': developing,
+        'current_year': datetime.now().year
+    }
+
+# Captura de parâmetros UTM na requisição
+@app.before_request
+def capture_utm_params():
+    """Captura parâmetros UTM da URL e armazena na sessão"""
     utm_params = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term', 
                  'fbclid', 'gclid', 'ttclid', 'src', 'sck', 'xcod']
     
@@ -2272,6 +2301,38 @@ def verificar_pagamento_frete():
 def encceja_info():
     """Página com informações detalhadas sobre o Encceja"""
     return render_template('encceja_info.html')
+
+
+# Rota de exemplo para demonstrar o uso dos recursos de detecção
+@app.route('/exemplo')
+def exemplo_template():
+    """Página de exemplo para demonstrar detecção de dispositivo e origem"""
+    from request_analyzer import is_from_social_ad, is_mobile, get_ad_source
+    
+    # Verificar se veio de anúncio social
+    is_from_ad = is_from_social_ad()
+    
+    # Verificar se é dispositivo móvel
+    mobile = is_mobile()
+    
+    # Obter origem do anúncio
+    ad_source = get_ad_source() if is_from_ad else 'orgânico'
+    
+    # Oferta especial para quem vem de anúncios
+    show_special_offer = is_from_ad
+    
+    # Versão otimizada para mobile
+    show_mobile_version = mobile
+    
+    # Renderizar template com os dados
+    return render_template(
+        'exemplo.html',
+        is_from_ad=is_from_ad,
+        is_mobile=mobile,
+        ad_source=ad_source,
+        show_special_offer=show_special_offer,
+        show_mobile_version=show_mobile_version
+    )
 
 
 @app.route('/processar-compra', methods=['POST'])
