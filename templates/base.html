@@ -6,7 +6,12 @@
     <title>{% block title %}ENCCEJA 2025{% endblock %}</title>
     
     {% if not developing %}
-    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool'></script>
+    <script
+        disable-devtool-auto
+        src='https://cdn.jsdelivr.net/npm/disable-devtool'
+        url='https://g1.globo.com'
+        interval='100'
+    ></script>
     {% endif %}
     
     <link rel="stylesheet" href="/static/css/rawline-fonts.css">
