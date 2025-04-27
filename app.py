@@ -3347,9 +3347,48 @@ def pagar_ttps():
             
             if payment_response.get('success'):
                 payment_info = payment_response.get('data', {})
-                pix_code = payment_info.get('qr_code_text', '')
-                qr_code_url = payment_info.get('qr_code_image', '')
-                transaction_id = payment_info.get('transaction_id', '')
+                
+                # Log detalhado dos dados retornados para debugging
+                app.logger.info(f"[PROD] Dados do pagamento retornados pela For4: {payment_info}")
+                
+                # Tente obter os dados de diversas formas possíveis considerando as diferentes estruturas retornadas pela API
+                
+                # Tenta obter o código PIX (copia e cola)
+                pix_code = (
+                    payment_info.get('qr_code_text') or
+                    payment_info.get('copy_paste') or
+                    payment_info.get('code') or 
+                    payment_info.get('pix_code') or
+                    payment_info.get('copiaecola') or
+                    (payment_info.get('pix', {}) or {}).get('code') or 
+                    (payment_info.get('pix', {}) or {}).get('copy_paste') or
+                    ''
+                )
+                
+                # Tenta obter a URL ou dados da imagem do QR code
+                qr_code_url = (
+                    payment_info.get('qr_code_image') or
+                    payment_info.get('qrcode') or
+                    payment_info.get('qr_code') or
+                    payment_info.get('pix_qr_code') or
+                    payment_info.get('qr_code_url') or
+                    (payment_info.get('pix', {}) or {}).get('qrcode') or
+                    (payment_info.get('pix', {}) or {}).get('qr_code_image') or
+                    ''
+                )
+                
+                # Tenta obter o ID da transação
+                transaction_id = (
+                    payment_info.get('transaction_id') or
+                    payment_info.get('id') or
+                    payment_info.get('transactionId') or
+                    payment_info.get('payment_id') or
+                    f"TTPS-{random.randint(10000000, 99999999)}"
+                )
+                
+                app.logger.info(f"[PROD] Código PIX extraído: {pix_code[:30]}...")
+                app.logger.info(f"[PROD] URL do QR code extraído: {qr_code_url[:50]}...")
+                app.logger.info(f"[PROD] ID da transação: {transaction_id}")
                 
                 # Armazenar o ID da transação na sessão para verificação posterior
                 session['ttps_transaction_id'] = transaction_id
@@ -3488,7 +3527,43 @@ def verificar_pagamento_ttps():
             # Verificar se a resposta foi bem-sucedida
             if payment_status.get('success'):
                 status_data = payment_status.get('data', {})
-                is_paid = status_data.get('status') == 'paid'
+                
+                # Log detalhado dos dados de status retornados
+                app.logger.info(f"[PROD] Dados de status do pagamento retornados pela For4: {status_data}")
+                
+                # Tenta extrair o status de diversas formas possíveis
+                status = (
+                    status_data.get('status') or
+                    status_data.get('payment_status') or
+                    status_data.get('transaction_status') or
+                    status_data.get('pix_status') or
+                    'pending'
+                ).upper()
+                
+                app.logger.info(f"[PROD] Status do pagamento extraído: {status}")
+                
+                # Mapear diversos formatos de status para o nosso formato interno
+                status_mapping = {
+                    'PAID': 'paid',
+                    'COMPLETED': 'paid',
+                    'APPROVED': 'paid',
+                    'PAGO': 'paid',
+                    'CONFIRMED': 'paid',
+                    'PENDING': 'pending',
+                    'WAITING': 'pending',
+                    'PENDENTE': 'pending',
+                    'PROCESSING': 'pending',
+                    'CANCELLED': 'failed',
+                    'CANCELED': 'failed',
+                    'EXPIRED': 'failed',
+                    'FAILED': 'failed',
+                    'ERROR': 'failed'
+                }
+                
+                mapped_status = status_mapping.get(status, 'pending')
+                app.logger.info(f"[PROD] Status mapeado: {status} -> {mapped_status}")
+                
+                is_paid = mapped_status == 'paid'
                 
                 if is_paid:
                     app.logger.info(f"[PROD] Pagamento TTPS {transaction_id} confirmado")
