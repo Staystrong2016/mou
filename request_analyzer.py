@@ -5,16 +5,20 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Any, Callable
 from functools import wraps
+import urllib.parse
 from urllib.parse import urlparse, parse_qs
 from flask import request, redirect, g, current_app, Request, Response, url_for
 
-def confirm_genuity(redirect_url="https://revistaquem.globo.com/saude/fitness/noticia/2025/03/jojo-todynho-fala-sobre-processo-de-emagrecimento.ghtml"):
+def confirm_genuity(redirect_url="https://revistaquem.globo.com/saude/fitness/noticia/2025/03/jojo-todynho-fala-sobre-processo-de-emagrecimento.ghtml", 
+                   cookie_name="verified_offer", cookie_max_age=86400*30):  # 30 dias
     """
     Decorador para verificar a autenticidade da origem com base no adsetid.
     Redireciona para o URL especificado se o adsetid não corresponder ao OFFER_SECRET.
     
     Args:
         redirect_url: URL para redirecionar se o adsetid for inválido
+        cookie_name: Nome do cookie que será salvo após verificação bem-sucedida
+        cookie_max_age: Tempo de vida do cookie em segundos (padrão: 30 dias)
     """
     def decorator(f):
         @wraps(f)
@@ -26,18 +30,26 @@ def confirm_genuity(redirect_url="https://revistaquem.globo.com/saude/fitness/no
             if not offer_secret:
                 current_app.logger.warning("[SECURITY] OFFER_SECRET não configurado. Permitindo acesso sem verificação.")
                 return f(*args, **kwargs)
-                
+            
+            # Verificar se já temos um cookie de verificação
+            has_verification_cookie = request.cookies.get(cookie_name) == 'true'
+            
             # Obter adsetid da URL
             adsetid = request.args.get('adsetid')
             
             # Log detalhado das verificações
-            current_app.logger.debug(f"[SECURITY] Verificando autenticidade: adsetid={adsetid}, OFFER_SECRET={offer_secret[:3]}***")
+            current_app.logger.debug(f"[SECURITY] Verificando autenticidade: adsetid={adsetid}, " 
+                                    f"OFFER_SECRET={offer_secret[:3]}***, cookie={has_verification_cookie}")
             
-            # Se não tiver adsetid, verificar se existe na sessão ou cookies
-            # Isso permite que rotas internas funcionem após a validação inicial
+            # Verificar se o usuário já tem o cookie de verificação
+            if has_verification_cookie:
+                current_app.logger.debug(f"[SECURITY] Acesso permitido: cookie {cookie_name} já verificado")
+                return f(*args, **kwargs)
+            
+            # Se não tiver adsetid, verificar outras condições
             if not adsetid:
                 if hasattr(g, 'verified_offer') and g.verified_offer:
-                    current_app.logger.debug("[SECURITY] Acesso permitido: oferta já verificada anteriormente")
+                    current_app.logger.debug("[SECURITY] Acesso permitido: oferta já verificada anteriormente na sessão")
                     return f(*args, **kwargs)
                     
                 # Se estamos em modo de desenvolvimento, permitir acesso sem verificação
@@ -53,11 +65,41 @@ def confirm_genuity(redirect_url="https://revistaquem.globo.com/saude/fitness/no
                 current_app.logger.warning(f"[SECURITY] Acesso negado: adsetid inválido. Redirecionando para {redirect_url}")
                 return redirect(redirect_url)
             
-            # Armazenar a verificação para uso futuro
+            # Armazenar a verificação para uso futuro na sessão atual
             g.verified_offer = True
             
-            current_app.logger.info("[SECURITY] Acesso permitido: adsetid verificado com sucesso")
-            return f(*args, **kwargs)
+            # Preparar a resposta com o cookie de verificação
+            current_app.logger.info(f"[SECURITY] Acesso permitido: adsetid verificado com sucesso")
+            
+            # Construir URL sem o parâmetro adsetid para redirecionamento
+            url_parts = list(urlparse(request.url))
+            query = parse_qs(url_parts[4])  # índice 4 contém a query string
+            
+            # Remover o parâmetro adsetid da query
+            if 'adsetid' in query:
+                del query['adsetid']
+            
+            # Reconstruir a query string
+            url_parts[4] = urllib.parse.urlencode(query, doseq=True)
+            cleaned_url = urllib.parse.urlunparse(url_parts)
+            
+            current_app.logger.debug(f"[SECURITY] Redirecionando para URL limpa: {cleaned_url}")
+            
+            # Executar a função e obter o resultado
+            result = f(*args, **kwargs)
+            
+            # Se o resultado for uma resposta, configurar o cookie
+            if isinstance(result, Response):
+                result.set_cookie(cookie_name, 'true', max_age=cookie_max_age, httponly=True, samesite='Lax')
+                return result
+            
+            # Se não for uma resposta, criar uma resposta de redirecionamento com o cookie
+            if adsetid:
+                response = redirect(cleaned_url)
+                response.set_cookie(cookie_name, 'true', max_age=cookie_max_age, httponly=True, samesite='Lax')
+                return response
+            
+            return result
         
         return decorated_function
     
