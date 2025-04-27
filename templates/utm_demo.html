@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Demonstração de Preservação de UTMs{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col">
+    <header class="bg-blue-800 text-white p-4">
+        <h1 class="text-2xl font-bold">Demonstração de Rastreamento UTM</h1>
+    </header>
+
+    <main class="flex-grow p-4 bg-gray-100">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-blue-700">Parâmetros UTM na Sessão</h2>
+            
+            <div class="bg-gray-50 p-4 rounded border mb-6">
+                <h3 class="font-semibold text-lg mb-2">UTM Params na Sessão</h3>
+                <pre class="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto">{{ utm_params | tojson(indent=2) }}</pre>
+            </div>
+            
+            <div class="mb-8">
+                <h3 class="font-semibold text-lg mb-2">Valores Individuais</h3>
+                <table class="min-w-full border-collapse border">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="border p-2 text-left">Parâmetro</th>
+                            <th class="border p-2 text-left">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border p-2">utm_source</td>
+                            <td class="border p-2">{{ utm_source }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">utm_medium</td>
+                            <td class="border p-2">{{ utm_medium }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">utm_campaign</td>
+                            <td class="border p-2">{{ utm_campaign }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">utm_content</td>
+                            <td class="border p-2">{{ utm_content }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">utm_term</td>
+                            <td class="border p-2">{{ utm_term }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">fbclid</td>
+                            <td class="border p-2">{{ fbclid }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">gclid</td>
+                            <td class="border p-2">{{ gclid }}</td>
+                        </tr>
+                        <tr>
+                            <td class="border p-2">ttclid</td>
+                            <td class="border p-2">{{ ttclid }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-blue-700">Teste de Navegação</h2>
+            <p class="mb-4">Clique nos links abaixo para navegar entre as páginas e verificar se os parâmetros UTM são preservados:</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="/utm-demo" class="block p-4 bg-blue-100 hover:bg-blue-200 rounded text-center transition">
+                    Recarregar esta página
+                </a>
+                <a href="/utm-demo/page2" class="block p-4 bg-green-100 hover:bg-green-200 rounded text-center transition">
+                    Ir para Página 2
+                </a>
+                <a href="/utm-demo/page3" class="block p-4 bg-yellow-100 hover:bg-yellow-200 rounded text-center transition">
+                    Ir para Página 3
+                </a>
+                <a href="/utm-demo/form" class="block p-4 bg-purple-100 hover:bg-purple-200 rounded text-center transition">
+                    Formulário de Teste
+                </a>
+            </div>
+        </div>
+        
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4 text-blue-700">Teste com Novos Parâmetros UTM</h2>
+            <p class="mb-4">Use os links abaixo para testar com diferentes parâmetros UTM:</p>
+            
+            <div class="space-y-4">
+                <a href="/utm-demo?utm_source=google&utm_medium=cpc&utm_campaign=search" 
+                   class="block p-3 bg-red-100 hover:bg-red-200 rounded transition">
+                    Testar com UTMs do Google
+                </a>
+                
+                <a href="/utm-demo?utm_source=facebook&utm_medium=social&utm_campaign=feed&fbclid=123xyz" 
+                   class="block p-3 bg-blue-100 hover:bg-blue-200 rounded transition">
+                    Testar com UTMs do Facebook
+                </a>
+                
+                <a href="/utm-demo?utm_source=tiktok&utm_medium=video&utm_campaign=viral&ttclid=tiktok123" 
+                   class="block p-3 bg-gray-100 hover:bg-gray-200 rounded transition">
+                    Testar com UTMs do TikTok
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-gray-800 text-white p-4 text-center">
+        <p>&copy; 2025 - Demonstração de Rastreamento UTM</p>
+    </footer>
+</div>
+{% endblock %}
+
+{% block footer_scripts %}
+<script>
+    // Script para mostrar os parâmetros UTM do localStorage (adicionado pelo script no base.html)
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Verificar se temos valores no localStorage
+            const storedParams = localStorage.getItem('utm_params');
+            if (storedParams) {
+                // Criar um novo elemento para mostrar os dados do localStorage
+                const localStorageSection = document.createElement('div');
+                localStorageSection.className = 'max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8';
+                
+                const heading = document.createElement('h2');
+                heading.className = 'text-xl font-bold mb-4 text-blue-700';
+                heading.textContent = 'Parâmetros UTM no localStorage';
+                
+                const content = document.createElement('pre');
+                content.className = 'bg-gray-900 text-green-400 p-4 rounded overflow-x-auto';
+                content.textContent = JSON.stringify(JSON.parse(storedParams), null, 2);
+                
+                // Adicionar ao DOM
+                localStorageSection.appendChild(heading);
+                localStorageSection.appendChild(content);
+                
+                // Inserir antes do elemento de navegação
+                const navSection = document.querySelector('main').children[1];
+                navSection.parentNode.insertBefore(localStorageSection, navSection);
+            }
+        } catch (e) {
+            console.error('Erro ao carregar UTMs do localStorage:', e);
+        }
+    });
+</script>
+{% endblock %}

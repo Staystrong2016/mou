@@ -3112,5 +3112,85 @@ def facebook_lead_event():
         app.logger.error(f"[FACEBOOK] Erro ao processar evento Lead: {str(e)}")
         return jsonify({'success': False, 'error': f'Erro interno: {str(e)}'}), 500
 
+# Rotas de demonstração para UTM
+@app.route('/utm-demo')
+@app.route('/utm-demo/<page>')
+def utm_demo(page=None):
+    """
+    Página de demonstração da preservação de parâmetros UTM
+    Útil para testar e verificar o funcionamento da preservação de UTMs
+    """
+    try:
+        app.logger.info(f"[UTM-DEMO] Acessando página de demonstração UTM: {page}")
+        
+        # Tentar enviar evento PageView para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_page_view
+            track_page_view(url=request.url)
+            app.logger.info("[FACEBOOK] Evento PageView enviado para página de demonstração UTM")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento PageView para UTM demo: {str(fb_error)}")
+        
+        # Obter parâmetros UTM da sessão
+        utm_params = session.get('utm_params', {})
+        
+        # Preparar dados para o template
+        template_data = {
+            'utm_params': utm_params,
+            'utm_source': session.get('utm_source', ''),
+            'utm_medium': session.get('utm_medium', ''),
+            'utm_campaign': session.get('utm_campaign', ''),
+            'utm_content': session.get('utm_content', ''),
+            'utm_term': session.get('utm_term', ''),
+            'fbclid': session.get('fbclid', ''),
+            'gclid': session.get('gclid', ''),
+            'ttclid': session.get('ttclid', ''),
+            'page': page
+        }
+        
+        # Retornar template com dados
+        return render_template('utm_demo.html', **template_data)
+    except Exception as e:
+        app.logger.error(f"[UTM-DEMO] Erro ao acessar página de demonstração UTM: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
+@app.route('/utm-demo/form', methods=['GET', 'POST'])
+def utm_demo_form():
+    """
+    Formulário de demonstração para testar preservação de UTM durante submissão de formulários
+    """
+    try:
+        if request.method == 'POST':
+            # Processar formulário
+            app.logger.info("[UTM-DEMO] Formulário submetido")
+            
+            # Enviar evento Lead para o Facebook Conversion API
+            try:
+                from facebook_conversion_api import track_lead
+                track_lead()
+                app.logger.info("[FACEBOOK] Evento Lead enviado para formulário UTM demo")
+            except Exception as fb_error:
+                app.logger.error(f"[FACEBOOK] Erro ao enviar evento Lead: {str(fb_error)}")
+            
+            # Redirecionar para página de agradecimento, preservando UTMs via JavaScript
+            return redirect(url_for('utm_demo', page='thanks'))
+        
+        # Se for GET, mostrar o formulário
+        utm_params = session.get('utm_params', {})
+        return render_template('utm_demo.html', 
+                            utm_params=utm_params,
+                            utm_source=session.get('utm_source', ''),
+                            utm_medium=session.get('utm_medium', ''),
+                            utm_campaign=session.get('utm_campaign', ''),
+                            utm_content=session.get('utm_content', ''),
+                            utm_term=session.get('utm_term', ''),
+                            fbclid=session.get('fbclid', ''),
+                            gclid=session.get('gclid', ''),
+                            ttclid=session.get('ttclid', ''),
+                            page='form')
+    except Exception as e:
+        app.logger.error(f"[UTM-DEMO] Erro no formulário de demonstração UTM: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
