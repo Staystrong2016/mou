@@ -1,0 +1,229 @@
+<!-- Facebook Pixel Debug Script para rastreamento de UTM nos eventos -->
+<script>
+(function() {
+    // Capturar a função original do Facebook Pixel
+    var originalFbq = window.fbq;
+    
+    // Sobrescrever a função fbq para adicionar logs
+    window.fbq = function() {
+        var args = Array.prototype.slice.call(arguments);
+        var utmParams = getUtmParams();
+        var eventInfo = {
+            eventArgs: args,
+            utm_params: utmParams,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Registrar detalhes do evento
+        console.log("[FB PIXEL] Enviando evento:", eventInfo);
+        
+        // Se for um evento de conversão, verificar os dados enviados
+        if (args.length > 1 && (args[0] === 'track' || args[0] === 'trackCustom')) {
+            console.log("[FB PIXEL] Evento de conversão:", args[1]);
+            
+            // Se houver dados de evento
+            if (args.length > 2 && typeof args[2] === 'object') {
+                console.log("[FB PIXEL] Dados do evento:", args[2]);
+                
+                // Verificar se UTMs foram incluídos
+                var hasUtm = false;
+                for (var param in utmParams) {
+                    if (args[2][param]) {
+                        hasUtm = true;
+                        break;
+                    }
+                }
+                console.log("[FB PIXEL] UTMs incluídos no evento:", hasUtm);
+            }
+        }
+        
+        // Chamar a função original do Facebook Pixel
+        try {
+            var result = originalFbq.apply(this, args);
+            console.log("[FB PIXEL] Evento enviado com sucesso");
+            return result;
+        } catch (error) {
+            console.error("[FB PIXEL] Erro ao enviar evento:", error);
+            throw error;
+        }
+    };
+    
+    // Copiar todas as propriedades e métodos da função original
+    for (var prop in originalFbq) {
+        if (originalFbq.hasOwnProperty(prop)) {
+            window.fbq[prop] = originalFbq[prop];
+        }
+    }
+    
+    // Função para obter parâmetros UTM da URL atual e do localStorage
+    function getUtmParams() {
+        var params = {};
+        var utmParamNames = [
+            'utm_source', 'utm_medium', 'utm_campaign', 
+            'utm_content', 'utm_term', 'fbclid', 
+            'gclid', 'ttclid'
+        ];
+        
+        // Tentar obter do localStorage primeiro
+        try {
+            var storedParams = localStorage.getItem('utm_params');
+            if (storedParams) {
+                var parsedParams = JSON.parse(storedParams);
+                console.log("[FB PIXEL] Using UTM params from localStorage:", parsedParams);
+                for (var key in parsedParams) {
+                    params[key] = parsedParams[key];
+                }
+            }
+        } catch (e) {
+            console.error("[FB PIXEL] Erro ao obter UTMs do localStorage:", e);
+        }
+        
+        // Obter parâmetros da URL atual (prioridade sobre localStorage)
+        var searchParams = new URLSearchParams(window.location.search);
+        utmParamNames.forEach(function(param) {
+            if (searchParams.has(param)) {
+                params[param] = searchParams.get(param);
+            }
+        });
+        
+        return params;
+    }
+    
+    // Verificar se o script de Facebook Pixel está carregado
+    window.addEventListener('load', function() {
+        if (typeof window.fbq === 'function') {
+            console.log("[FB PIXEL] Facebook Pixel carregado");
+            
+            // Verificar presença de UTMs
+            var utmParams = getUtmParams();
+            if (Object.keys(utmParams).length > 0) {
+                console.log("[FB PIXEL] Parâmetros UTM detectados:", utmParams);
+            } else {
+                console.log("[FB PIXEL] Nenhum parâmetro UTM encontrado");
+            }
+        } else {
+            console.warn("[FB PIXEL] Facebook Pixel não encontrado!");
+        }
+    });
+    
+    console.log("[FB PIXEL] Script de debug inicializado");
+})();
+</script>
+
+<!-- Facebook Server-Side Events Monitor -->
+<script>
+(function() {
+    // Monitorar respostas de eventos CAPI enviados pelo servidor
+    var originalFetch = window.fetch;
+    window.fetch = function(url, options) {
+        // Chamar o fetch original
+        var fetchPromise = originalFetch.apply(this, arguments);
+        
+        // Se a URL contém facebook ou graph.facebook, é uma chamada à API do Facebook
+        if (url && typeof url === 'string' && url.includes('facebook')) {
+            console.log("[FB CAPI] Requisição para API do Facebook", {
+                url: url,
+                options: options
+            });
+            
+            // Monitorar a resposta
+            fetchPromise
+                .then(response => {
+                    console.log("[FB CAPI] Resposta da API do Facebook:", response);
+                    return response.clone(); // Para não interferir com o processamento original
+                })
+                .catch(error => {
+                    console.error("[FB CAPI] Erro na requisição à API do Facebook:", error);
+                });
+        }
+        
+        return fetchPromise;
+    };
+    
+    // Também interceptar XMLHttpRequest para compatibilidade
+    var originalXHROpen = XMLHttpRequest.prototype.open;
+    var originalXHRSend = XMLHttpRequest.prototype.send;
+    
+    XMLHttpRequest.prototype.open = function(method, url) {
+        this._url = url;
+        return originalXHROpen.apply(this, arguments);
+    };
+    
+    XMLHttpRequest.prototype.send = function(body) {
+        if (this._url && typeof this._url === 'string' && this._url.includes('facebook')) {
+            console.log("[FB CAPI] XMLHttpRequest para API do Facebook", {
+                url: this._url,
+                method: this._method,
+                body: body
+            });
+            
+            // Monitorar a resposta
+            var originalOnReadyStateChange = this.onreadystatechange;
+            this.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log("[FB CAPI] Resposta XMLHttpRequest da API do Facebook:", {
+                        status: this.status,
+                        response: this.response
+                    });
+                }
+                if (originalOnReadyStateChange) {
+                    originalOnReadyStateChange.apply(this, arguments);
+                }
+            };
+        }
+        
+        return originalXHRSend.apply(this, arguments);
+    };
+    
+    console.log("[FB CAPI] Monitor de eventos server-side inicializado");
+})();
+</script>
+
+<!-- Monitor de Preservação de UTMs -->
+<script>
+(function() {
+    function logStoredUtmParams() {
+        try {
+            var storedParams = localStorage.getItem('utm_params');
+            if (storedParams) {
+                console.log("[UTM TRACKER] Parâmetros UTM armazenados:", JSON.parse(storedParams));
+            } else {
+                console.log("[UTM TRACKER] Nenhum parâmetro UTM armazenado no localStorage");
+            }
+            
+            // Verificar também os cookies de sessão
+            document.cookie.split(';').forEach(function(cookie) {
+                var parts = cookie.split('=');
+                var name = parts[0].trim();
+                if (name.includes('utm_') || name === 'fbclid' || name === 'gclid') {
+                    console.log("[UTM TRACKER] Cookie UTM encontrado:", name, "=", parts[1]);
+                }
+            });
+        } catch (e) {
+            console.error("[UTM TRACKER] Erro ao verificar UTMs armazenados:", e);
+        }
+    }
+    
+    // Executar na carga da página
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("[UTM TRACKER] Verificando parâmetros UTM na página:", window.location.href);
+        logStoredUtmParams();
+        
+        // Monitorar cliques em links
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                var link = e.target.tagName === 'A' ? e.target : e.target.closest('a');
+                
+                if (link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
+                    console.log("[UTM TRACKER] Clique em link:", {
+                        href: link.href,
+                        hasUtmParams: link.href.includes('utm_')
+                    });
+                }
+            }
+        });
+    });
+    
+    console.log("[UTM TRACKER] Monitor de preservação de UTMs inicializado");
+})();
+</script>
