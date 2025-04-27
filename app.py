@@ -57,13 +57,8 @@ def before_request():
 @app.context_processor
 def inject_globals():
     """Injetar variáveis globais em todos os templates"""
-    # Para fins de demonstração, alternamos entre true e false
-    # Descomente a linha abaixo para usar o valor do arquivo .env
-    # developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
-    
-    # Para teste, definindo como false para demonstrar funcionamento
-    # com o script disable-devtool
-    developing = False
+    # Usar o valor da variável de ambiente DEVELOPING
+    developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
     
     # Imprimir para depuração
     print(f"DEBUG: Variável DEVELOPING = {os.environ.get('DEVELOPING', 'não definida')}")
