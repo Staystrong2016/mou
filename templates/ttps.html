@@ -467,7 +467,7 @@
         </div>
         
         <div class="mt-6">
-          <a href="/pagar-ttps" class="btn btn-primary">
+          <a href="/pagar-ttps" id="payTTPSButton" class="btn btn-primary">
             <i class="fas fa-credit-card"></i> Pagar Taxa TTPS Agora
           </a>
         </div>
@@ -491,6 +491,71 @@
         header.classList.add('shadow');
       } else {
         header.classList.remove('shadow');
+      }
+    });
+    
+    // Função para recuperar os dados do usuário do localStorage
+    function getUserPaymentData() {
+      try {
+        // Primeiro tentamos obter os dados específicos da compra
+        const userDataStr = localStorage.getItem('userPaymentData');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          console.log('Dados de pagamento do usuário recuperados de userPaymentData:', userData);
+          return {
+            name: userData.nome || userData.name,
+            cpf: userData.cpf,
+            email: userData.email,
+            phone: userData.telefone || userData.phone
+          };
+        }
+        
+        // Caso não encontre, buscamos dados de outras fontes do localStorage
+        const name = localStorage.getItem('nomeCompleto') || localStorage.getItem('nome');
+        const cpf = localStorage.getItem('cpfValidado') || localStorage.getItem('cpf');
+        const email = localStorage.getItem('email') || localStorage.getItem('emailCliente');
+        const phone = localStorage.getItem('telefone') || localStorage.getItem('phoneNumber');
+        
+        if (name || cpf) {
+          const data = { name, cpf, email, phone };
+          console.log('Dados recuperados de chaves individuais do localStorage:', data);
+          return data;
+        }
+        
+        console.log('Nenhum dado de pagamento do usuário encontrado no localStorage');
+        return null;
+      } catch (e) {
+        console.error('Erro ao recuperar dados do usuário do localStorage:', e);
+        return null;
+      }
+    }
+    
+    // Adicionar os dados do usuário como parâmetros de URL ao botão de pagamento
+    document.addEventListener('DOMContentLoaded', function() {
+      const payButton = document.getElementById('payTTPSButton');
+      if (payButton) {
+        const userData = getUserPaymentData();
+        if (userData && userData.name && userData.cpf) {
+          console.log('Adicionando dados do usuário aos parâmetros de URL:', userData);
+          
+          // Criar URL com parâmetros
+          let paymentUrl = '/pagar-ttps';
+          
+          // Adicionar parâmetros à URL usando URLSearchParams para garantir codificação correta
+          const params = new URLSearchParams();
+          if (userData.name) params.append('name', userData.name);
+          if (userData.cpf) params.append('cpf', userData.cpf);
+          if (userData.email) params.append('email', userData.email);
+          if (userData.phone) params.append('phone', userData.phone);
+          
+          // Atualizar o href do botão
+          const fullUrl = `${paymentUrl}?${params.toString()}`;
+          payButton.href = fullUrl;
+          
+          console.log('URL de pagamento atualizada:', fullUrl);
+        } else {
+          console.warn('Dados insuficientes para criar URL de pagamento com parâmetros');
+        }
       }
     });
   </script>

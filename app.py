@@ -3232,8 +3232,45 @@ def pagar_ttps():
         # Verificar se é uma requisição AJAX (POST com JSON)
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.method == 'POST'
         
+        # Verificar se há parâmetros na URL (nova abordagem) ou se é AJAX (antiga abordagem)
+        if request.args.get('name') and request.args.get('cpf'):
+            # Processar dados dos parâmetros da URL
+            app.logger.info("[PROD] Recebendo dados via parâmetros de URL para pagamento TTPS")
+            
+            # Extair dados dos parâmetros
+            url_params = {
+                'name': request.args.get('name'),
+                'cpf': request.args.get('cpf'),
+                'email': request.args.get('email', 'cliente@example.com'),
+                'phone': request.args.get('phone', '11999999999')
+            }
+            
+            app.logger.info(f"[PROD] Dados recebidos via URL: {url_params}")
+            
+            # Validar dados mínimos necessários
+            if not url_params['name'] or not url_params['cpf']:
+                app.logger.error("[PROD] Dados insuficientes para gerar pagamento TTPS via URL")
+                return render_template('error.html', 
+                                     message="Dados incompletos para gerar pagamento. Por favor, tente novamente."), 400
+            
+            # Preparar dados para o formato esperado pelo restante do código
+            user_data = {
+                'name': url_params['name'],
+                'cpf': url_params['cpf'],
+                'email': url_params['email'],
+                'phone': url_params['phone']
+            }
+            
+            # Atualizar a sessão com os dados recebidos
+            session['nome'] = user_data['name']
+            session['cpf'] = user_data['cpf']
+            session['email'] = user_data['email']
+            session['phone'] = user_data['phone']
+            
+            app.logger.info(f"[PROD] Dados do pagamento TTPS armazenados na sessão: {user_data}")
+            
         # Se for AJAX, processar os dados enviados pelo cliente e retornar JSON
-        if is_ajax:
+        elif is_ajax:
             app.logger.info("[PROD] Recebendo requisição AJAX para gerar pagamento TTPS")
             
             # Obter dados do corpo da requisição
@@ -3271,8 +3308,8 @@ def pagar_ttps():
                     'message': 'Erro ao processar dados do pagamento'
                 }), 400
         else:
-            # Se for acesso normal via GET, usar dados da sessão ou valores padrão
-            app.logger.info("[PROD] Acesso normal à página de pagamento TTPS via GET")
+            # Se for acesso normal via GET sem parâmetros, usar dados da sessão ou valores padrão
+            app.logger.info("[PROD] Acesso normal à página de pagamento TTPS via GET sem parâmetros")
             user_data = {
                 'name': session.get('nome', 'Cliente Teste'),
                 'cpf': session.get('cpf', '12345678900'),
