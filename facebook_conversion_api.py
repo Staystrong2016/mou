@@ -145,16 +145,26 @@ def send_event(
     fb_cookies = get_fbp_fbc_cookies()
     if fb_cookies['fbp']:
         user_data['fbp'] = fb_cookies['fbp']
+        logger.debug(f"Cookie _fbp encontrado: {fb_cookies['fbp']}")
+    else:
+        logger.debug("Cookie _fbp não encontrado na requisição")
+        
     if fb_cookies['fbc']:
         user_data['fbc'] = fb_cookies['fbc']
+        logger.debug(f"Cookie _fbc encontrado: {fb_cookies['fbc']}")
+    else:
+        logger.debug("Cookie _fbc não encontrado na requisição")
     
     # Incluir IP e User-Agent para melhor matching
     user_data['client_ip_address'] = request.remote_addr or ""
     user_data['client_user_agent'] = request.user_agent.string if request.user_agent else ""
+    logger.debug(f"IP do cliente: {user_data['client_ip_address']}")
+    logger.debug(f"User-Agent: {user_data['client_user_agent']}")
     
     # Se o evento for Purchase, garantir que custom_data tenha value e currency
     if event_name == 'Purchase' and not custom_data:
         custom_data = {'value': 0, 'currency': 'BRL'}
+        logger.debug("Dados customizados padrão adicionados para evento Purchase")
     
     # Preparar payload do evento
     event_data = {
@@ -173,9 +183,12 @@ def send_event(
     # Incluir parâmetros UTM como dados customizados de evento
     utm_params = get_utm_parameters()
     if utm_params:
+        logger.info(f"[UTM] Parâmetros UTM encontrados para evento {event_name}: {utm_params}")
         if not event_data.get('custom_data'):
             event_data['custom_data'] = {}
         event_data['custom_data'].update(utm_params)
+    else:
+        logger.info(f"[UTM] Nenhum parâmetro UTM encontrado para evento {event_name}")
     
     # Preparar payload completo para a API
     payload = {
@@ -187,7 +200,26 @@ def send_event(
     endpoint = f"{FB_GRAPH_API_URL}/{pixel_id}/events"
     
     logger.info(f"📤 Enviando evento {event_name} para Pixel {pixel_id} com ID {event_id}")
-    logger.debug(f"Payload: {json.dumps(payload, indent=2)}")
+    
+    # Log detalhado dos dados do evento (com redação de dados sensíveis)
+    safe_payload = json.loads(json.dumps(payload))
+    if 'access_token' in safe_payload:
+        safe_payload['access_token'] = '***REDACTED***'
+    
+    # Redação de dados pessoais para logging
+    if 'user_data' in safe_payload.get('data', [{}])[0]:
+        user_data_log = safe_payload['data'][0]['user_data']
+        for field in ['email', 'phone', 'external_id']:
+            if field in user_data_log:
+                user_data_log[field] = f"***{field}_REDACTED***"
+    
+    logger.debug(f"Payload detalhado: {json.dumps(safe_payload, indent=2)}")
+    
+    # Verificar dados específicos de rastreamento
+    if 'custom_data' in event_data:
+        utm_fields = [k for k in event_data['custom_data'].keys() if k.startswith('utm_') or k.endswith('clid')]
+        if utm_fields:
+            logger.info(f"[UTM] Campos de rastreamento incluídos no evento: {utm_fields}")
     
     # Implementar retentativas com backoff exponencial
     success = False
@@ -209,7 +241,17 @@ def send_event(
             
             if response.status_code == 200:
                 logger.info(f"✅ Evento {event_name} enviado com sucesso para Pixel {pixel_id}")
-                logger.debug(f"Resposta: {json.dumps(response_data, indent=2)}")
+                logger.info(f"Resposta: {json.dumps(response_data, indent=2)}")
+                
+                # Verificar se o evento foi recebido corretamente
+                if 'events_received' in response_data and response_data['events_received'] > 0:
+                    logger.info(f"✅ Facebook confirmou recebimento de {response_data['events_received']} evento(s)")
+                    # Registrar ID de rastreamento do Facebook para depuração
+                    if 'fbtrace_id' in response_data:
+                        logger.info(f"Facebook Trace ID: {response_data['fbtrace_id']}")
+                else:
+                    logger.warning(f"⚠️ Evento enviado, mas Facebook não confirmou recebimento: {response_data}")
+                
                 success = True
                 break
             elif response.status_code == 429:  # Rate limit
@@ -219,6 +261,11 @@ def send_event(
                 time.sleep(wait_time)
             else:
                 logger.error(f"❌ Erro ao enviar evento. Status: {response.status_code}, Resposta: {response.text}")
+                # Log de detalhes específicos de erros
+                if response_data and 'error' in response_data:
+                    error_details = response_data['error']
+                    logger.error(f"Detalhes do erro: Código {error_details.get('code')}, Tipo: {error_details.get('type')}")
+                    logger.error(f"Mensagem de erro: {error_details.get('message')}")
                 break
                 
         except Exception as e:
@@ -229,18 +276,30 @@ def send_event(
                 logger.warning(f"Aguardando {wait_time}s antes de tentar novamente.")
                 time.sleep(wait_time)
     
+    # Resultado final do envio do evento
+    result = {}
     if success:
-        return {
+        result = {
             'success': True,
             'message': f'Evento {event_name} enviado com sucesso',
-            'data': response_data
+            'response': response_data
         }
+        
+        # Adicionar dados extras para facilitar debug
+        if utm_params:
+            result['utm_params'] = utm_params
     else:
-        return {
+        result = {
             'success': False,
             'message': f'Falha ao enviar evento {event_name} após {retry_count} tentativas',
-            'data': response_data
+            'response': response_data
         }
+    
+    # Registrar resultado final em log
+    log_level = logging.INFO if success else logging.ERROR
+    logger.log(log_level, f"Resultado final do envio do evento {event_name}: {result['message']}")
+    
+    return result
 
 def send_event_to_all_pixels(
     event_name: str,

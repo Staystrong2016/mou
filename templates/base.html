@@ -219,6 +219,11 @@
             });
             
             console.log('UTM parameter preservation initialized');
+            
+            // Log detalhado para debug do rastreamento de UTM
+            console.log('[UTM TRACKER] Sistema de preservação de UTM inicializado');
+            console.log('[UTM TRACKER] UTMs da URL atual:', getUtmParamsFromUrl());
+            console.log('[UTM TRACKER] UTMs armazenados:', getUtmParamsFromStorage());
         });
     })();
     </script>
