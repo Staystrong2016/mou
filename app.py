@@ -2981,5 +2981,81 @@ def utmify_webhook():
         app.logger.error(f"[PROD] Erro ao processar webhook: {str(e)}")
         return jsonify({'error': f'Erro interno: {str(e)}'}), 500
 
+@app.route('/api/facebook-event/lead', methods=['POST'])
+@secure_api('facebook_lead_event')
+def facebook_lead_event():
+    """
+    Endpoint para processar eventos de lead do Facebook Conversion API
+    Este endpoint recebe dados do cliente via AJAX quando o usuário clica no botão
+    "Prosseguir para detalhes do produto" na página de endereço
+    """
+    try:
+        app.logger.info("[FACEBOOK] Recebendo evento Lead via AJAX")
+        
+        if not request.is_json:
+            app.logger.error("[FACEBOOK] Requisição inválida: formato JSON esperado")
+            return jsonify({'error': 'Requisição inválida: formato JSON esperado'}), 400
+            
+        data = request.json
+        form_data = data.get('formData', {})
+        
+        app.logger.info(f"[FACEBOOK] Dados do formulário recebidos: {form_data}")
+        
+        # Extrair dados do usuário do formulário para enviar ao evento Lead
+        user_data = {}
+        
+        # Se tiver informações no formulário e/ou na sessão, usar para o evento
+        if 'nome' in session and session['nome']:
+            nome_completo = session['nome'].split()
+            if len(nome_completo) >= 1:
+                first_name = nome_completo[0]
+                last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                user_data['first_name'] = first_name
+                user_data['last_name'] = last_name
+        
+        # Incluir telefone se disponível
+        phone = form_data.get('phone') or session.get('phone')
+        if phone:
+            user_data['phone'] = phone
+            
+        # Incluir CPF como external_id se disponível
+        cpf = session.get('cpf')
+        if cpf:
+            user_data['external_id'] = cpf
+            
+        # Adicionar dados de localização
+        if 'city' in form_data:
+            user_data['city'] = form_data['city']
+        if 'state' in form_data:
+            user_data['state'] = form_data['state']
+            
+        try:
+            # Importar funções da API de Conversão do Facebook
+            from facebook_conversion_api import track_lead, prepare_user_data
+            
+            # Preparar dados do usuário com hash para o evento
+            hashed_user_data = prepare_user_data(
+                first_name=user_data.get('first_name'),
+                last_name=user_data.get('last_name'),
+                phone=user_data.get('phone'),
+                city=user_data.get('city'),
+                state=user_data.get('state'),
+                external_id=user_data.get('external_id')
+            )
+            
+            # Enviar evento Lead
+            result = track_lead(value=None)  # Sem valor monetário neste estágio
+            
+            app.logger.info(f"[FACEBOOK] Evento Lead enviado com sucesso: {result}")
+            return jsonify({'success': True, 'message': 'Evento Lead registrado com sucesso'})
+            
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento Lead: {str(fb_error)}")
+            return jsonify({'success': False, 'error': f'Erro ao processar evento: {str(fb_error)}'}), 500
+            
+    except Exception as e:
+        app.logger.error(f"[FACEBOOK] Erro ao processar evento Lead: {str(e)}")
+        return jsonify({'success': False, 'error': f'Erro interno: {str(e)}'}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
