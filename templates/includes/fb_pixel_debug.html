@@ -1,6 +1,118 @@
 <!-- Facebook Pixel Debug Script para rastreamento de UTM nos eventos -->
 <script>
 (function() {
+    // Criar container para exibir logs no DOM (apenas em desenvolvimento)
+    var debugContainer = null;
+    var showDebugConsole = false; // Definir como true para mostrar console visual
+    
+    function createDebugConsole() {
+        if (showDebugConsole && !debugContainer) {
+            debugContainer = document.createElement('div');
+            debugContainer.id = 'fb-debug-console';
+            debugContainer.style.cssText = 'position:fixed;bottom:0;right:0;width:400px;height:300px;background:rgba(0,0,0,0.8);color:#0f0;font-family:monospace;font-size:12px;z-index:9999;overflow:auto;padding:10px;border:1px solid #0f0;';
+            
+            var title = document.createElement('div');
+            title.textContent = 'Facebook Pixel & UTM Debug Console';
+            title.style.cssText = 'font-weight:bold;font-size:14px;margin-bottom:5px;border-bottom:1px solid #0f0;padding-bottom:5px;';
+            
+            var clearButton = document.createElement('button');
+            clearButton.textContent = 'Limpar';
+            clearButton.style.cssText = 'position:absolute;top:10px;right:10px;background:#333;color:#0f0;border:1px solid #0f0;padding:2px 5px;';
+            clearButton.onclick = function() {
+                var logItems = debugContainer.querySelectorAll('.log-item');
+                logItems.forEach(function(item) {
+                    if (item !== title && item !== clearButton) {
+                        debugContainer.removeChild(item);
+                    }
+                });
+            };
+            
+            debugContainer.appendChild(title);
+            debugContainer.appendChild(clearButton);
+            document.body.appendChild(debugContainer);
+        }
+        return debugContainer;
+    }
+    
+    function logToConsole(type, message, data) {
+        var timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+        var color = type === 'error' ? '#f66' : type === 'warn' ? '#ff6' : '#0f0';
+        
+        // Log no console do navegador
+        if (type === 'error') {
+            console.error(`[${timestamp}] ${message}`, data || '');
+        } else if (type === 'warn') {
+            console.warn(`[${timestamp}] ${message}`, data || '');
+        } else {
+            console.log(`[${timestamp}] ${message}`, data || '');
+        }
+        
+        // Log no console visual
+        if (showDebugConsole) {
+            var container = createDebugConsole();
+            if (container) {
+                var logItem = document.createElement('div');
+                logItem.className = 'log-item';
+                logItem.style.cssText = `margin-bottom:3px;border-bottom:1px dotted #333;color:${color};`;
+                
+                var logTime = document.createElement('span');
+                logTime.textContent = `[${timestamp}] `;
+                logTime.style.opacity = '0.7';
+                
+                var logMessage = document.createElement('span');
+                logMessage.textContent = message;
+                
+                logItem.appendChild(logTime);
+                logItem.appendChild(logMessage);
+                
+                if (data) {
+                    var logData = document.createElement('div');
+                    logData.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                    logData.style.cssText = 'margin-left:10px;font-size:11px;color:#aaa;white-space:pre;';
+                    logItem.appendChild(logData);
+                }
+                
+                container.appendChild(logItem);
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+    }
+    
+    // Criar log com identificador de evento único
+    var eventCounter = 0;
+    var eventLog = {};
+    
+    function createEventLog(eventName, eventId) {
+        var id = eventId || ++eventCounter;
+        eventLog[id] = {
+            eventName: eventName,
+            timestamp: new Date().toISOString(),
+            status: 'initiated',
+            utmParams: getUtmParams(),
+            serverResponse: null,
+            clientResponse: null,
+            errors: []
+        };
+        return id;
+    }
+    
+    function updateEventLog(id, updates) {
+        if (eventLog[id]) {
+            Object.assign(eventLog[id], updates);
+            return true;
+        }
+        return false;
+    }
+    
+    // Rastreador de evento global para monitorar todos os eventos
+    window.fbEventTracker = {
+        getLog: function() { return eventLog; },
+        getEvent: function(id) { return eventLog[id] || null; },
+        getAllEvents: function() { return Object.values(eventLog); },
+        clearLog: function() { eventLog = {}; },
+        printLog: function() { console.table(this.getAllEvents()); }
+    };
+    
     // Capturar a função original do Facebook Pixel
     var originalFbq = window.fbq;
     
@@ -8,42 +120,82 @@
     window.fbq = function() {
         var args = Array.prototype.slice.call(arguments);
         var utmParams = getUtmParams();
+        var currentUrl = window.location.href;
+        var currentPage = window.location.pathname;
+        var eventName = args[0] === 'track' || args[0] === 'trackCustom' ? args[1] : args[0];
+        
+        // Criar ID de evento e registrar no log
+        var eventId = createEventLog(eventName);
+        
         var eventInfo = {
+            id: eventId,
+            command: args[0],
+            eventName: eventName,
             eventArgs: args,
             utm_params: utmParams,
+            url: currentUrl,
+            page: currentPage,
             timestamp: new Date().toISOString()
         };
         
-        // Registrar detalhes do evento
-        console.log("[FB PIXEL] Enviando evento:", eventInfo);
+        // Registrar detalhes do evento de forma detalhada
+        logToConsole('log', `[FB PIXEL] Enviando evento: ${eventName}`, eventInfo);
         
         // Se for um evento de conversão, verificar os dados enviados
         if (args.length > 1 && (args[0] === 'track' || args[0] === 'trackCustom')) {
-            console.log("[FB PIXEL] Evento de conversão:", args[1]);
+            logToConsole('log', `[FB PIXEL] Evento de conversão: ${args[1]}`);
             
             // Se houver dados de evento
             if (args.length > 2 && typeof args[2] === 'object') {
-                console.log("[FB PIXEL] Dados do evento:", args[2]);
+                logToConsole('log', "[FB PIXEL] Dados do evento:", args[2]);
                 
                 // Verificar se UTMs foram incluídos
                 var hasUtm = false;
+                var includedUtms = {};
+                
                 for (var param in utmParams) {
                     if (args[2][param]) {
                         hasUtm = true;
-                        break;
+                        includedUtms[param] = args[2][param];
                     }
                 }
-                console.log("[FB PIXEL] UTMs incluídos no evento:", hasUtm);
+                
+                if (hasUtm) {
+                    logToConsole('log', "[FB PIXEL] UTMs incluídos no evento:", includedUtms);
+                } else {
+                    logToConsole('warn', "[FB PIXEL] Evento enviado SEM parâmetros UTM incluídos");
+                }
+                
+                // Atualizar log de eventos
+                updateEventLog(eventId, {
+                    eventData: args[2],
+                    includedUtms: includedUtms,
+                    hasUtmParams: hasUtm
+                });
             }
         }
         
         // Chamar a função original do Facebook Pixel
         try {
             var result = originalFbq.apply(this, args);
-            console.log("[FB PIXEL] Evento enviado com sucesso");
+            logToConsole('log', `[FB PIXEL] Evento ${eventName} enviado com sucesso`);
+            
+            // Atualizar log de eventos
+            updateEventLog(eventId, {
+                status: 'client_success',
+                clientResponse: result
+            });
+            
             return result;
         } catch (error) {
-            console.error("[FB PIXEL] Erro ao enviar evento:", error);
+            logToConsole('error', `[FB PIXEL] Erro ao enviar evento ${eventName}:`, error);
+            
+            // Atualizar log de eventos
+            updateEventLog(eventId, {
+                status: 'client_error',
+                errors: [error.toString()]
+            });
+            
             throw error;
         }
     };
@@ -55,7 +207,7 @@
         }
     }
     
-    // Função para obter parâmetros UTM da URL atual e do localStorage
+    // Função detalhada para obter parâmetros UTM da URL atual e do localStorage
     function getUtmParams() {
         var params = {};
         var utmParamNames = [
@@ -64,27 +216,68 @@
             'gclid', 'ttclid'
         ];
         
-        // Tentar obter do localStorage primeiro
+        // Primeiro, coletar do sessionStorage (persistência de sessão)
+        try {
+            for (var i = 0; i < utmParamNames.length; i++) {
+                var sessionValue = sessionStorage.getItem(utmParamNames[i]);
+                if (sessionValue) {
+                    params[utmParamNames[i]] = sessionValue;
+                }
+            }
+        } catch (e) {
+            logToConsole('error', "[FB PIXEL] Erro ao obter UTMs do sessionStorage:", e);
+        }
+        
+        // Segundo, tentar obter do localStorage (persistência de longo prazo)
         try {
             var storedParams = localStorage.getItem('utm_params');
             if (storedParams) {
                 var parsedParams = JSON.parse(storedParams);
-                console.log("[FB PIXEL] Using UTM params from localStorage:", parsedParams);
+                logToConsole('log', "[FB PIXEL] UTM params do localStorage:", parsedParams);
                 for (var key in parsedParams) {
-                    params[key] = parsedParams[key];
+                    if (!params[key]) { // Não sobrescrever os valores da sessão
+                        params[key] = parsedParams[key];
+                    }
                 }
             }
         } catch (e) {
-            console.error("[FB PIXEL] Erro ao obter UTMs do localStorage:", e);
+            logToConsole('error', "[FB PIXEL] Erro ao obter UTMs do localStorage:", e);
         }
         
-        // Obter parâmetros da URL atual (prioridade sobre localStorage)
+        // Por último, obter parâmetros da URL atual (maior prioridade)
         var searchParams = new URLSearchParams(window.location.search);
         utmParamNames.forEach(function(param) {
             if (searchParams.has(param)) {
                 params[param] = searchParams.get(param);
+                
+                // Salvar no sessionStorage para persistência na sessão
+                try {
+                    sessionStorage.setItem(param, params[param]);
+                } catch (e) {
+                    // Ignorar erros de armazenamento
+                }
             }
         });
+        
+        // Obter do referer se disponível e sem UTMs na URL
+        if (Object.keys(params).length === 0 && document.referrer) {
+            try {
+                var referrerUrl = new URL(document.referrer);
+                var referrerParams = new URLSearchParams(referrerUrl.search);
+                
+                utmParamNames.forEach(function(param) {
+                    if (referrerParams.has(param)) {
+                        params[param] = referrerParams.get(param);
+                    }
+                });
+                
+                if (Object.keys(params).length > 0) {
+                    logToConsole('log', "[FB PIXEL] UTMs recuperados do referer:", params);
+                }
+            } catch (e) {
+                logToConsole('error', "[FB PIXEL] Erro ao processar referer:", e);
+            }
+        }
         
         return params;
     }
@@ -92,48 +285,152 @@
     // Verificar se o script de Facebook Pixel está carregado
     window.addEventListener('load', function() {
         if (typeof window.fbq === 'function') {
-            console.log("[FB PIXEL] Facebook Pixel carregado");
+            logToConsole('log', "[FB PIXEL] Facebook Pixel carregado corretamente");
             
             // Verificar presença de UTMs
             var utmParams = getUtmParams();
             if (Object.keys(utmParams).length > 0) {
-                console.log("[FB PIXEL] Parâmetros UTM detectados:", utmParams);
+                logToConsole('log', "[FB PIXEL] Parâmetros UTM detectados na página atual:", utmParams);
             } else {
-                console.log("[FB PIXEL] Nenhum parâmetro UTM encontrado");
+                logToConsole('warn', "[FB PIXEL] Nenhum parâmetro UTM encontrado na página atual");
+            }
+            
+            // Verificar detalhes do pixel
+            if (window.fbq.instance && window.fbq.instance.pixelsByID) {
+                var pixelIds = Object.keys(window.fbq.instance.pixelsByID);
+                logToConsole('log', `[FB PIXEL] ${pixelIds.length} Pixel IDs configurados:`, pixelIds);
             }
         } else {
-            console.warn("[FB PIXEL] Facebook Pixel não encontrado!");
+            logToConsole('error', "[FB PIXEL] Facebook Pixel NÃO foi carregado! Verifique o código de inicialização do pixel.");
         }
     });
     
-    console.log("[FB PIXEL] Script de debug inicializado");
+    logToConsole('log', "[FB PIXEL] Script de debug avançado inicializado");
 })();
 </script>
 
-<!-- Facebook Server-Side Events Monitor -->
+<!-- Facebook Server-Side Events Monitor com logs detalhados -->
 <script>
 (function() {
+    // Contador para IDs de requisições
+    var requestCounter = 0;
+    var responseLog = {};
+    
+    function logApiCall(type, message, data) {
+        console.log(`[FB CAPI] ${message}`, data || '');
+    }
+    
     // Monitorar respostas de eventos CAPI enviados pelo servidor
     var originalFetch = window.fetch;
     window.fetch = function(url, options) {
+        var requestId = null;
+        
+        // Se a URL contém facebook ou graph.facebook, é uma chamada à API do Facebook
+        if (url && typeof url === 'string' && (url.includes('facebook') || url.includes('graph.facebook'))) {
+            requestId = ++requestCounter;
+            var requestTime = new Date();
+            
+            // Registrar detalhes da requisição
+            var requestBody = options && options.body ? 
+                (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : 
+                null;
+            
+            // Limpar dados sensíveis
+            var safeBody = requestBody ? JSON.parse(JSON.stringify(requestBody)) : null;
+            if (safeBody && safeBody.access_token) {
+                safeBody.access_token = '***TOKEN_REDACTED***';
+            }
+            
+            responseLog[requestId] = {
+                id: requestId,
+                url: url,
+                method: options ? options.method : 'GET',
+                requestTime: requestTime.toISOString(),
+                requestBody: safeBody,
+                status: 'pending',
+                responseTime: null,
+                responseStatus: null,
+                responseData: null,
+                duration: null,
+                error: null
+            };
+            
+            logApiCall('log', `Requisição #${requestId} para API do Facebook`, {
+                url: url,
+                method: options ? options.method : 'GET',
+                headers: options ? options.headers : null,
+                body: safeBody
+            });
+        }
+        
         // Chamar o fetch original
         var fetchPromise = originalFetch.apply(this, arguments);
         
-        // Se a URL contém facebook ou graph.facebook, é uma chamada à API do Facebook
-        if (url && typeof url === 'string' && url.includes('facebook')) {
-            console.log("[FB CAPI] Requisição para API do Facebook", {
-                url: url,
-                options: options
-            });
-            
-            // Monitorar a resposta
-            fetchPromise
-                .then(response => {
-                    console.log("[FB CAPI] Resposta da API do Facebook:", response);
-                    return response.clone(); // Para não interferir com o processamento original
+        // Se identificamos como requisição FB, monitorar a resposta
+        if (requestId) {
+            fetchPromise = fetchPromise
+                .then(function(response) {
+                    var responseTime = new Date();
+                    var duration = responseTime - new Date(responseLog[requestId].requestTime);
+                    
+                    // Atualizar log com informações básicas da resposta
+                    responseLog[requestId].responseTime = responseTime.toISOString();
+                    responseLog[requestId].responseStatus = response.status;
+                    responseLog[requestId].status = response.ok ? 'success' : 'error';
+                    responseLog[requestId].duration = duration;
+                    
+                    logApiCall('log', `Resposta #${requestId} da API do Facebook recebida em ${duration}ms:`, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: Object.fromEntries([...response.headers])
+                    });
+                    
+                    // Clonar a resposta para não interferir com o processamento original
+                    // e extrair o corpo em JSON para logging
+                    if (response.headers.get('content-type') && 
+                        response.headers.get('content-type').includes('application/json')) {
+                        
+                        response.clone().json().then(function(data) {
+                            responseLog[requestId].responseData = data;
+                            
+                            if (data.events_received) {
+                                logApiCall('log', `[FB CAPI] API do Facebook confirmou recebimento de ${data.events_received} evento(s)`, data);
+                                
+                                // Atualizar o log de eventos correspondente
+                                if (window.fbEventTracker) {
+                                    var events = window.fbEventTracker.getAllEvents();
+                                    for (var i = 0; i < events.length; i++) {
+                                        if (events[i].status === 'client_success' && 
+                                            !events[i].serverResponse) {
+                                            window.fbEventTracker.updateEvent(events[i].id, {
+                                                status: 'complete',
+                                                serverResponse: data
+                                            });
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else if (data.error) {
+                                logApiCall('error', `[FB CAPI] Erro da API do Facebook:`, data.error);
+                                responseLog[requestId].error = data.error;
+                            }
+                        }).catch(function(e) {
+                            logApiCall('error', `[FB CAPI] Erro ao processar resposta JSON #${requestId}:`, e);
+                        });
+                    }
+                    
+                    return response;
                 })
-                .catch(error => {
-                    console.error("[FB CAPI] Erro na requisição à API do Facebook:", error);
+                .catch(function(error) {
+                    logApiCall('error', `[FB CAPI] Erro na requisição #${requestId} à API do Facebook:`, error);
+                    
+                    // Atualizar log com informações do erro
+                    responseLog[requestId].status = 'failed';
+                    responseLog[requestId].responseTime = new Date().toISOString();
+                    responseLog[requestId].error = error.toString();
+                    responseLog[requestId].duration = new Date() - new Date(responseLog[requestId].requestTime);
+                    
+                    throw error;
                 });
         }
         
@@ -146,26 +443,95 @@
     
     XMLHttpRequest.prototype.open = function(method, url) {
         this._url = url;
+        this._method = method;
+        this._startTime = new Date();
+        this._requestId = null;
+        
+        if (url && typeof url === 'string' && (url.includes('facebook') || url.includes('graph.facebook'))) {
+            this._requestId = ++requestCounter;
+            
+            responseLog[this._requestId] = {
+                id: this._requestId,
+                url: url,
+                method: method,
+                requestTime: this._startTime.toISOString(),
+                requestBody: null,
+                status: 'pending',
+                responseTime: null,
+                responseStatus: null,
+                responseData: null,
+                duration: null,
+                error: null
+            };
+        }
+        
         return originalXHROpen.apply(this, arguments);
     };
     
     XMLHttpRequest.prototype.send = function(body) {
-        if (this._url && typeof this._url === 'string' && this._url.includes('facebook')) {
-            console.log("[FB CAPI] XMLHttpRequest para API do Facebook", {
+        if (this._requestId) {
+            // Tentar extrair corpo da requisição para logging
+            var safeBody = null;
+            try {
+                if (body && typeof body === 'string') {
+                    safeBody = JSON.parse(body);
+                    if (safeBody.access_token) {
+                        safeBody.access_token = '***TOKEN_REDACTED***';
+                    }
+                }
+            } catch (e) {
+                safeBody = "[Não foi possível analisar o corpo da requisição]";
+            }
+            
+            logApiCall('log', `XMLHttpRequest #${this._requestId} para API do Facebook:`, {
                 url: this._url,
                 method: this._method,
-                body: body
+                body: safeBody
             });
+            
+            responseLog[this._requestId].requestBody = safeBody;
             
             // Monitorar a resposta
             var originalOnReadyStateChange = this.onreadystatechange;
+            var requestId = this._requestId;
+            var startTime = this._startTime;
+            
             this.onreadystatechange = function() {
                 if (this.readyState === 4) {
-                    console.log("[FB CAPI] Resposta XMLHttpRequest da API do Facebook:", {
+                    var responseTime = new Date();
+                    var duration = responseTime - startTime;
+                    
+                    responseLog[requestId].responseTime = responseTime.toISOString();
+                    responseLog[requestId].responseStatus = this.status;
+                    responseLog[requestId].status = (this.status >= 200 && this.status < 300) ? 'success' : 'error';
+                    responseLog[requestId].duration = duration;
+                    
+                    var responseData = null;
+                    try {
+                        if (this.responseType === 'json' || 
+                            (this.getResponseHeader('content-type') && 
+                             this.getResponseHeader('content-type').includes('application/json'))) {
+                            responseData = JSON.parse(this.responseText);
+                            responseLog[requestId].responseData = responseData;
+                            
+                            if (responseData.events_received) {
+                                logApiCall('log', `[FB CAPI] API do Facebook confirmou recebimento de ${responseData.events_received} evento(s) via XHR`, responseData);
+                            } else if (responseData.error) {
+                                logApiCall('error', `[FB CAPI] Erro da API do Facebook via XHR:`, responseData.error);
+                                responseLog[requestId].error = responseData.error;
+                            }
+                        }
+                    } catch (e) {
+                        logApiCall('error', `[FB CAPI] Erro ao processar resposta XHR #${requestId}:`, e);
+                    }
+                    
+                    logApiCall('log', `Resposta XHR #${requestId} da API do Facebook recebida em ${duration}ms:`, {
                         status: this.status,
-                        response: this.response
+                        statusText: this.statusText,
+                        responseData: responseData
                     });
                 }
+                
                 if (originalOnReadyStateChange) {
                     originalOnReadyStateChange.apply(this, arguments);
                 }
@@ -175,39 +541,188 @@
         return originalXHRSend.apply(this, arguments);
     };
     
-    console.log("[FB CAPI] Monitor de eventos server-side inicializado");
+    // Expor o log de requisições
+    window.fbApiLog = {
+        getLog: function() { return responseLog; },
+        getRequest: function(id) { return responseLog[id] || null; },
+        getAllRequests: function() { return Object.values(responseLog); },
+        clearLog: function() { responseLog = {}; },
+        printLog: function() { console.table(this.getAllRequests()); }
+    };
+    
+    console.log("[FB CAPI] Monitor avançado de eventos server-side inicializado");
 })();
 </script>
 
 <!-- Monitor de Preservação de UTMs -->
 <script>
 (function() {
+    var utmHistory = [];
+    
+    function logUtmEvent(action, data) {
+        var event = {
+            action: action,
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            data: data
+        };
+        
+        utmHistory.push(event);
+        console.log(`[UTM TRACKER] ${action}:`, data);
+        
+        return event;
+    }
+    
     function logStoredUtmParams() {
+        var allUtmParams = {};
+        var sources = {
+            url: {},
+            localStorage: {},
+            sessionStorage: {},
+            cookies: {}
+        };
+        
+        // Parâmetros da URL
+        var searchParams = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid'].forEach(function(param) {
+            if (searchParams.has(param)) {
+                sources.url[param] = searchParams.get(param);
+                allUtmParams[param] = searchParams.get(param);
+            }
+        });
+        
+        // Parâmetros do localStorage
         try {
             var storedParams = localStorage.getItem('utm_params');
             if (storedParams) {
-                console.log("[UTM TRACKER] Parâmetros UTM armazenados:", JSON.parse(storedParams));
-            } else {
-                console.log("[UTM TRACKER] Nenhum parâmetro UTM armazenado no localStorage");
+                var parsedParams = JSON.parse(storedParams);
+                sources.localStorage = parsedParams;
+                
+                // Adicionar ao conjunto combinado (sem sobrescrever URL)
+                for (var key in parsedParams) {
+                    if (!allUtmParams[key]) {
+                        allUtmParams[key] = parsedParams[key];
+                    }
+                }
             }
-            
-            // Verificar também os cookies de sessão
-            document.cookie.split(';').forEach(function(cookie) {
-                var parts = cookie.split('=');
-                var name = parts[0].trim();
-                if (name.includes('utm_') || name === 'fbclid' || name === 'gclid') {
-                    console.log("[UTM TRACKER] Cookie UTM encontrado:", name, "=", parts[1]);
+        } catch (e) {
+            console.error("[UTM TRACKER] Erro ao verificar UTMs no localStorage:", e);
+        }
+        
+        // Parâmetros do sessionStorage
+        try {
+            ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid'].forEach(function(param) {
+                var value = sessionStorage.getItem(param);
+                if (value) {
+                    sources.sessionStorage[param] = value;
+                    if (!allUtmParams[param]) {
+                        allUtmParams[param] = value;
+                    }
                 }
             });
         } catch (e) {
-            console.error("[UTM TRACKER] Erro ao verificar UTMs armazenados:", e);
+            console.error("[UTM TRACKER] Erro ao verificar UTMs no sessionStorage:", e);
         }
+        
+        // Verificar cookies
+        document.cookie.split(';').forEach(function(cookie) {
+            var parts = cookie.split('=');
+            var name = parts[0].trim();
+            if (name.includes('utm_') || name === 'fbclid' || name === 'gclid' || name === 'ttclid') {
+                var value = parts[1];
+                sources.cookies[name] = value;
+                if (!allUtmParams[name]) {
+                    allUtmParams[name] = value;
+                }
+            }
+        });
+        
+        var result = {
+            combined: allUtmParams,
+            sources: sources
+        };
+        
+        // Criar evento detalhado de log
+        if (Object.keys(allUtmParams).length > 0) {
+            logUtmEvent('UTM params encontrados', result);
+        } else {
+            logUtmEvent('Nenhum UTM param encontrado', { url: window.location.href });
+        }
+        
+        return result;
+    }
+    
+    // Monitorar mudanças em links
+    function monitorLinkChanges() {
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // ELEMENT_NODE
+                            var links = node.tagName === 'A' ? [node] : node.querySelectorAll('a');
+                            
+                            links.forEach(function(link) {
+                                // Verificar se o link tem pelo menos um parâmetro UTM
+                                var hasUtm = link.href && (
+                                    link.href.includes('utm_') || 
+                                    link.href.includes('fbclid=') || 
+                                    link.href.includes('gclid=')
+                                );
+                                
+                                if (hasUtm) {
+                                    logUtmEvent('Novo link com UTM detectado', {
+                                        href: link.href,
+                                        text: link.textContent.trim().substring(0, 30) + (link.textContent.length > 30 ? '...' : '')
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        return observer;
     }
     
     // Executar na carga da página
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("[UTM TRACKER] Verificando parâmetros UTM na página:", window.location.href);
-        logStoredUtmParams();
+        logUtmEvent('Página carregada', { url: window.location.href });
+        var utmParams = logStoredUtmParams();
+        
+        // Monitorar formulários para garantir que os UTMs sejam incluídos
+        document.querySelectorAll('form').forEach(function(form) {
+            logUtmEvent('Formulário detectado', { 
+                id: form.id || '[sem id]', 
+                action: form.action,
+                method: form.method
+            });
+            
+            // Verificar se o formulário já tem campos ocultos para UTM
+            var hasUtmFields = false;
+            form.querySelectorAll('input[type="hidden"]').forEach(function(input) {
+                if (input.name && (input.name.includes('utm_') || input.name === 'fbclid' || input.name === 'gclid')) {
+                    hasUtmFields = true;
+                    logUtmEvent('Campo UTM encontrado em formulário', { 
+                        form: form.id || '[sem id]', 
+                        field: input.name, 
+                        value: input.value 
+                    });
+                }
+            });
+            
+            if (!hasUtmFields && Object.keys(utmParams.combined).length > 0) {
+                logUtmEvent('Formulário sem campos UTM', { 
+                    form: form.id || '[sem id]',
+                    utmParams: utmParams.combined
+                });
+            }
+        });
         
         // Monitorar cliques em links
         document.addEventListener('click', function(e) {
@@ -215,15 +730,37 @@
                 var link = e.target.tagName === 'A' ? e.target : e.target.closest('a');
                 
                 if (link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
-                    console.log("[UTM TRACKER] Clique em link:", {
+                    var hasUtmParams = link.href.includes('utm_') || 
+                                      link.href.includes('fbclid=') || 
+                                      link.href.includes('gclid=');
+                    
+                    logUtmEvent('Clique em link', {
                         href: link.href,
-                        hasUtmParams: link.href.includes('utm_')
+                        text: link.textContent.trim().substring(0, 30) + (link.textContent.length > 30 ? '...' : ''),
+                        hasUtmParams: hasUtmParams
                     });
+                    
+                    if (!hasUtmParams && Object.keys(utmParams.combined).length > 0) {
+                        logUtmEvent('Link sem UTMs clicado', { 
+                            href: link.href,
+                            currentUtmParams: utmParams.combined
+                        });
+                    }
                 }
             }
         });
+        
+        // Iniciar monitor de alterações de links
+        var linkObserver = monitorLinkChanges();
+        
+        // Expor o log de UTMs
+        window.utmTracker = {
+            getHistory: function() { return utmHistory; },
+            getCurrentParams: logStoredUtmParams,
+            printHistory: function() { console.table(utmHistory); }
+        };
     });
     
-    console.log("[UTM TRACKER] Monitor de preservação de UTMs inicializado");
+    console.log("[UTM TRACKER] Monitor avançado de preservação de UTMs inicializado");
 })();
 </script>
