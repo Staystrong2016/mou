@@ -3228,50 +3228,125 @@ def pagar_ttps():
     try:
         app.logger.info("[PROD] Acessando página de pagamento da Taxa TTPS")
         
-        # Gerar código PIX aleatório para a página
-        pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
+        # Extrair dados do usuário da sessão, se disponíveis
+        user_data = {
+            'name': session.get('nome', 'Cliente Teste'),
+            'cpf': session.get('cpf', '12345678900'),
+            'email': session.get('email', 'teste@exemplo.com'),
+            'phone': session.get('phone', '11999999999')
+        }
         
-        # Gerar QR code para o código PIX
-        import qrcode
-        from io import BytesIO
-        import base64
+        # Valor da TTPS
+        ttps_value = 67.90
+        transaction_id = ""
         
-        # Criando o QR Code
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(pix_code)
-        qr.make(fit=True)
+        # Gerar pagamento na For4Payments
+        try:
+            app.logger.info(f"[PROD] Gerando pagamento For4 para TTPS no valor de R$ {ttps_value}")
+            
+            # Importar API da For4Payments
+            from for4pagamentos import create_payment_api
+            
+            # Criar instância da API
+            api = create_payment_api()
+            
+            # Preparar dados para o pagamento
+            payment_data = {
+                'customer_name': user_data['name'],
+                'customer_cpf': user_data['cpf'],
+                'customer_email': user_data['email'],
+                'customer_phone': user_data['phone'],
+                'amount': ttps_value,
+                'description': "Taxa Tarja Preta Seguro (TTPS)",
+                'external_id': f"TTPS-{random.randint(10000000, 99999999)}"
+            }
+            
+            # Criar pagamento PIX
+            payment_response = api.create_pix_payment(payment_data)
+            
+            if payment_response.get('success'):
+                payment_info = payment_response.get('data', {})
+                pix_code = payment_info.get('qr_code_text', '')
+                qr_code_url = payment_info.get('qr_code_image', '')
+                transaction_id = payment_info.get('transaction_id', '')
+                
+                # Armazenar o ID da transação na sessão para verificação posterior
+                session['ttps_transaction_id'] = transaction_id
+                
+                app.logger.info(f"[PROD] Pagamento For4 gerado com sucesso: ID {transaction_id}")
+            else:
+                error_msg = payment_response.get('message', 'Erro desconhecido')
+                app.logger.error(f"[PROD] Erro ao gerar pagamento For4: {error_msg}")
+                
+                # Em caso de erro, usar dados de exemplo para desenvolvimento
+                pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
+                
+                # Gerar QR code para o código PIX de exemplo
+                import qrcode
+                from io import BytesIO
+                import base64
+                
+                # Criando o QR Code
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(pix_code)
+                qr.make(fit=True)
+                
+                # Convertendo para imagem
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Salvando em um buffer de memória e convertendo para Base64
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                qr_code_url = f"data:image/png;base64,{qr_code_base64}"
+                
+                transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+                session['ttps_transaction_id'] = transaction_id
         
-        # Convertendo para imagem
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Salvando em um buffer de memória e convertendo para Base64
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        qr_code_url = f"data:image/png;base64,{qr_code_base64}"
+        except Exception as payment_error:
+            app.logger.error(f"[PROD] Exceção ao gerar pagamento For4: {str(payment_error)}")
+            
+            # Em caso de exceção, usar dados de exemplo para desenvolvimento
+            pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
+            
+            # Gerar QR code para o código PIX de exemplo
+            import qrcode
+            from io import BytesIO
+            import base64
+            
+            # Criando o QR Code
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(pix_code)
+            qr.make(fit=True)
+            
+            # Convertendo para imagem
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Salvando em um buffer de memória e convertendo para Base64
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            qr_code_url = f"data:image/png;base64,{qr_code_base64}"
+            
+            transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+            session['ttps_transaction_id'] = transaction_id
         
         # Gerar ID aleatório para o protocolo
         random_id = ''.join(random.choices(string.digits, k=4))
         
-        # Extrair dados do usuário da sessão, se disponíveis
-        user_data = {
-            'name': session.get('nome', 'Cliente'),
-            'cpf': session.get('cpf', ''),
-            'email': session.get('email', ''),
-            'phone': session.get('phone', '')
-        }
-        
         # Registrar evento de InitiateCheckout no Facebook CAPI
         try:
             from facebook_conversion_api import track_initiate_checkout
-            
-            # Valor da TTPS
-            ttps_value = 67.90
             
             # Enviar evento
             track_initiate_checkout(value=ttps_value)
@@ -3279,15 +3354,141 @@ def pagar_ttps():
         except Exception as fb_error:
             app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout para TTPS: {str(fb_error)}")
         
-        # Renderizar template com todos os dados necessários (usando novo template simplificado)
+        # Renderizar template com todos os dados necessários
         return render_template('pagar_ttps_new.html', 
                                pix_code=pix_code,
                                qr_code_url=qr_code_url,
                                random_id=random_id,
-                               user_data=user_data)
+                               user_data=user_data,
+                               transaction_id=transaction_id)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
+
+@app.route('/verificar-pagamento-ttps')
+@confirm_genuity()
+def verificar_pagamento_ttps():
+    """
+    Endpoint para verificar o status do pagamento TTPS
+    """
+    try:
+        transaction_id = session.get('ttps_transaction_id', '')
+        
+        if not transaction_id:
+            app.logger.warning("[PROD] Tentativa de verificar pagamento TTPS sem ID de transação")
+            return jsonify({
+                'success': False,
+                'status': 'error',
+                'message': 'ID de transação não encontrado'
+            }), 400
+        
+        app.logger.info(f"[PROD] Verificando status do pagamento TTPS: {transaction_id}")
+        
+        # Verificar pagamento na For4Payments
+        try:
+            # Importar API da For4Payments
+            from for4pagamentos import create_payment_api
+            
+            # Criar instância da API
+            api = create_payment_api()
+            
+            # Verificar status do pagamento
+            payment_status = api.check_payment_status(transaction_id)
+            
+            # Verificar se a resposta foi bem-sucedida
+            if payment_status.get('success'):
+                status_data = payment_status.get('data', {})
+                is_paid = status_data.get('status') == 'paid'
+                
+                if is_paid:
+                    app.logger.info(f"[PROD] Pagamento TTPS {transaction_id} confirmado")
+                    
+                    # Enviar evento de Purchase para o Facebook CAPI
+                    try:
+                        from facebook_conversion_api import track_purchase, prepare_user_data
+                        
+                        # Valor da TTPS
+                        ttps_value = 67.90
+                        
+                        # Preparar dados do usuário para o evento (com hash)
+                        user_data = {}
+                        if 'nome' in session and session['nome']:
+                            nome_completo = session['nome'].split()
+                            if len(nome_completo) >= 1:
+                                # Extrair primeiro e último nome para o evento
+                                first_name = nome_completo[0]
+                                last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                                user_data = prepare_user_data(
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=session.get('email'),
+                                    phone=session.get('phone'),
+                                    external_id=session.get('cpf')
+                                )
+                        
+                        # Enviar evento
+                        track_purchase(
+                            value=float(ttps_value),
+                            transaction_id=transaction_id,
+                            content_name="Taxa Tarja Preta Seguro (TTPS)"
+                        )
+                        app.logger.info(f"[FACEBOOK] Evento Purchase enviado para TTPS com valor {ttps_value}")
+                    except Exception as fb_error:
+                        app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase para TTPS: {str(fb_error)}")
+                
+                return jsonify({
+                    'success': True,
+                    'status': 'paid' if is_paid else 'pending',
+                    'message': 'Pagamento confirmado' if is_paid else 'Pagamento pendente'
+                })
+            else:
+                error_msg = payment_status.get('message', 'Erro desconhecido')
+                app.logger.error(f"[PROD] Erro ao verificar pagamento For4: {error_msg}")
+                
+                # Em ambiente de desenvolvimento, permitir simular pagamento bem-sucedido
+                is_dev = os.environ.get('FLASK_ENV') == 'development' or app.debug
+                is_test = request.args.get('test') == 'true'
+                if is_dev and is_test:
+                    app.logger.info("[DESENVOLVIMENTO] Simulando pagamento TTPS bem-sucedido")
+                    return jsonify({
+                        'success': True,
+                        'status': 'paid',
+                        'message': 'Pagamento simulado com sucesso'
+                    })
+                
+                return jsonify({
+                    'success': False,
+                    'status': 'error',
+                    'message': error_msg
+                }), 400
+                
+        except Exception as check_error:
+            app.logger.error(f"[PROD] Exceção ao verificar pagamento For4: {str(check_error)}")
+            
+            # Em ambiente de desenvolvimento, permitir simular pagamento bem-sucedido
+            is_dev = os.environ.get('FLASK_ENV') == 'development' or app.debug
+            is_test = request.args.get('test') == 'true'
+            if is_dev and is_test:
+                app.logger.info("[DESENVOLVIMENTO] Simulando pagamento TTPS bem-sucedido")
+                return jsonify({
+                    'success': True,
+                    'status': 'paid',
+                    'message': 'Pagamento simulado com sucesso'
+                })
+            
+            return jsonify({
+                'success': False,
+                'status': 'error',
+                'message': f"Erro ao verificar pagamento: {str(check_error)}"
+            }), 500
+            
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao verificar pagamento TTPS: {str(e)}")
+        return jsonify({
+            'success': False,
+            'status': 'error',
+            'message': 'Erro interno do servidor'
+        }), 500
 
 @app.route('/ttps_sucesso')
 @confirm_genuity()
@@ -3325,8 +3526,8 @@ def ttps_sucesso():
                         external_id=session.get('cpf')
                     )
             
-            # Gerar ID de transação
-            transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+            # Usar o transaction_id da sessão se disponível, senão gerar um novo
+            transaction_id = session.get('ttps_transaction_id') or f"TTPS-{random.randint(10000000, 99999999)}"
             
             # Enviar evento
             track_purchase(

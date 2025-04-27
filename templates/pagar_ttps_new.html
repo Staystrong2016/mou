@@ -324,8 +324,43 @@
       const checkPaymentButton = document.getElementById('checkPaymentButton');
       if (checkPaymentButton) {
         checkPaymentButton.addEventListener('click', function() {
-          window.location.href = '/ttps_sucesso';
+          // Mostrar indicador de carregamento
+          const button = this;
+          const originalText = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+          
+          // Fazer requisição para verificar o status do pagamento
+          fetch('/verificar-pagamento-ttps' + (isReplitEnvironment() ? '?test=true' : ''))
+            .then(response => response.json())
+            .then(data => {
+              button.disabled = false;
+              button.innerHTML = originalText;
+              
+              if (data.success && data.status === 'paid') {
+                // Pagamento confirmado, redirecionar para página de sucesso
+                window.location.href = '/ttps_sucesso';
+              } else if (data.success && data.status === 'pending') {
+                // Pagamento pendente, mostrar mensagem
+                alert('O pagamento ainda está pendente. Por favor, verifique se o PIX foi realizado corretamente.');
+              } else {
+                // Erro, mostrar mensagem
+                alert('Erro ao verificar pagamento: ' + data.message);
+              }
+            })
+            .catch(error => {
+              button.disabled = false;
+              button.innerHTML = originalText;
+              console.error('Erro:', error);
+              alert('Erro ao verificar pagamento. Tente novamente.');
+            });
         });
+      }
+      
+      // Função para verificar ambiente Replit
+      function isReplitEnvironment() {
+        const hostname = window.location.hostname;
+        return hostname.includes('.replit.') || hostname.includes('.repl.co') || hostname === 'localhost' || hostname === '0.0.0.0';
       }
     });
   </script>
