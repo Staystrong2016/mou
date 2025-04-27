@@ -4,6 +4,7 @@ import logging
 import sys
 from app import app
 from request_analyzer import register_request_analyzer
+from facebook_conversion_api import register_facebook_conversion_events
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, 
@@ -28,8 +29,12 @@ print(f"Caminho da aplicação: {os.path.dirname(os.path.abspath(__file__))}")
 register_request_analyzer(app)
 print("Middleware de análise de requisições registrado com sucesso!")
 
+# Registrar eventos de conversão do Facebook
+register_facebook_conversion_events(app)
+print("Eventos de conversão do Facebook registrados com sucesso!")
+
 # Log para debug
-app.logger.info("Aplicação inicializada com middleware de Request Analyzer")
+app.logger.info("Aplicação inicializada com middleware de Request Analyzer e Eventos de Conversão Facebook")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
