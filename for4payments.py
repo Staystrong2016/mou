@@ -146,7 +146,7 @@ class For4PaymentsAPI:
                 "paymentMethod": "PIX",
                 "amount": amount_in_cents,
                 "items": [{
-                    "title": "Inscrição 2025",
+                    "title": "Kit Celebração Dia das Mães Zé Delivery",
                     "quantity": 1,
                     "unitPrice": amount_in_cents,
                     "tangible": False
@@ -487,7 +487,7 @@ class For4PaymentsAPI:
                 'cpf': cpf,
                 'amount': amount,
                 'phone': phone,
-                'description': 'Inscrição 2025'
+                'description': 'bebidas, petiscos e carinho entregues rapidinho para ela!'
             }
             
             current_app.logger.info("Chamando API de pagamento PIX")

