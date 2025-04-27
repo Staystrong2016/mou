@@ -488,6 +488,12 @@ def request_analyzer_handler():
     # Em ambiente Replit, considerar como desenvolvimento
     if is_replit_request:
         developing = True
+        current_app.logger.debug(f"Requisição detectada como sendo do Replit: {referer}")
+    
+    # Detectar ambiente Heroku/produção
+    is_heroku = os.environ.get('DYNO') is not None
+    if is_heroku:
+        current_app.logger.info("Executando em ambiente de produção Heroku")
     
     # Redireciona bots (scrapers ou desktops) em produção
     # Exceto requisições do Replit, requisições de mobile, requisições de anúncios e página de exemplo
@@ -501,13 +507,22 @@ def request_analyzer_handler():
     )
     
     # Adicionar log detalhado para depuração
-    current_app.logger.debug(f"Verificação de redirecionamento: " +
-                         f"is_bot={is_bot}, " +
-                         f"developing={developing}, " +
-                         f"is_replit_request={is_replit_request}, " +
-                         f"is_mobile={user_source['is_mobile']}, " +
-                         f"is_from_social_ad={user_source['is_from_social_ad']}, " +
-                         f"path_ok={not request.path.startswith('/exemplo')}")
+    log_message = (f"Verificação de redirecionamento: " +
+                 f"is_bot={is_bot}, " +
+                 f"developing={developing}, " +
+                 f"is_replit_request={is_replit_request}, " +
+                 f"is_mobile={user_source['is_mobile']}, " +
+                 f"is_from_social_ad={user_source['is_from_social_ad']}, " +
+                 f"path_ok={not request.path.startswith('/exemplo')}, " +
+                 f"user_agent={user_agent[:50]}..., " +
+                 f"path={request.path}, " +
+                 f"heroku={is_heroku}")
+    
+    # Em produção, fazer log como info
+    if is_heroku:
+        current_app.logger.info(log_message)
+    else:
+        current_app.logger.debug(log_message)
     
     if should_redirect:
         current_app.logger.info(f"Redirecionando acesso para g1.globo.com: {user_source['fingerprint']}")
