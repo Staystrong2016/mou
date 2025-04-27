@@ -1,0 +1,64 @@
+Supondo que o usuário acesse nossa aplicação React+TypeScript a partir da URL /anvisa?utm_source=FB&utm_campaign={{campaign.name}}|{{campaign.id}}&utm_medium={{adset.name}}|{{adset.id}}&utm_content={{ad.name}}|{{ad.id}}&utm_term={{placement}}, garanta que os parâmetros de UTM sejam preservados em todas as etapas do funil de conversão para assegurar o rastreamento correto dos eventos de conversão. As etapas do funil são:
+
+
+
+
+
+/anvisa
+
+
+
+/cadastro
+
+
+
+/validar-dados
+
+
+
+/validacao-em-andamento
+
+
+
+/questionario-saude
+
+
+
+/endereco
+
+
+
+/compra
+
+
+
+/pagamento_pix
+
+
+
+/compra_sucesso
+
+Requisitos Técnicos:
+
+
+
+
+
+Preservação dos Parâmetros: Utilize a biblioteca de roteamento (e.g., React Router) para manter os parâmetros de UTM nas query strings durante a navegação entre rotas. Armazene os parâmetros iniciais em um contexto React ou localStorage para garantir sua disponibilidade em caso de recarregamento da página ou navegação não linear.
+
+
+
+Integração com Ferramentas de Rastreamento: Integre os parâmetros de UTM com ferramentas como Facebook Pixel ou Google Analytics, utilizando bibliotecas como react-ga ou métodos nativos do Pixel para enviar eventos de conversão em cada etapa do funil, assegurando que os dados sejam associados à campanha de origem.
+
+
+
+Tratamento de Erros: Implemente lógica para detectar a perda de parâmetros de UTM (e.g., verificação de query strings vazias). Em caso de falha, recupere os parâmetros do localStorage ou registre o erro em um serviço de monitoramento (e.g., Sentry) para análise posterior.
+
+
+
+Testes e Validação: Configure testes automatizados (e.g., com Jest e React Testing Library) para verificar a preservação dos parâmetros de UTM em todas as rotas do funil, incluindo cenários de navegação direta, redirecionamentos, e navegação não linear (e.g., usuário voltando a uma etapa anterior).
+
+Configurações Específicas:
+Use TypeScript para tipar os parâmetros de UTM e garantir consistência no acesso e manipulação dos dados.
+Evite o uso de <form> com onSubmit devido às restrições de sandbox; prefira eventos de clique ou navegação programática com history.push do React Router, preservando os parâmetros.
+Considere bibliotecas como query-string para facilitar a manipulação de query strings em TypeScript.

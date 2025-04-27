@@ -78,5 +78,146 @@
     {% block content %}{% endblock %}
     
     {% block footer_scripts %}{% endblock %}
+    
+    <!-- Script para preservar parâmetros UTM em todas as navegações -->
+    <script>
+    (function() {
+        // Função para obter parâmetros UTM da URL atual
+        function getUtmParamsFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const utmParams = {};
+            
+            // Lista de parâmetros UTM a serem preservados
+            const utmKeys = [
+                'utm_source', 'utm_medium', 'utm_campaign', 
+                'utm_content', 'utm_term', 'fbclid', 
+                'gclid', 'ttclid', 'src', 'sck', 'xcod'
+            ];
+            
+            // Coletar parâmetros UTM presentes na URL
+            utmKeys.forEach(key => {
+                if (urlParams.has(key)) {
+                    utmParams[key] = urlParams.get(key);
+                }
+            });
+            
+            return utmParams;
+        }
+        
+        // Função para salvar parâmetros UTM no localStorage
+        function saveUtmParamsToStorage(params) {
+            if (Object.keys(params).length > 0) {
+                localStorage.setItem('utm_params', JSON.stringify(params));
+                console.log('UTM params saved to storage:', params);
+            }
+        }
+        
+        // Função para obter parâmetros UTM do localStorage
+        function getUtmParamsFromStorage() {
+            const storedParams = localStorage.getItem('utm_params');
+            return storedParams ? JSON.parse(storedParams) : {};
+        }
+        
+        // Função para adicionar parâmetros UTM a links internos
+        function addUtmParamsToLinks(params) {
+            if (Object.keys(params).length === 0) return;
+            
+            // Selecionar todos os links internos
+            const links = document.querySelectorAll('a');
+            
+            links.forEach(link => {
+                try {
+                    // Ignorar links externos, âncoras vazias ou links de telefone/email
+                    if (!link.href || 
+                        link.href.startsWith('tel:') || 
+                        link.href.startsWith('mailto:') || 
+                        link.getAttribute('href') === '#' ||
+                        (link.href.indexOf('//') !== -1 && link.href.indexOf(window.location.host) === -1)) {
+                        return;
+                    }
+                    
+                    // Criar URL a partir do href
+                    const url = new URL(link.href);
+                    
+                    // Verificar se é um link interno
+                    if (url.host === window.location.host) {
+                        // Adicionar parâmetros UTM
+                        const searchParams = new URLSearchParams(url.search);
+                        
+                        // Adicionar apenas parâmetros que não existem já na URL
+                        Object.entries(params).forEach(([key, value]) => {
+                            if (!searchParams.has(key)) {
+                                searchParams.set(key, value);
+                            }
+                        });
+                        
+                        // Atualizar a URL do link
+                        url.search = searchParams.toString();
+                        link.href = url.toString();
+                    }
+                } catch (e) {
+                    console.error('Error processing link:', link.href, e);
+                }
+            });
+        }
+        
+        // Função para adicionar parâmetros UTM a formulários
+        function addUtmParamsToForms(params) {
+            if (Object.keys(params).length === 0) return;
+            
+            // Selecionar todos os formulários
+            const forms = document.querySelectorAll('form');
+            
+            forms.forEach(form => {
+                // Adicionar campos hidden para cada parâmetro UTM
+                Object.entries(params).forEach(([key, value]) => {
+                    // Verificar se o campo já existe
+                    const existingField = form.querySelector(`input[name="${key}"]`);
+                    
+                    if (!existingField) {
+                        const hiddenField = document.createElement('input');
+                        hiddenField.type = 'hidden';
+                        hiddenField.name = key;
+                        hiddenField.value = value;
+                        form.appendChild(hiddenField);
+                    }
+                });
+            });
+        }
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obter parâmetros UTM da URL atual
+            const urlUtmParams = getUtmParamsFromUrl();
+            
+            // Obter parâmetros UTM armazenados
+            const storedUtmParams = getUtmParamsFromStorage();
+            
+            // Combinar parâmetros, priorizando os da URL atual
+            const combinedParams = { ...storedUtmParams, ...urlUtmParams };
+            
+            // Salvar parâmetros UTM combinados
+            saveUtmParamsToStorage(combinedParams);
+            
+            // Aplicar parâmetros UTM aos links e formulários
+            addUtmParamsToLinks(combinedParams);
+            addUtmParamsToForms(combinedParams);
+            
+            // Adicionar observer para modificações no DOM
+            const observer = new MutationObserver(function(mutations) {
+                addUtmParamsToLinks(combinedParams);
+                addUtmParamsToForms(combinedParams);
+            });
+            
+            // Configuração do observer (observar mudanças em childList e subtree)
+            observer.observe(document.body, { 
+                childList: true, 
+                subtree: true 
+            });
+            
+            console.log('UTM parameter preservation initialized');
+        });
+    })();
+    </script>
 </body>
 </html>

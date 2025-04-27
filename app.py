@@ -76,15 +76,70 @@ def inject_globals():
 # Captura de parâmetros UTM na requisição
 @app.before_request
 def capture_utm_params():
-    """Captura parâmetros UTM da URL e armazena na sessão"""
-    utm_params = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term', 
-                 'fbclid', 'gclid', 'ttclid', 'src', 'sck', 'xcod']
-    
-    for param in utm_params:
-        value = request.args.get(param)
-        if value:
-            session[param] = value
-            app.logger.debug(f"UTM param capturado: {param}={value}")
+    """
+    Captura parâmetros UTM da URL e armazena na sessão
+    Garante que os parâmetros UTM sejam preservados em todas as etapas do funil de conversão
+    """
+    try:
+        # Parâmetros UTM principais e outros parâmetros de rastreamento
+        utm_params = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term', 
+                     'fbclid', 'gclid', 'ttclid', 'src', 'sck', 'xcod']
+        
+        # Verificar se há algum parâmetro UTM na URL
+        has_utm_in_url = any(param in request.args for param in utm_params)
+        
+        # Criar ou obter dicionário de parâmetros UTM da sessão
+        session_utm = session.get('utm_params', {})
+        
+        if has_utm_in_url:
+            # Capturar e armazenar cada parâmetro UTM encontrado na URL
+            for param in utm_params:
+                value = request.args.get(param)
+                if value:
+                    session_utm[param] = value
+                    # Também armazenar individualmente para retro-compatibilidade
+                    session[param] = value
+                    
+            # Registrar que capturamos novos parâmetros
+            app.logger.info(f"[UTM] Parâmetros de rastreamento capturados da URL: {session_utm}")
+        elif not session_utm:
+            # Se não há UTMs na URL nem na sessão, tentar obter do referer
+            referer = request.headers.get('Referer', '')
+            if referer and ('?' in referer or '&' in referer):
+                try:
+                    from urllib.parse import urlparse, parse_qs
+                    parsed_url = urlparse(referer)
+                    query_params = parse_qs(parsed_url.query)
+                    
+                    # Extrair parâmetros UTM do referer
+                    for param in utm_params:
+                        if param in query_params and query_params[param]:
+                            value = query_params[param][0]
+                            session_utm[param] = value
+                            session[param] = value
+                    
+                    if session_utm:
+                        app.logger.info(f"[UTM] Parâmetros de rastreamento recuperados do referer: {session_utm}")
+                except Exception as parse_error:
+                    app.logger.error(f"[UTM] Erro ao analisar referer para UTMs: {str(parse_error)}")
+        
+        # Garantir que os parâmetros UTM sejam armazenados na sessão
+        if session_utm:
+            session['utm_params'] = session_utm
+            
+            # Extrair parâmetros específicos para facilitar o uso em templates
+            for param in utm_params:
+                if param in session_utm:
+                    session[param] = session_utm[param]
+            
+            # Adicionar flag para indicar que temos dados de rastreamento válidos
+            session['has_tracking_data'] = True
+            
+            # Logging dos parâmetros UTM para depuração
+            app.logger.debug(f"[UTM] Parâmetros de rastreamento ativos: {session_utm}")
+            
+    except Exception as e:
+        app.logger.error(f"[UTM] Erro ao processar parâmetros de rastreamento: {str(e)}")
 
 # Initialize Redis-like storage for banned IPs (using dict for simplicity)
 BANNED_IPS = {}
