@@ -27,17 +27,22 @@ logger.addHandler(console_handler)
 FB_API_VERSION = 'v18.0'  # Usar a versão mais recente
 FB_GRAPH_API_URL = f"https://graph.facebook.com/{FB_API_VERSION}"
 
-# Pixel IDs configurados para o site
-PIXEL_IDS = [
-    '1418766538994503',
-    '1345433039826605',
-    '1390026985502891',
-    '190097557439571',
-    '1226790281278977',
-]
+# Pixel ID obtido de variável de ambiente
+FB_PIXEL_ID = os.environ.get('FB_PIXEL_ID')
 
-# Token de acesso do Facebook (deve ser configurado em variáveis de ambiente)
+# Token de acesso do Facebook via variável de ambiente
 FB_ACCESS_TOKEN = os.environ.get('FB_ACCESS_TOKEN')
+
+# Log das configurações carregadas
+if FB_PIXEL_ID:
+    logger.info(f"Facebook Pixel ID configurado: {FB_PIXEL_ID}")
+else:
+    logger.warning("Facebook Pixel ID não encontrado nas variáveis de ambiente. Use FB_PIXEL_ID para configurar.")
+
+if FB_ACCESS_TOKEN:
+    logger.info("Facebook Access Token configurado com sucesso")
+else:
+    logger.warning("Facebook Access Token não encontrado nas variáveis de ambiente. Use FB_ACCESS_TOKEN para configurar.")
 
 # Configurações para retentativas
 MAX_RETRIES = 3
@@ -245,7 +250,7 @@ def send_event_to_all_pixels(
     event_time: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
-    Envia um evento para todos os pixels configurados
+    Envia um evento para o Pixel configurado na variável de ambiente FB_PIXEL_ID
     
     Args:
         event_name: Nome do evento (PageView, Lead, Purchase, etc)
@@ -255,22 +260,30 @@ def send_event_to_all_pixels(
         event_time: Timestamp do evento
     
     Returns:
-        Lista com os resultados para cada pixel
+        Lista com os resultados do envio
     """
     results = []
-    event_id = generate_event_id()  # Usar o mesmo event_id para todos os pixels
+    event_id = generate_event_id()  
     
-    for pixel_id in PIXEL_IDS:
-        result = send_event(
-            pixel_id=pixel_id,
-            event_name=event_name,
-            event_id=event_id,
-            user_data=user_data,
-            custom_data=custom_data,
-            event_source_url=event_source_url,
-            event_time=event_time
-        )
-        results.append(result)
+    # Verificar se o Pixel ID está configurado
+    if not FB_PIXEL_ID:
+        logger.warning(f"Não foi possível enviar evento {event_name}: FB_PIXEL_ID não configurado")
+        return [{
+            'success': False,
+            'message': 'FB_PIXEL_ID não configurado'
+        }]
+    
+    # Enviar evento para o Pixel ID configurado
+    result = send_event(
+        pixel_id=FB_PIXEL_ID,
+        event_name=event_name,
+        event_id=event_id,
+        user_data=user_data,
+        custom_data=custom_data,
+        event_source_url=event_source_url,
+        event_time=event_time
+    )
+    results.append(result)
     
     return results
 
@@ -471,6 +484,14 @@ def register_facebook_conversion_events(app):
     """
     import functools
     from flask import request, session
+    
+    # Verificar se as credenciais necessárias estão configuradas
+    if not FB_PIXEL_ID or not FB_ACCESS_TOKEN:
+        logger.warning("Facebook Conversion API não está completamente configurada. Eventos não serão registrados.")
+        logger.warning("Configure FB_PIXEL_ID e FB_ACCESS_TOKEN nas variáveis de ambiente.")
+        return
+    
+    logger.info(f"Registrando eventos de conversão do Facebook para Pixel ID: {FB_PIXEL_ID}")
     
     # Mapeamento de rotas para eventos
     route_event_mapping = {

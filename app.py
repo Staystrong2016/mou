@@ -513,6 +513,39 @@ def compra_sucesso():
         # Obter o nome do cliente da sessão
         customer_name = session.get('nome', '')
 
+        # Enviando evento Purchase para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_purchase, prepare_user_data
+            
+            # Obter valor da compra da sessão
+            purchase_amount = session.get('purchase_amount', 197.90)  # Valor padrão se não existir na sessão
+            
+            # Preparar dados do usuário para o evento (com hash)
+            user_data = {}
+            if 'nome' in session and session['nome']:
+                nome_completo = session['nome'].split()
+                if len(nome_completo) >= 1:
+                    # Extrair primeiro e último nome para o evento
+                    first_name = nome_completo[0]
+                    last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                    user_data = prepare_user_data(
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=session.get('email'),
+                        phone=session.get('phone'),
+                        external_id=session.get('cpf')
+                    )
+            
+            # Enviar evento de compra com os dados disponíveis
+            track_purchase(
+                value=float(purchase_amount),
+                transaction_id=order_number,
+                content_name="Mounjaro (Tirzepatida) 5mg"
+            )
+            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount}")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase: {str(fb_error)}")
+
         return render_template('compra_sucesso.html', 
                               order_number=order_number, 
                               order_date=order_date,
