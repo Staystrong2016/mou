@@ -12,8 +12,15 @@ logging.basicConfig(level=logging.INFO,
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
+# Se DEVE forçar todas as verificações para permitir mais acessos ao site
+force_allow_all = os.environ.get('FORCE_ALLOW_ALL', 'false').lower() == 'true'
+if force_allow_all:
+    print("!!! ATENÇÃO: Modo de acesso permissivo ativado - todos os acessos serão permitidos !!!")
+    os.environ['FORCE_ALLOW_ALL'] = 'true'
+
 # Log para verificar o ambiente
-print(f"Iniciando aplicação em ambiente: {'PRODUÇÃO' if os.environ.get('DYNO') else 'DESENVOLVIMENTO'}")
+environment = 'PRODUÇÃO' if os.environ.get('DYNO') else 'DESENVOLVIMENTO'
+print(f"Iniciando aplicação em ambiente: {environment}")
 print(f"Python version: {sys.version}")
 print(f"Caminho da aplicação: {os.path.dirname(os.path.abspath(__file__))}")
 

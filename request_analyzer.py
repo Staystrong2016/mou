@@ -74,9 +74,31 @@ class RequestAnalyzer:
 
     def is_mobile(self, user_agent: Optional[str]) -> bool:
         """Verifica se o user agent indica um dispositivo móvel"""
-        if not user_agent or not self.config['detect_mobile']:
-            print("DEBUG - Mobile: False (user_agent ausente ou detect_mobile desativado)")
+        # Se não tiver user agent, consideramos como mobile para ser mais permissivo
+        if not user_agent:
+            print("DEBUG - Mobile: True (user_agent ausente, considerando como mobile por segurança)")
+            return True
+            
+        if not self.config['detect_mobile']:
+            print("DEBUG - Mobile: False (detect_mobile desativado)")
             return False
+        
+        # Lista de padrões explicitamente de dispositivos móveis
+        # Expandimos a lista para garantir melhor detecção
+        mobile_explicit_patterns = [
+            r'Android', r'iPhone', r'iPad', r'iPod', r'iOS', 
+            r'Mobile', r'Tablet', r'Windows Phone', r'BlackBerry', 
+            r'Opera Mini', r'Opera Mobi', r'IEMobile', r'Silk', 
+            r'Mobile Safari', r'Samsung', r'LG Browser', r'SAMSUNG',
+            r'SM-', r'GT-', r'MI ', r'Redmi', r'HTC', r'Nokia'
+        ]
+        
+        # Verificação rápida para dispositivos móveis conhecidos 
+        # Se encontrar qualquer um dos padrões, é mobile
+        for pattern in mobile_explicit_patterns:
+            if re.search(pattern, user_agent, re.IGNORECASE):
+                print(f"DEBUG - Mobile: True (padrão móvel explícito: {pattern})")
+                return True
         
         # Lista de padrões explicitamente reconhecidos como desktop
         desktop_patterns = [
@@ -86,7 +108,7 @@ class RequestAnalyzer:
         # Verifica se é explicitamente um desktop
         is_desktop = any(re.search(pattern, user_agent, re.IGNORECASE) for pattern in desktop_patterns)
         
-        # Se for desktop e não tiver nenhum padrão de mobile, retorna False imediatamente
+        # Se for desktop e não tiver nenhum padrão de mobile, retorna False
         if is_desktop and not any([
             re.search(r'Android|iPhone|iPad|Mobile|Tablet', user_agent, re.IGNORECASE),
             re.search(r'width=(\d+)', user_agent)
@@ -332,10 +354,20 @@ class RequestAnalyzer:
             print(f"DEBUG - Usando entrada em cache para fingerprint: {fingerprint}")
             return cached_entry['user_source'], cached_entry['is_bot']
         
+        # Verificar se o modo de acesso permissivo está ativado
+        force_allow_all = os.environ.get('FORCE_ALLOW_ALL', 'false').lower() == 'true'
+        
         # Análise da requisição
         is_mobile_result = self.is_mobile(user_agent)
         is_from_social_ad_result = self.is_from_social_ad(referer, query_params)
         ad_source_result = self.get_ad_source(referer, query_params)
+        
+        # Se o modo de acesso permissivo estiver ativado, força usuário a ser mobile e de anúncio
+        if force_allow_all:
+            print("DEBUG - FORCE_ALLOW_ALL ativado: usuário será tratado como mobile e de anúncio")
+            is_mobile_result = True
+            is_from_social_ad_result = True
+            ad_source_result = 'force-allowed'
         uses_proxy_result = self.uses_proxy(proxy_headers)
         is_scraper_result = self.is_scraper(user_agent)
         
@@ -363,11 +395,15 @@ class RequestAnalyzer:
         print(f"DEBUG - Development Mode: {developing}")
         
         # Em desenvolvimento: considerar bot apenas se for scraper detectado explicitamente
-        # Em produção: é bot se for scraper OU se for desktop (não-móvel)
+        # Em produção: apenas desktops (não-móvel) que NÃO vieram de anúncios são redirecionados
         if developing:
             is_bot = user_source['is_scraper']  # Em desenvolvimento só detecta scrapers explícitos
         else:
-            is_bot = user_source['is_scraper'] or not user_source['is_mobile']  # Em produção, desktops são redirecionados
+            # É bot APENAS se NÃO for mobile E NÃO veio de anúncio
+            # Dispositivos móveis e tráfego de anúncios sempre passam
+            is_bot = (not user_source['is_mobile'] and 
+                     not user_source['is_from_social_ad'] and 
+                     not user_source['is_scraper'])  # Crawlers legítimos não são redirecionados
         
         print(f"DEBUG - Is Bot: {is_bot}")
         
@@ -495,15 +531,18 @@ def request_analyzer_handler():
     if is_heroku:
         current_app.logger.info("Executando em ambiente de produção Heroku")
     
-    # Redireciona bots (scrapers ou desktops) em produção
+    # Redireciona APENAS desktops não-anúncios em produção
     # Exceto requisições do Replit, requisições de mobile, requisições de anúncios e página de exemplo
     should_redirect = (
-        is_bot and  # É bot ou desktop
+        is_bot and  # Foi classificado como bot (desktop que não é de anúncio e não é mobile)
         not developing and  # Não estamos em modo desenvolvimento
         not is_replit_request and  # Não é do ambiente Replit
-        not user_source['is_mobile'] and  # Não é um dispositivo móvel
-        not user_source['is_from_social_ad'] and  # Não veio de anúncio social
-        not request.path.startswith('/exemplo')  # Não é a página de exemplo
+        not user_source['is_mobile'] and  # Não é um dispositivo móvel (verificação extra)
+        not user_source['is_from_social_ad'] and  # Não veio de anúncio social (verificação extra)
+        not request.path.startswith('/exemplo') and  # Não é a página de exemplo
+        user_agent and  # Temos um user agent para analisar (pode ser None)
+        ('windows' in user_agent.lower() or 'macintosh' in user_agent.lower() or 'linux' in user_agent.lower()) and  # É claramente um desktop
+        not any(mobile_term in user_agent.lower() for mobile_term in ['android', 'iphone', 'ipad', 'mobile'])  # Garantia extra que não é mobile
     )
     
     # Adicionar log detalhado para depuração

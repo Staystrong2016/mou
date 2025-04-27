@@ -956,22 +956,37 @@ def index():
             
             # Verificação de fallback para garantir redirecionamento em produção quando o middleware falha
             if is_heroku:
-                # Verificar se é mobile pelo User-Agent
+                # Verificar se é mobile pelo User-Agent - Lista extendida de padrões mobile
                 user_agent = request.headers.get('User-Agent', '').lower()
-                is_mobile_manual = any(device in user_agent for device in ['android', 'iphone', 'ipad', 'mobile', 'tablet'])
+                mobile_patterns = [
+                    'android', 'iphone', 'ipad', 'ipod', 'ios', 'windows phone',
+                    'mobile', 'tablet', 'blackberry', 'opera mini', 'opera mobi',
+                    'iemobile', 'silk', 'mobile safari', 'samsung', 'lg browser',
+                    'sm-', 'gt-', 'mi ', 'redmi', 'htc', 'nokia', 'mobi', 'wv'
+                ]
+                # Se não temos user agent, consideramos como mobile por segurança
+                if not user_agent:
+                    is_mobile_manual = True
+                    app.logger.info(f"[PROD] User-Agent ausente, considerando como mobile por segurança")
+                else:
+                    is_mobile_manual = any(device in user_agent for device in mobile_patterns)
                 
                 # Verificar se é de anúncio pelo Referer ou parâmetros UTM
                 referer = request.headers.get('Referer', '').lower()
-                has_social_params = any(param in request.args for param in ['utm_source', 'fbclid', 'igshid', 'gclid'])
-                from_social_referer = any(domain in referer for domain in ['facebook', 'instagram', 'fb.com'])
+                social_params = ['utm_source', 'utm_medium', 'utm_campaign', 'fbclid', 'igshid', 'gclid']
+                has_social_params = any(param in request.args for param in social_params)
+                social_domains = ['facebook', 'instagram', 'fb.com', 'fb.watch', 'l.instagram']
+                from_social_referer = any(domain in referer for domain in social_domains)
                 
                 # Log para depuração
-                app.logger.info(f"[PROD] Verificação manual: mobile={is_mobile_manual}, social={has_social_params or from_social_referer}")
+                app.logger.info(f"[PROD] Verificação manual: mobile={is_mobile_manual}, social={has_social_params or from_social_referer}, user_agent={user_agent[:50]}")
                 
-                # Se não for mobile e não for de anúncio, redirecionar
-                if not is_mobile_manual and not (has_social_params or from_social_referer):
+                # Regra mais segura: só redireciona se for CERTAMENTE um desktop e CERTAMENTE não vier de anúncio
+                if not is_mobile_manual and not (has_social_params or from_social_referer) and user_agent and ('windows' in user_agent or 'macintosh' in user_agent or 'linux' in user_agent):
                     app.logger.info(f"[PROD] Redirecionando desktop não-anúncio para g1 (fallback)")
                     return redirect('https://g1.globo.com')
+                else:
+                    app.logger.info(f"[PROD] Permitindo acesso: móvel={is_mobile_manual}, anúncio={has_social_params or from_social_referer}")
         
         # Get data from query parameters for backward compatibility
         customer_data = {
