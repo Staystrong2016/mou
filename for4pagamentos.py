@@ -123,7 +123,11 @@ class For4PaymentsAPI:
                 }]
             }
 
+            # Log completo dos dados que serão enviados
+            import json
+            json_data = json.dumps(payment_data, indent=2)
             current_app.logger.info(f"Dados de pagamento formatados: {payment_data}")
+            current_app.logger.info(f"JSON a ser enviado para a API:\n{json_data}")
             current_app.logger.info(f"Endpoint API: {self.API_URL}/transaction.purchase")
             current_app.logger.info("Enviando requisição para API For4Payments...")
 
@@ -243,13 +247,30 @@ class For4PaymentsAPI:
                 else:
                     error_message = 'Erro ao processar pagamento'
                     try:
-                        error_data = response.json()
-                        if isinstance(error_data, dict):
-                            error_message = error_data.get('message') or error_data.get('error') or '; '.join(error_data.get('errors', []))
-                            current_app.logger.error(f"Erro da API For4Payments: {error_message}")
+                        # Log completo da resposta da API com erro
+                        current_app.logger.error(f"Resposta com erro (status {response.status_code}):\n{response.text}")
+                        
+                        try:
+                            error_data = response.json()
+                            if isinstance(error_data, dict):
+                                error_message = error_data.get('message') or error_data.get('error') or '; '.join(error_data.get('errors', []))
+                                current_app.logger.error(f"Erro da API For4Payments: {error_message}")
+                                
+                                # Log de campos adicionais para diagnóstico
+                                for field in ['code', 'status', 'validation', 'details']:
+                                    if field in error_data:
+                                        current_app.logger.error(f"API Error {field}: {error_data[field]}")
+                        except Exception as json_error:
+                            current_app.logger.error(f"Erro ao processar JSON da resposta: {str(json_error)}")
+                            error_message = f'Erro ao processar pagamento (Status: {response.status_code})'
                     except Exception as e:
                         error_message = f'Erro ao processar pagamento (Status: {response.status_code})'
                         current_app.logger.error(f"Erro ao processar resposta da API: {str(e)}")
+                    
+                    # Log das informações enviadas para diagnóstico
+                    current_app.logger.error(f"Tentativa de pagamento falhou. Dados enviados:\n{json_data}")
+                    current_app.logger.error(f"URL da requisição: {self.API_URL}/transaction.purchase")
+                    
                     raise ValueError(error_message)
 
             except requests.exceptions.RequestException as e:
