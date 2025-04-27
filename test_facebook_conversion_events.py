@@ -403,14 +403,17 @@ class FacebookConversionAPIIntegrationTestCase(unittest.TestCase):
             'utm_campaign': 'integration_test'
         }
         
-        # Enviar evento diretamente para a API
-        result = facebook_conversion_api.send_event(
-            pixel_id=facebook_conversion_api.FB_PIXEL_ID,
-            event_name=test_event_name,
-            user_data=test_user_data,
-            custom_data=test_custom_data,
-            event_source_url='https://example.com/test'
-        )
+        # Criar uma função que não depende do objeto request
+        # para evitar o erro "Working outside of request context"
+        with app.test_request_context('/test_api'):
+            # Enviar evento diretamente para a API
+            result = facebook_conversion_api.send_event(
+                pixel_id=facebook_conversion_api.FB_PIXEL_ID,
+                event_name=test_event_name,
+                user_data=test_user_data,
+                custom_data=test_custom_data,
+                event_source_url='https://example.com/test'
+            )
         
         # Verificar resultado do envio
         self.assertTrue(result['success'])
