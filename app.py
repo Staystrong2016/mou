@@ -3252,10 +3252,10 @@ def pagar_ttps():
             
             # Preparar dados para o pagamento
             payment_data = {
-                'customer_name': user_data['name'],
-                'customer_cpf': user_data['cpf'],
-                'customer_email': user_data['email'],
-                'customer_phone': user_data['phone'],
+                'name': user_data['name'],
+                'cpf': user_data['cpf'],
+                'email': user_data['email'],
+                'phone': user_data['phone'],
                 'amount': ttps_value,
                 'description': "Taxa Tarja Preta Seguro (TTPS)",
                 'external_id': f"TTPS-{random.randint(10000000, 99999999)}"

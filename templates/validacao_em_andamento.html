@@ -233,7 +233,7 @@
       <div class="progress-container">
         <div class="flex justify-between text-sm text-gray-600">
           <span>0%</span>
-          <span id="progressPercentage">0%</span>
+          <span>50%</span>
           <span>100%</span>
         </div>
         <div class="progress-bar">
@@ -338,7 +338,6 @@
     
     function updateProgress(value) {
       document.getElementById('progressFill').style.width = `${value}%`;
-      document.getElementById('progressPercentage').textContent = `${Math.round(value)}%`;
     }
     
     function processNextStep() {
