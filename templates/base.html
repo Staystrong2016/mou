@@ -24,7 +24,12 @@
     {% block head_scripts %}{% endblock %}
     
     <!-- Scripts de debug para Facebook CAPI e rastreamento UTM -->
-    {% include 'includes/fb_pixel_debug.html' %}
+    {% if show_fb_debugger %}
+        {% include 'includes/fb_pixel_debug.html' %}
+    {% endif %}
+    
+    <!-- Injetar scripts de debug do Facebook Conversion API -->
+    {{ fb_debug_scripts|safe }}
     
     <style>
         .gov-header {

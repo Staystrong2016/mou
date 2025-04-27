@@ -1,4 +1,9 @@
 <!-- Componente de Depuração para Facebook Conversion API -->
+<!-- Botão fixo para mostrar o depurador -->
+<div id="fb-debug-toggle" class="fixed bottom-2 right-2 bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg z-50 cursor-pointer">
+  <i class="fas fa-bug"></i>
+</div>
+
 <div id="fb-debug-container" class="fixed bottom-0 right-0 w-96 max-h-96 bg-white border border-gray-300 shadow-lg rounded-tl-md overflow-hidden z-50" style="display: none;">
   <div class="bg-blue-600 text-white px-4 py-2 flex justify-between items-center cursor-pointer" id="fb-debug-header">
     <h3 class="text-sm font-semibold">Facebook Conversion API Debug</h3>
@@ -79,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const minimizeBtn = document.getElementById('fb-debug-minimize');
   const closeBtn = document.getElementById('fb-debug-close');
   const clearBtn = document.getElementById('fb-debug-clear');
+  const toggleBtn = document.getElementById('fb-debug-toggle');
   
   // Verificar se o depurador deve estar visível (baseado em localStorage)
   const debuggerVisible = localStorage.getItem('fb_debugger_visible') === 'true';
@@ -114,6 +120,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Botão de limpar
   clearBtn.addEventListener('click', function() {
     content.innerHTML = '<div class="text-xs text-gray-500 mb-2">Logs limpos. Aguardando eventos...</div>';
+  });
+  
+  // Botão de toggle
+  toggleBtn.addEventListener('click', function() {
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    localStorage.setItem('fb_debugger_visible', container.style.display === 'block');
   });
   
   // Tecla de atalho para mostrar/esconder o depurador (Ctrl+Shift+F)

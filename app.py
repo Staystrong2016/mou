@@ -64,9 +64,19 @@ def inject_globals():
     print(f"DEBUG: Variável DEVELOPING = {os.environ.get('DEVELOPING', 'não definida')}")
     print(f"DEBUG: developing = {developing}")
     
+    # Verificar se há scripts de debug do Facebook para injetar
+    fb_debug_scripts = ""
+    if hasattr(app, '_fb_debug_scripts') and app._fb_debug_scripts:
+        for script in app._fb_debug_scripts:
+            fb_debug_scripts += script
+        # Limpar os scripts após injeção
+        app._fb_debug_scripts = []
+    
     return {
         'developing': developing,
-        'current_year': datetime.now().year
+        'current_year': datetime.now().year,
+        'fb_debug_scripts': fb_debug_scripts,
+        'show_fb_debugger': developing or app.debug
     }
 
 # Captura de parâmetros UTM na requisição
