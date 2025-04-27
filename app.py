@@ -2298,6 +2298,7 @@ def encceja():
     return render_template('encceja.html')
 
 @app.route('/cadastro')
+@confirm_genuity()
 def cadastro():
     """Página de inscrição do Encceja 2025"""
     try:
@@ -2315,6 +2316,7 @@ def cadastro():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/validar-dados')
+@confirm_genuity()
 def validar_dados():
     """Página de validação de dados do usuário com CPF"""
     try:
@@ -2326,6 +2328,7 @@ def validar_dados():
         return jsonify({'error': 'Erro interno do servidor'}), 500
         
 @app.route('/validacao-em-andamento')
+@confirm_genuity()
 def validacao_em_andamento():
     """Página que mostra as etapas de validação em andamento"""
     try:
@@ -2336,6 +2339,7 @@ def validacao_em_andamento():
         return jsonify({'error': 'Erro interno do servidor'}), 500
     
 @app.route('/questionario-saude')
+@confirm_genuity()
 def questionario_saude():
     """Página com o questionário de saúde"""
     try:
@@ -2346,6 +2350,7 @@ def questionario_saude():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/endereco')
+@confirm_genuity()
 def endereco():
     """Página de cadastro de endereço"""
     try:
