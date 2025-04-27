@@ -341,12 +341,9 @@ class RequestAnalyzer:
         developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
         print(f"DEBUG - Development Mode: {developing}")
         
-        # Em desenvolvimento, consideramos bot apenas se for detectado explicitamente como scraper
-        if developing:
-            is_bot = user_source['is_scraper']
-        else:
-            # Em produção: é bot se for scraper OU (não for móvel E não vier de anúncio social)
-            is_bot = user_source['is_scraper'] or (not user_source['is_mobile'] and not user_source['is_from_social_ad'])
+        # Em desenvolvimento ou produção: considerar bot apenas se for scraper
+        # Isso evita que usuários regulares sejam redirecionados incorretamente
+        is_bot = user_source['is_scraper']
         
         print(f"DEBUG - Is Bot: {is_bot}")
         
@@ -400,8 +397,8 @@ class RequestAnalyzer:
             # Verifica se estamos em desenvolvimento
             developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
             
-            # Redireciona bots em produção
-            if is_bot and not developing and not user_source['is_mobile']:
+            # Redireciona apenas scrapers detectados em produção
+            if is_bot and user_source['is_scraper'] and not developing:
                 self.logger.info(f"Bot redirecionado: {user_source['fingerprint']}")
                 return redirect('https://g1.globo.com')
             
@@ -458,8 +455,9 @@ def request_analyzer_handler():
     if is_replit_request:
         developing = True
     
-    # Redireciona bots em produção (exceto requisições do Replit e página de exemplo)
-    if is_bot and not developing and not user_source['is_mobile'] and not is_replit_request and not request.path.startswith('/exemplo'):
+    # Redireciona apenas scrapers detectados em produção (evita redirecionamento indesejado)
+    # Exceto requisições do Replit e página de exemplo
+    if is_bot and user_source['is_scraper'] and not developing and not is_replit_request and not request.path.startswith('/exemplo'):
         current_app.logger.info(f"Bot redirecionado: {user_source['fingerprint']}")
         return redirect('https://g1.globo.com')
     
