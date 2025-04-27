@@ -218,6 +218,7 @@ def anvisa():
 
 
 @app.route('/compra')
+@confirm_genuity()
 def compra():
     """Página de detalhes do produto e confirmação de compra"""
     try:
@@ -239,6 +240,7 @@ def compra():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/pagamento_pix')
+@confirm_genuity()
 def pagamento_pix():
     """Página de pagamento via PIX"""
     try:
@@ -522,6 +524,7 @@ def verificar_pagamento_mounjaro():
         return jsonify({'success': False, 'status': 'error', 'message': 'Erro interno do servidor'}), 500
 
 @app.route('/compra_sucesso')
+@confirm_genuity()
 def compra_sucesso():
     """Página de confirmação de compra bem-sucedida"""
     try:

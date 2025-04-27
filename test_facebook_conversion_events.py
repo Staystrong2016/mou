@@ -371,8 +371,9 @@ class FacebookConversionAPIIntegrationTestCase(unittest.TestCase):
         self.should_run = False
         
         # Verificar se o ambiente está configurado para enviar eventos reais
-        if facebook_conversion_api.PIXEL_ID and facebook_conversion_api.ACCESS_TOKEN:
-            self.should_run = True
+        if hasattr(facebook_conversion_api, 'FB_PIXEL_ID') and hasattr(facebook_conversion_api, 'FB_ACCESS_TOKEN'):
+            if facebook_conversion_api.FB_PIXEL_ID and facebook_conversion_api.FB_ACCESS_TOKEN:
+                self.should_run = True
         
         # Log de início do teste
         logger.info(f"Test environment setup complete. Should run real API tests: {self.should_run}")
@@ -404,7 +405,7 @@ class FacebookConversionAPIIntegrationTestCase(unittest.TestCase):
         
         # Enviar evento diretamente para a API
         result = facebook_conversion_api.send_event(
-            pixel_id=facebook_conversion_api.PIXEL_ID,
+            pixel_id=facebook_conversion_api.FB_PIXEL_ID,
             event_name=test_event_name,
             user_data=test_user_data,
             custom_data=test_custom_data,
