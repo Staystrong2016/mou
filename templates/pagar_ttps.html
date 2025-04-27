@@ -569,6 +569,16 @@
           
           <div class="payment-details">
             <div class="payment-row">
+              <div class="payment-label">Cliente:</div>
+              <div class="payment-value customer-name">{{ user_data.name }}</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">CPF:</div>
+              <div class="payment-value customer-cpf">{{ user_data.cpf }}</div>
+            </div>
+            
+            <div class="payment-row">
               <div class="payment-label">Tipo de Taxa:</div>
               <div class="payment-value">Taxa Tarja Preta Seguro (TTPS)</div>
             </div>
@@ -727,6 +737,24 @@
   </a>
   
   <script>
+    // Função para recuperar os dados do usuário do localStorage
+    function getUserPaymentData() {
+      try {
+        const userDataStr = localStorage.getItem('userPaymentData');
+        if (!userDataStr) {
+          console.log('Nenhum dado de pagamento do usuário encontrado no localStorage');
+          return null;
+        }
+        
+        const userData = JSON.parse(userDataStr);
+        console.log('Dados de pagamento do usuário recuperados:', userData);
+        return userData;
+      } catch (e) {
+        console.error('Erro ao recuperar dados do usuário do localStorage:', e);
+        return null;
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Elementos
       const countdownElement = document.getElementById('countdown');
@@ -738,6 +766,32 @@
       const checkPaymentButton = document.getElementById('checkPaymentButton');
       const checkAgainButton = document.getElementById('checkAgainButton');
       const tryAgainButton = document.getElementById('tryAgainButton');
+      
+      // Recuperar os dados do usuário do localStorage
+      const userData = getUserPaymentData();
+      
+      // Verificamos se existem dados no localStorage
+      if (userData) {
+        // Mostre os dados do usuário na página, se houver elementos com os IDs apropriados
+        const customerNameElements = document.querySelectorAll('.customer-name');
+        const customerCpfElements = document.querySelectorAll('.customer-cpf');
+        
+        customerNameElements.forEach(el => {
+          if (userData.name) el.textContent = userData.name;
+        });
+        
+        customerCpfElements.forEach(el => {
+          if (userData.cpf) {
+            // Formatar CPF
+            const cpf = userData.cpf.replace(/\D/g, '');
+            if (cpf.length === 11) {
+              el.textContent = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            } else {
+              el.textContent = userData.cpf;
+            }
+          }
+        });
+      }
       const copyPixButton = document.getElementById('copyPixButton');
       const pixCodeElement = document.getElementById('pixCode');
       const protocolElement = document.getElementById('protocol');

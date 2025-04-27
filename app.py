@@ -3258,6 +3258,14 @@ def pagar_ttps():
         # Gerar ID aleatório para o protocolo
         random_id = ''.join(random.choices(string.digits, k=4))
         
+        # Extrair dados do usuário da sessão, se disponíveis
+        user_data = {
+            'name': session.get('nome', 'Cliente'),
+            'cpf': session.get('cpf', ''),
+            'email': session.get('email', ''),
+            'phone': session.get('phone', '')
+        }
+        
         # Registrar evento de InitiateCheckout no Facebook CAPI
         try:
             from facebook_conversion_api import track_initiate_checkout
@@ -3271,10 +3279,13 @@ def pagar_ttps():
         except Exception as fb_error:
             app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout para TTPS: {str(fb_error)}")
         
+        # Renderizar template com todos os dados necessários
         return render_template('pagar_ttps.html', 
                               pix_code=pix_code,
                               qr_code_url=qr_code_url,
-                              random_id=random_id)
+                              random_id=random_id,
+                              user_data=user_data,
+                              ttps_value="67.90")
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
