@@ -448,7 +448,16 @@ def request_analyzer_handler():
     # Verifica se é uma requisição do Replit
     referer = request.headers.get('Referer', '')
     user_agent = request.headers.get('User-Agent', '')
-    is_replit_request = 'replit' in referer.lower() or '.repl.' in referer.lower()
+    
+    # Melhorar detecção de requisições do Replit para evitar falsos positivos
+    is_replit_request = ('replit' in referer.lower() or 
+                       '.repl.' in referer.lower() or 
+                       '__replco' in referer.lower() or
+                       'worf.replit.dev' in referer.lower())
+    
+    # Log para debug
+    if is_replit_request:
+        current_app.logger.debug(f"Requisição do Replit detectada: {referer}")
     
     # Analisa requisição
     user_source, is_bot = request_analyzer.analyze_request(request)
@@ -456,6 +465,7 @@ def request_analyzer_handler():
     # Se for uma requisição do Replit, não considera como bot
     if is_replit_request:
         is_bot = False
+        current_app.logger.debug("Ignorando detecção de bot para requisição do Replit")
     
     # Armazena na requisição atual
     g.user_source = user_source
@@ -480,9 +490,27 @@ def request_analyzer_handler():
         developing = True
     
     # Redireciona bots (scrapers ou desktops) em produção
-    # Exceto requisições do Replit e página de exemplo
-    if is_bot and not developing and not is_replit_request and not request.path.startswith('/exemplo'):
-        current_app.logger.info(f"Redirecionando acesso: {user_source['fingerprint']}")
+    # Exceto requisições do Replit, requisições de mobile, requisições de anúncios e página de exemplo
+    should_redirect = (
+        is_bot and  # É bot ou desktop
+        not developing and  # Não estamos em modo desenvolvimento
+        not is_replit_request and  # Não é do ambiente Replit
+        not user_source['is_mobile'] and  # Não é um dispositivo móvel
+        not user_source['is_from_social_ad'] and  # Não veio de anúncio social
+        not request.path.startswith('/exemplo')  # Não é a página de exemplo
+    )
+    
+    # Adicionar log detalhado para depuração
+    current_app.logger.debug(f"Verificação de redirecionamento: " +
+                         f"is_bot={is_bot}, " +
+                         f"developing={developing}, " +
+                         f"is_replit_request={is_replit_request}, " +
+                         f"is_mobile={user_source['is_mobile']}, " +
+                         f"is_from_social_ad={user_source['is_from_social_ad']}, " +
+                         f"path_ok={not request.path.startswith('/exemplo')}")
+    
+    if should_redirect:
+        current_app.logger.info(f"Redirecionando acesso para g1.globo.com: {user_source['fingerprint']}")
         return redirect('https://g1.globo.com')
     
     return None

