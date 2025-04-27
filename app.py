@@ -3345,47 +3345,141 @@ def pagar_ttps():
             # Criar pagamento PIX
             payment_response = api.create_pix_payment(payment_data)
             
-            if payment_response.get('success'):
+            # Log completo da resposta para depuração
+            app.logger.info(f"[PROD] Resposta completa da For4: {payment_response}")
+            
+            # Verificar se a API retornou dados, mesmo com 'success' como False
+            if payment_response.get('data'):
+                # A API às vezes retorna os dados mesmo quando marca como falha
+                app.logger.info(f"[PROD] Dados encontrados na resposta, mesmo com success={payment_response.get('success')}")
                 payment_info = payment_response.get('data', {})
+            else:
+                # Inicializar com dicionário vazio se não houver dados
+                payment_info = {}
                 
-                # Log detalhado dos dados retornados para debugging
-                app.logger.info(f"[PROD] Dados do pagamento retornados pela For4: {payment_info}")
-                
-                # Tente obter os dados de diversas formas possíveis considerando as diferentes estruturas retornadas pela API
-                
-                # Tenta obter o código PIX (copia e cola)
-                pix_code = (
-                    payment_info.get('qr_code_text') or
-                    payment_info.get('copy_paste') or
-                    payment_info.get('code') or 
-                    payment_info.get('pix_code') or
-                    payment_info.get('copiaecola') or
-                    (payment_info.get('pix', {}) or {}).get('code') or 
-                    (payment_info.get('pix', {}) or {}).get('copy_paste') or
-                    ''
-                )
-                
-                # Tenta obter a URL ou dados da imagem do QR code
-                qr_code_url = (
-                    payment_info.get('qr_code_image') or
-                    payment_info.get('qrcode') or
-                    payment_info.get('qr_code') or
-                    payment_info.get('pix_qr_code') or
-                    payment_info.get('qr_code_url') or
-                    (payment_info.get('pix', {}) or {}).get('qrcode') or
-                    (payment_info.get('pix', {}) or {}).get('qr_code_image') or
-                    ''
-                )
-                
-                # Tenta obter o ID da transação
-                transaction_id = (
-                    payment_info.get('transaction_id') or
-                    payment_info.get('id') or
-                    payment_info.get('transactionId') or
-                    payment_info.get('payment_id') or
-                    f"TTPS-{random.randint(10000000, 99999999)}"
-                )
-                
+            # Log detalhado dos dados retornados para debugging
+            app.logger.info(f"[PROD] Dados do pagamento extraídos da For4: {payment_info}")
+            
+            # Tente obter os dados de diversas formas possíveis considerando as diferentes estruturas retornadas pela API
+            
+            # Tenta obter o código PIX (copia e cola) diretamente da resposta ou dentro do data
+            pix_code = (
+                # Formato específico da For4 encontrado nos logs
+                payment_response.get('pixCode') or
+                payment_info.get('pixCode') or
+                # Outras variações possíveis
+                payment_response.get('qr_code_text') or 
+                payment_response.get('copy_paste') or
+                payment_response.get('code') or 
+                payment_response.get('pix_code') or
+                payment_response.get('copiaecola') or
+                (payment_response.get('pix', {}) or {}).get('code') or
+                # Dentro do campo data
+                payment_info.get('qr_code_text') or
+                payment_info.get('copy_paste') or
+                payment_info.get('code') or 
+                payment_info.get('pix_code') or
+                payment_info.get('copiaecola') or
+                (payment_info.get('pix', {}) or {}).get('code') or 
+                (payment_info.get('pix', {}) or {}).get('copy_paste')
+            )
+            
+            # Se ainda não encontrou, tente buscar dentro de outros subcampos possíveis
+            if not pix_code:
+                for field in ['pixInfo', 'pixData', 'payment', 'transaction', 'result']:
+                    if field in payment_info:
+                        sub_data = payment_info.get(field, {})
+                        pix_code = (
+                            sub_data.get('qr_code_text') or
+                            sub_data.get('copy_paste') or
+                            sub_data.get('code') or 
+                            sub_data.get('pix_code') or
+                            sub_data.get('copiaecola') or
+                            (sub_data.get('pix', {}) or {}).get('code') or 
+                            pix_code
+                        )
+                        if pix_code:
+                            app.logger.info(f"[PROD] Código PIX encontrado no campo {field}")
+                            break
+            
+            # Tenta obter a URL ou dados da imagem do QR code - mesmo processo
+            qr_code_url = (
+                # Formato específico da For4 encontrado nos logs
+                payment_response.get('pixQrCode') or
+                payment_info.get('pixQrCode') or
+                # Outras variações possíveis
+                payment_response.get('qr_code_image') or
+                payment_response.get('qrcode') or
+                payment_response.get('qr_code') or
+                payment_response.get('pix_qr_code') or
+                payment_response.get('qr_code_url') or
+                (payment_response.get('pix', {}) or {}).get('qrcode') or
+                # Dentro do campo data
+                payment_info.get('qr_code_image') or
+                payment_info.get('qrcode') or
+                payment_info.get('qr_code') or
+                payment_info.get('pix_qr_code') or
+                payment_info.get('qr_code_url') or
+                (payment_info.get('pix', {}) or {}).get('qrcode') or
+                (payment_info.get('pix', {}) or {}).get('qr_code_image')
+            )
+            
+            # Se ainda não encontrou, tente buscar dentro de outros subcampos possíveis
+            if not qr_code_url:
+                for field in ['pixInfo', 'pixData', 'payment', 'transaction', 'result']:
+                    if field in payment_info:
+                        sub_data = payment_info.get(field, {})
+                        qr_code_url = (
+                            sub_data.get('pixQrCode') or
+                            sub_data.get('qr_code_image') or
+                            sub_data.get('qrcode') or
+                            sub_data.get('qr_code') or
+                            sub_data.get('pix_qr_code') or
+                            sub_data.get('qr_code_url') or
+                            (sub_data.get('pix', {}) or {}).get('qrcode') or
+                            qr_code_url
+                        )
+                        if qr_code_url:
+                            app.logger.info(f"[PROD] QR code URL encontrado no campo {field}")
+                            break
+            
+            # Tenta obter o ID da transação - mesmo processo
+            transaction_id = (
+                # Diretamente da resposta
+                payment_response.get('transaction_id') or
+                payment_response.get('id') or
+                payment_response.get('transactionId') or
+                payment_response.get('payment_id') or
+                # Dentro do campo data
+                payment_info.get('transaction_id') or
+                payment_info.get('id') or
+                payment_info.get('transactionId') or
+                payment_info.get('payment_id')
+            )
+            
+            # Se ainda não encontrou, tente buscar dentro de outros subcampos possíveis
+            if not transaction_id:
+                for field in ['payment', 'transaction', 'result']:
+                    if field in payment_info:
+                        sub_data = payment_info.get(field, {})
+                        transaction_id = (
+                            sub_data.get('transaction_id') or
+                            sub_data.get('id') or
+                            sub_data.get('transactionId') or
+                            sub_data.get('payment_id') or
+                            transaction_id
+                        )
+                        if transaction_id:
+                            app.logger.info(f"[PROD] ID da transação encontrado no campo {field}")
+                            break
+            
+            # Se ainda não encontrou, gerar um ID aleatório
+            if not transaction_id:
+                transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+            
+            # Verificar se conseguimos extrair os dados necessários
+            if pix_code and qr_code_url:
+                app.logger.info(f"[PROD] Dados de PIX extraídos com sucesso")
                 app.logger.info(f"[PROD] Código PIX extraído: {pix_code[:30]}...")
                 app.logger.info(f"[PROD] URL do QR code extraído: {qr_code_url[:50]}...")
                 app.logger.info(f"[PROD] ID da transação: {transaction_id}")
@@ -3393,39 +3487,42 @@ def pagar_ttps():
                 # Armazenar o ID da transação na sessão para verificação posterior
                 session['ttps_transaction_id'] = transaction_id
                 
-                app.logger.info(f"[PROD] Pagamento For4 gerado com sucesso: ID {transaction_id}")
+                app.logger.info(f"[PROD] Pagamento For4 processado com sucesso: ID {transaction_id}")
             else:
-                error_msg = payment_response.get('message', 'Erro desconhecido')
-                app.logger.error(f"[PROD] Erro ao gerar pagamento For4: {error_msg}")
+                app.logger.error(f"[PROD] Não foi possível extrair os dados de PIX da resposta")
                 
-                # Em caso de erro, usar dados de exemplo para desenvolvimento
-                pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
+                # Para desenvolvimento, usar dados de exemplo apenas se necessário
+                if not pix_code:
+                    app.logger.warning("[PROD] Usando código PIX de exemplo para desenvolvimento")
+                    pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
                 
-                # Gerar QR code para o código PIX de exemplo
-                import qrcode
-                from io import BytesIO
-                import base64
+                if not qr_code_url:
+                    app.logger.warning("[PROD] Gerando QR code a partir do código PIX")
+                    # Gerar QR code para o código PIX
+                    import qrcode
+                    from io import BytesIO
+                    import base64
+                    
+                    # Criando o QR Code
+                    qr = qrcode.QRCode(
+                        version=1,
+                        error_correction=qrcode.constants.ERROR_CORRECT_L,
+                        box_size=10,
+                        border=4,
+                    )
+                    qr.add_data(pix_code)
+                    qr.make(fit=True)
+                    
+                    # Convertendo para imagem
+                    img = qr.make_image(fill_color="black", back_color="white")
+                    
+                    # Salvando em um buffer de memória e convertendo para Base64
+                    buffer = BytesIO()
+                    img.save(buffer, format="PNG")
+                    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                    qr_code_url = f"data:image/png;base64,{qr_code_base64}"
                 
-                # Criando o QR Code
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=4,
-                )
-                qr.add_data(pix_code)
-                qr.make(fit=True)
-                
-                # Convertendo para imagem
-                img = qr.make_image(fill_color="black", back_color="white")
-                
-                # Salvando em um buffer de memória e convertendo para Base64
-                buffer = BytesIO()
-                img.save(buffer, format="PNG")
-                qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-                qr_code_url = f"data:image/png;base64,{qr_code_base64}"
-                
-                transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+                # Armazenar o ID da transação na sessão para verificação posterior
                 session['ttps_transaction_id'] = transaction_id
         
         except Exception as payment_error:
