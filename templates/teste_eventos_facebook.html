@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Teste de Eventos do Facebook{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-blue-600 text-white p-6">
+            <h1 class="text-2xl font-bold mb-2">Facebook Conversion API - Teste de Eventos</h1>
+            <p class="text-white/80">Esta página permite testar o envio de eventos para o Facebook Conversion API e visualizar os dados enviados.</p>
+        </div>
+        
+        <div class="p-6">
+            <p class="mb-4 text-gray-700">Ao carregar esta página, alguns eventos de teste são enviados automaticamente ao Facebook:</p>
+            
+            <ul class="list-disc pl-6 mb-6 space-y-2 text-gray-700">
+                <li><span class="font-semibold">PageView:</span> Registra uma visualização desta página</li>
+                <li><span class="font-semibold">Lead:</span> Simula um evento de geração de lead</li>
+                <li><span class="font-semibold">Purchase:</span> Simula uma compra com valor de R$ 143,10</li>
+            </ul>
+            
+            <div class="border-t border-gray-200 pt-6">
+                <h2 class="text-xl font-semibold mb-4 text-blue-600">Enviar eventos manualmente</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">PageView</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra uma visualização de página.</p>
+                        <button id="send-pageview" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar PageView
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">ViewContent</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra visualização de conteúdo específico.</p>
+                        <button id="send-viewcontent" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar ViewContent
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">Lead</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra uma geração de lead ou interesse.</p>
+                        <button id="send-lead" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar Lead
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">InitiateCheckout</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra início de processo de checkout.</p>
+                        <button id="send-checkout" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar InitiateCheckout
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">AddPaymentInfo</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra adição de informações de pagamento.</p>
+                        <button id="send-payment-info" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar AddPaymentInfo
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-semibold mb-2">Purchase</h3>
+                        <p class="text-sm text-gray-600 mb-4">Registra uma compra completa.</p>
+                        <button id="send-purchase" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full">
+                            Enviar Purchase
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <p class="text-sm text-gray-500">
+                        <strong>Dica:</strong> Pressione <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded-md">Ctrl+Shift+F</kbd> para mostrar/ocultar a janela de debug do Facebook ou clique no ícone <i class="fas fa-bug"></i> no canto inferior direito.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Função para enviar solicitação AJAX para disparar eventos
+    function sendEventRequest(eventType) {
+        fetch(`/api/send-facebook-event/${eventType}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                timestamp: new Date().toISOString()
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Evento ${eventType} enviado:`, data);
+        })
+        .catch(error => {
+            console.error(`Erro ao enviar evento ${eventType}:`, error);
+        });
+    }
+    
+    // Adicionar handlers para botões de evento
+    document.getElementById('send-pageview').addEventListener('click', () => sendEventRequest('pageview'));
+    document.getElementById('send-viewcontent').addEventListener('click', () => sendEventRequest('viewcontent'));
+    document.getElementById('send-lead').addEventListener('click', () => sendEventRequest('lead'));
+    document.getElementById('send-checkout').addEventListener('click', () => sendEventRequest('checkout'));
+    document.getElementById('send-payment-info').addEventListener('click', () => sendEventRequest('payment_info'));
+    document.getElementById('send-purchase').addEventListener('click', () => sendEventRequest('purchase'));
+});
+</script>
+{% endblock %}

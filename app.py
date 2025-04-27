@@ -3861,5 +3861,111 @@ def ttps_sucesso():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 
+@app.route('/teste-eventos-facebook')
+def teste_eventos_facebook():
+    """Página para testar o depurador de eventos do Facebook Conversion API"""
+    app.logger.info("[DEBUG] Acessando página de teste de eventos do Facebook")
+    
+    # Enviar evento PageView para o Facebook Conversion API
+    try:
+        from facebook_conversion_api import track_page_view, track_lead, track_purchase
+        
+        # Executar um evento PageView
+        track_page_view(url=request.url)
+        app.logger.info("[FACEBOOK] Evento PageView enviado para teste")
+        
+        # Esperar um pouco para o evento ser processado
+        time.sleep(0.5)
+        
+        # Executar um evento Lead
+        track_lead(value=100.0)
+        app.logger.info("[FACEBOOK] Evento Lead enviado para teste")
+        
+        # Esperar um pouco para o evento ser processado
+        time.sleep(0.5)
+        
+        # Executar um evento Purchase
+        track_purchase(
+            value=143.10,
+            transaction_id="TESTE-" + str(int(time.time())),
+            content_name="Teste de Compra"
+        )
+        app.logger.info("[FACEBOOK] Evento Purchase enviado para teste")
+        
+    except Exception as fb_error:
+        app.logger.error(f"[FACEBOOK] Erro ao enviar eventos de teste: {str(fb_error)}")
+    
+    return render_template('teste_eventos_facebook.html')
+
+@app.route('/api/send-facebook-event/<event_type>', methods=['POST'])
+def send_facebook_event(event_type):
+    """API para enviar eventos específicos do Facebook sob demanda"""
+    app.logger.info(f"[DEBUG] Solicitação para enviar evento {event_type} do Facebook")
+    
+    try:
+        from facebook_conversion_api import (
+            track_page_view, track_view_content, track_lead, 
+            track_initiate_checkout, track_add_payment_info, track_purchase
+        )
+        
+        result = {'success': False, 'message': 'Tipo de evento não reconhecido'}
+        
+        # Mapear os tipos de evento para as funções correspondentes
+        if event_type == 'pageview':
+            result = track_page_view(url=request.url)[0]
+            message = "PageView enviado com sucesso"
+        
+        elif event_type == 'viewcontent':
+            result = track_view_content(
+                content_name="Produto Teste",
+                content_type="product"
+            )[0]
+            message = "ViewContent enviado com sucesso"
+        
+        elif event_type == 'lead':
+            result = track_lead(value=100.0)[0]
+            message = "Lead enviado com sucesso"
+        
+        elif event_type == 'checkout':
+            result = track_initiate_checkout(value=143.10)[0]
+            message = "InitiateCheckout enviado com sucesso"
+        
+        elif event_type == 'payment_info':
+            result = track_add_payment_info()[0]
+            message = "AddPaymentInfo enviado com sucesso"
+        
+        elif event_type == 'purchase':
+            result = track_purchase(
+                value=143.10,
+                transaction_id="TESTE-" + str(int(time.time())),
+                content_name="Produto de Teste"
+            )[0]
+            message = "Purchase enviado com sucesso"
+        
+        if result.get('success', False):
+            app.logger.info(f"[FACEBOOK] {message}")
+            return jsonify({
+                'success': True,
+                'message': message,
+                'event_type': event_type,
+                'event_id': result.get('eventId', '')
+            })
+        else:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento {event_type}: {result.get('message', '')}")
+            return jsonify({
+                'success': False,
+                'message': f"Erro ao enviar evento {event_type}: {result.get('message', '')}",
+                'event_type': event_type
+            })
+            
+    except Exception as e:
+        error_message = str(e)
+        app.logger.error(f"[FACEBOOK] Exceção ao enviar evento {event_type}: {error_message}")
+        return jsonify({
+            'success': False,
+            'message': f"Exceção ao enviar evento: {error_message}",
+            'event_type': event_type
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
