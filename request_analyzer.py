@@ -75,6 +75,23 @@ class RequestAnalyzer:
     def is_mobile(self, user_agent: Optional[str]) -> bool:
         """Verifica se o user agent indica um dispositivo móvel"""
         if not user_agent or not self.config['detect_mobile']:
+            print("DEBUG - Mobile: False (user_agent ausente ou detect_mobile desativado)")
+            return False
+        
+        # Lista de padrões explicitamente reconhecidos como desktop
+        desktop_patterns = [
+            r'Windows NT', r'Mac OS X', r'X11', r'Linux(?! Android)'
+        ]
+        
+        # Verifica se é explicitamente um desktop
+        is_desktop = any(re.search(pattern, user_agent, re.IGNORECASE) for pattern in desktop_patterns)
+        
+        # Se for desktop e não tiver nenhum padrão de mobile, retorna False imediatamente
+        if is_desktop and not any([
+            re.search(r'Android|iPhone|iPad|Mobile|Tablet', user_agent, re.IGNORECASE),
+            re.search(r'width=(\d+)', user_agent)
+        ]):
+            print(f"DEBUG - Mobile: False (desktop explícito: {user_agent[:50]}...)")
             return False
         
         # Verifica padrões de dispositivos e navegadores móveis
@@ -89,8 +106,12 @@ class RequestAnalyzer:
             if width_match:
                 width = int(width_match.group(1))
                 has_width = width <= 768
+        
+        is_mobile = is_mobile_device or is_mobile_browser or has_mobile_hints or has_width
+        
+        print(f"DEBUG - Mobile: {is_mobile} (device:{is_mobile_device}, browser:{is_mobile_browser}, hints:{has_mobile_hints}, width:{has_width})")
                 
-        return is_mobile_device or is_mobile_browser or has_mobile_hints or has_width
+        return is_mobile
 
     def is_from_social_ad(self, referer: Optional[str], query_params: Dict[str, str]) -> bool:
         """Verifica se o acesso veio de um anúncio em rede social"""
@@ -341,9 +362,12 @@ class RequestAnalyzer:
         developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
         print(f"DEBUG - Development Mode: {developing}")
         
-        # Em desenvolvimento ou produção: considerar bot apenas se for scraper
-        # Isso evita que usuários regulares sejam redirecionados incorretamente
-        is_bot = user_source['is_scraper']
+        # Em desenvolvimento: considerar bot apenas se for scraper detectado explicitamente
+        # Em produção: é bot se for scraper OU se for desktop (não-móvel)
+        if developing:
+            is_bot = user_source['is_scraper']  # Em desenvolvimento só detecta scrapers explícitos
+        else:
+            is_bot = user_source['is_scraper'] or not user_source['is_mobile']  # Em produção, desktops são redirecionados
         
         print(f"DEBUG - Is Bot: {is_bot}")
         
@@ -397,9 +421,9 @@ class RequestAnalyzer:
             # Verifica se estamos em desenvolvimento
             developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
             
-            # Redireciona apenas scrapers detectados em produção
-            if is_bot and user_source['is_scraper'] and not developing:
-                self.logger.info(f"Bot redirecionado: {user_source['fingerprint']}")
+            # Redireciona bots (scrapers ou desktops) em produção
+            if is_bot and not developing:
+                self.logger.info(f"Redirecionando acesso: {user_source['fingerprint']}")
                 return redirect('https://g1.globo.com')
             
             return f(*args, **kwargs)
@@ -455,10 +479,10 @@ def request_analyzer_handler():
     if is_replit_request:
         developing = True
     
-    # Redireciona apenas scrapers detectados em produção (evita redirecionamento indesejado)
+    # Redireciona bots (scrapers ou desktops) em produção
     # Exceto requisições do Replit e página de exemplo
-    if is_bot and user_source['is_scraper'] and not developing and not is_replit_request and not request.path.startswith('/exemplo'):
-        current_app.logger.info(f"Bot redirecionado: {user_source['fingerprint']}")
+    if is_bot and not developing and not is_replit_request and not request.path.startswith('/exemplo'):
+        current_app.logger.info(f"Redirecionando acesso: {user_source['fingerprint']}")
         return redirect('https://g1.globo.com')
     
     return None
