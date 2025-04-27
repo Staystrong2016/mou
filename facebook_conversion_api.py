@@ -150,6 +150,35 @@ def send_event(
     Returns:
         Dict contendo sucesso/falha e mensagem
     """
+    # Criar função para emitir eventos de front-end para debugging
+    def emit_debug_event(event_data, is_finished=False):
+        """Emite um evento para o front-end para debugging"""
+        if current_app and hasattr(current_app, 'jinja_env'):
+            # Criar um script para emitir o evento no template
+            script = """
+            <script>
+                (function() {
+                    const eventDetail = %s;
+                    const event = new CustomEvent('fb_conversion_api_event', { detail: eventDetail });
+                    window.dispatchEvent(event);
+                })();
+            </script>
+            """ % json.dumps(event_data)
+            
+            # Adicionar o script ao próximo template renderizado
+            if not hasattr(current_app, '_fb_debug_scripts'):
+                current_app._fb_debug_scripts = []
+            
+            # Se estamos finalizando o evento, marcar como finalizado
+            event_data['finished'] = is_finished
+            
+            # Adicionar à lista de scripts para injeção
+            current_app._fb_debug_scripts.append(script)
+            logger.debug("Evento de debugging emitido para o front-end")
+    
+    # Tentar obter a URL atual da requisição se não fornecida
+    if not event_source_url and request:
+        event_source_url = request.url
     if not FB_ACCESS_TOKEN:
         logger.warning("Token de acesso do Facebook não configurado. O evento não será enviado.")
         return {
@@ -306,22 +335,50 @@ def send_event(
         result = {
             'success': True,
             'message': f'Evento {event_name} enviado com sucesso',
-            'response': response_data
+            'response': response_data,
+            'eventName': event_name,
+            'eventId': event_id,
+            'eventSourceUrl': event_source_url or request.url if request else '',
+            'pixelId': pixel_id
         }
         
         # Adicionar dados extras para facilitar debug
         if utm_params:
             result['utm_params'] = utm_params
+        
+        # Adicionar dados customizados (se houver)
+        if custom_data:
+            result['customData'] = custom_data
     else:
         result = {
             'success': False,
             'message': f'Falha ao enviar evento {event_name} após {retry_count} tentativas',
-            'response': response_data
+            'response': response_data,
+            'eventName': event_name,
+            'eventId': event_id,
+            'eventSourceUrl': event_source_url or request.url if request else '',
+            'pixelId': pixel_id
         }
     
     # Registrar resultado final em log
     log_level = logging.INFO if success else logging.ERROR
     logger.log(log_level, f"Resultado final do envio do evento {event_name}: {result['message']}")
+    
+    # Emitir evento de depuração para o front-end
+    try:
+        # Criar versão segura para debugging que remove dados sensíveis
+        debug_result = result.copy()
+        if 'response' in debug_result and debug_result['response'] and 'access_token' in debug_result['response']:
+            if isinstance(debug_result['response'], dict):
+                debug_result['response']['access_token'] = '***REDACTED***'
+        
+        # Adicionar os UTM params separadamente para clareza na UI
+        debug_result['utmParams'] = utm_params
+        
+        # Emitir o evento final para o front-end
+        emit_debug_event(debug_result, is_finished=True)
+    except Exception as debug_error:
+        logger.error(f"Erro ao emitir evento de debugging: {str(debug_error)}")
     
     return result
 
