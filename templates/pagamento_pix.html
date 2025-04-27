@@ -681,9 +681,63 @@
         });
     }
     
+    // Função para simular um pagamento bem-sucedido (apenas ambiente de teste)
+    function simulateSuccessfulPayment() {
+      // Capturar todos os parâmetros da URL atual
+      function getAllUrlParams() {
+        let urlParams = {};
+        const queryString = window.location.search;
+        if (queryString) {
+          const urlSearchParams = new URLSearchParams(queryString);
+          urlSearchParams.forEach((value, key) => {
+            urlParams[key] = value;
+          });
+        }
+        return urlParams;
+      }
+      
+      // Função para preservar parâmetros da URL entre as páginas
+      function appendUrlParams(baseUrl, additionalParams = {}) {
+        const urlParams = {...getAllUrlParams(), ...additionalParams};
+        
+        const urlSearchParams = new URLSearchParams();
+        for (const key in urlParams) {
+          urlSearchParams.append(key, urlParams[key]);
+        }
+        
+        return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+      }
+      
+      // Adicionar parâmetro test=true para indicar que é um pagamento simulado
+      window.location.href = appendUrlParams('/compra_sucesso', {test: 'true'});
+    }
+    
+    // Verifica se está em ambiente de desenvolvimento Replit
+    function isReplitEnvironment() {
+      const hostname = window.location.hostname;
+      return hostname.includes('.replit.') || hostname.includes('.repl.co') || hostname === 'localhost' || hostname === '0.0.0.0';
+    }
+    
     // Inicializar quando a página carregar
     window.onload = function() {
       initializePageData();
+      
+      // Mostrar botão de teste se estiver em ambiente Replit
+      if (isReplitEnvironment()) {
+        const testButton = document.getElementById('test-payment-button');
+        if (testButton) {
+          testButton.style.display = 'block';
+          
+          // Adicionar listener para o botão de simulação
+          const simulateButton = document.getElementById('simulatePaymentButton');
+          if (simulateButton) {
+            simulateButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              simulateSuccessfulPayment();
+            });
+          }
+        }
+      }
       
       // Efeito de scroll na barra de navegação
       window.addEventListener('scroll', function() {
