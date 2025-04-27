@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
 import logging
+from app import app
+from request_analyzer import register_request_analyzer
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, 
@@ -9,11 +11,7 @@ logging.basicConfig(level=logging.INFO,
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
-from app import app
-import anvisa_routes  # Importar rotas adicionais
 
-# Integrar o analisador de requisições
-from request_analyzer import register_request_analyzer
 
 # Registrar middleware de análise de requisições
 register_request_analyzer(app)
