@@ -268,26 +268,66 @@
         console.error('Erro ao inicializar UTM Tracker:', e);
       }
       
+      // Função para redirecionar preservando parâmetros UTM
+      function redirectWithUTMs(url) {
+        console.log('Redirecionando para', url, 'com preservação de UTMs');
+        
+        // Obter parâmetros da URL atual
+        const currentParams = new URLSearchParams(window.location.search);
+        const utmParams = {};
+        
+        // Lista de parâmetros UTM a serem preservados
+        const utmParamsList = [
+          'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+          'fbclid', 'gclid', 'ttclid', 'ref', 'src', 'sck', 'xcod'
+        ];
+        
+        // Capturar parâmetros UTM da URL atual
+        utmParamsList.forEach(param => {
+          if (currentParams.has(param)) {
+            utmParams[param] = currentParams.get(param);
+          }
+        });
+        
+        // Se não há UTMs na URL, tentar obter do localStorage
+        if (Object.keys(utmParams).length === 0) {
+          try {
+            const storedUtms = localStorage.getItem('utmParams') || localStorage.getItem('utm_params');
+            if (storedUtms) {
+              Object.assign(utmParams, JSON.parse(storedUtms));
+              console.log('UTMs encontrados no localStorage:', utmParams);
+            }
+          } catch (e) {
+            console.error('Erro ao ler UTMs do localStorage:', e);
+          }
+        }
+        
+        // Construir URL com parâmetros UTM
+        let targetUrl = url;
+        if (Object.keys(utmParams).length > 0) {
+          // Verificar se a URL já contém parâmetros
+          const hasParams = url.includes('?');
+          targetUrl += hasParams ? '&' : '?';
+          
+          // Adicionar cada parâmetro UTM
+          const params = [];
+          for (const [key, value] of Object.entries(utmParams)) {
+            params.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+          }
+          
+          targetUrl += params.join('&');
+        }
+        
+        console.log('URL de redirecionamento final:', targetUrl);
+        window.location.href = targetUrl;
+      }
+      
       // Configurar o botão de elegibilidade
       document.getElementById('elegibilidade-btn').addEventListener('click', function(e) {
         e.preventDefault();
         
-        // Redirecionar para a página de cadastro com parâmetros UTM
-        try {
-          // Verificar se a função redirectWithUtm está disponível
-          if (typeof redirectWithUtm === 'function') {
-            redirectWithUtm('/cadastro');
-          } else if (window.utmTracker && window.utmTracker.appendUtmParamsToUrl) {
-            window.location.href = window.utmTracker.appendUtmParamsToUrl('/cadastro');
-          } else {
-            // Fallback para o método antigo se o novo não estiver disponível
-            window.location.href = appendUrlParams('/cadastro');
-          }
-        } catch (e) {
-          console.error('Erro ao redirecionar com UTM params:', e);
-          // Fallback direto se ocorrer algum erro
-          window.location.href = '/cadastro';
-        }
+        // Usar a função de redirecionamento com UTMs
+        redirectWithUTMs('/cadastro');
       });
     });
     

@@ -242,14 +242,45 @@
           
           // Função para preservar parâmetros da URL entre as páginas
           function appendUrlParams(baseUrl, additionalParams = {}) {
+            // Obter parâmetros da URL atual
             const urlParams = {...getAllUrlParams(), ...additionalParams};
             
+            // Lista de parâmetros UTM a serem preservados
+            const utmParamsList = [
+              'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+              'fbclid', 'gclid', 'ttclid', 'ref', 'src', 'sck', 'xcod'
+            ];
+            
+            // Verificar se temos parâmetros UTM no localStorage
+            try {
+              const storedUtms = localStorage.getItem('utmParams') || localStorage.getItem('utm_params');
+              if (storedUtms) {
+                const utmParams = JSON.parse(storedUtms);
+                console.log('UTMs recuperados do localStorage:', utmParams);
+                
+                // Adicionar parâmetros UTM aos parâmetros da URL
+                for (const key in utmParams) {
+                  // Não sobrescrever parâmetros já existentes na URL atual
+                  if (!urlParams[key]) {
+                    urlParams[key] = utmParams[key];
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('Erro ao ler UTMs do localStorage:', e);
+            }
+            
+            // Criar a string de parâmetros
             const urlSearchParams = new URLSearchParams();
             for (const key in urlParams) {
               urlSearchParams.append(key, urlParams[key]);
             }
             
-            return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+            // Adicionar os parâmetros à URL base
+            const finalUrl = baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+            console.log('URL final com parâmetros preservados:', finalUrl);
+            
+            return finalUrl;
           }
           
           // Redirecionar para a página de validação de dados
