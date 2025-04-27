@@ -1,0 +1,244 @@
+import { Request, Response, NextFunction } from 'express';
+
+interface Config {
+  detectMobile: boolean;
+  detectSocialAds: boolean;
+  logAllRequests: boolean;
+  rateLimitWindow: number;
+  maxRequests: number;
+  cacheTTL: number; // Adicionado para configurar tempo de vida do cache
+}
+
+interface UserSource {
+  isMobile: boolean;
+  isFromSocialAd: boolean;
+  adSource: string;
+  referer: string;
+  userAgent: string;
+  usesProxy: boolean;
+  isScraper: boolean;
+  fingerprint: string;
+}
+
+interface LogEntry {
+  timestamp: string;
+  ip: string;
+  route: string;
+  userAgent: string;
+  fingerprint: string;
+  details: string[];
+}
+
+interface RateLimitData {
+  count: number;
+  firstRequest: number;
+}
+
+interface CacheEntry {
+  userSource: UserSource;
+  timestamp: number;
+  isBot: boolean;
+}
+
+declare module 'express' {
+  interface Request {
+    userSource?: UserSource;
+  }
+}
+
+class RequestAnalyzer {
+  private config: Config = {
+    detectMobile: true,
+    detectSocialAds: true,
+    logAllRequests: false,
+    rateLimitWindow: 60 * 1000,
+    maxRequests: 100,
+    cacheTTL: 15 * 60 * 1000 // 15 minutos como padrão
+  };
+
+  private mobilePatterns = {
+    devices: /(android|iphone|ipad|ipod|windows phone|blackberry|mobile)/i,
+    browsers: /(mobi|opera mini)/i,
+    mobileHints: /(; wv|mobile\/)/i
+  };
+
+  private socialAdPatterns = {
+    domains: ['instagram.com', 'facebook.com', 'fb.watch', 'm.facebook.com', 'l.instagram.com'],
+    params: ['fbclid', 'igshid', 'utm_source=ig', 'utm_source=fb', 'gclid', 'ad_id'],
+    metaSpecific: ['facebook.com/ads', 'instagram.com/p/', 'facebook.com/reel/', 'instagram.com/reel/']
+  };
+
+  private scraperPatterns = /(httrack|curl|wget|python-requests|saveweb2zip|bot|spider|crawler)/i;
+  private requestStore: Map<string, RateLimitData> = new Map();
+  private cache: Map<string, CacheEntry> = new Map(); // Adicionado cache
+
+  private getRequestData(req: Request) {
+    return {
+      ip: req.ip,
+      userAgent: (req.headers['user-agent'] || '').toLowerCase(),
+      referer: (req.headers.referer || '').toLowerCase(),
+      queryParams: new URLSearchParams(req.url.split('?')[1] || ''),
+      proxyHeaders: {
+        'x-forwarded-for': req.headers['x-forwarded-for'],
+        'via': req.headers['via'],
+        'client-ip': req.headers['client-ip'],
+        'x-real-ip': req.headers['x-real-ip']
+      }
+    };
+  }
+
+  private isMobile(userAgent: string | undefined): boolean {
+    if (!userAgent) return false;
+
+    return this.config.detectMobile && (
+      this.mobilePatterns.devices.test(userAgent) ||
+      this.mobilePatterns.browsers.test(userAgent) ||
+      this.mobilePatterns.mobileHints.test(userAgent) ||
+      (userAgent.includes('width') && parseInt(userAgent.match(/width=(\d+)/)?.[1] || '0') <= 768)
+    );
+  }
+
+  private isFromSocialAd(referer: string | undefined, queryParams: URLSearchParams): boolean {
+    if (!referer) return false;
+
+    return this.config.detectSocialAds && (
+      this.socialAdPatterns.domains.some(domain => referer.includes(domain)) ||
+      this.socialAdPatterns.params.some(param => queryParams.has(param) || referer.includes(param)) ||
+      this.socialAdPatterns.metaSpecific.some(pattern => referer.includes(pattern)) ||
+      (queryParams.has('utm_source') && /facebook|instagram|meta|fb|ig/i.test(queryParams.get('utm_source') || ''))
+    );
+  }
+
+  private getAdSource(referer: string | undefined, queryParams: URLSearchParams): string {
+    if (!referer) return 'orgânico';
+
+    const isSocialAd = this.isFromSocialAd(referer, queryParams);
+    return isSocialAd
+      ? (referer.includes('instagram') || queryParams.get('utm_source')?.includes('ig') ? 'instagram_ads' : 'facebook_ads')
+      : 'orgânico';
+  }
+
+  private usesProxy(proxyHeaders: Record<string, unknown>): boolean {
+    return Object.values(proxyHeaders).some(header => header !== undefined && header !== '');
+  }
+
+  private isScraper(userAgent: string | undefined): boolean {
+    return userAgent ? this.scraperPatterns.test(userAgent) : false;
+  }
+
+  private getFingerprint(ip: string | undefined, userAgent: string | undefined): string {
+    return `${ip || ''}:${(userAgent || '').slice(0, 50)}`;
+  }
+
+  private updateRateLimit(ip: string): boolean {
+    const currentTime = Date.now();
+    const ipData = this.requestStore.get(ip) || { count: 0, firstRequest: currentTime };
+
+    if (currentTime - ipData.firstRequest > this.config.rateLimitWindow) {
+      this.requestStore.set(ip, { count: 1, firstRequest: currentTime });
+    } else {
+      ipData.count++;
+      this.requestStore.set(ip, ipData);
+    }
+
+    return ipData.count > this.config.maxRequests;
+  }
+
+  private createLogEntry(req: Request, userSource: UserSource): LogEntry {
+    const { ip, userAgent } = this.getRequestData(req);
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      ip: ip || '',
+      route: req.path,
+      userAgent: userAgent || '',
+      fingerprint: userSource.fingerprint,
+      details: []
+    };
+
+    if (userSource.usesProxy) logEntry.details.push('proxy detectado');
+    if (userSource.isScraper) logEntry.details.push('scraper detectado');
+    if (this.updateRateLimit(ip || '')) logEntry.details.push('rate limit excedido');
+    if (userSource.isFromSocialAd) logEntry.details.push(`origem: ${userSource.adSource}`);
+    if (userSource.isMobile) logEntry.details.push('dispositivo: mobile');
+
+    return logEntry;
+  }
+
+  private checkCache(fingerprint: string): CacheEntry | null {
+    const cached = this.cache.get(fingerprint);
+    if (cached && (Date.now() - cached.timestamp) < this.config.cacheTTL) {
+      return cached;
+    }
+    this.cache.delete(fingerprint); // Remove se expirado
+    return null;
+  }
+
+  private setCache(fingerprint: string, userSource: UserSource, isBot: boolean) {
+    this.cache.set(fingerprint, {
+      userSource,
+      timestamp: Date.now(),
+      isBot
+    });
+  }
+
+  public middleware = (req: Request, res: Response, next: NextFunction) => {
+    // Bypass para endpoints específicos
+    if (req.path.startsWith('/api') || 
+        req.path.startsWith('/webhook') || 
+        req.path.startsWith('/static') || 
+        req.path.startsWith('/fonts') || 
+        req.path.startsWith('/rawline') || 
+        req.path.startsWith('/js') || 
+        req.path.startsWith('/assets') || 
+        req.path.startsWith('/css') || 
+        req.path.startsWith('/img') || 
+        req.path.startsWith('/favicon.ico') || 
+        req.path.startsWith('/manifest.json') || 
+        req.path.startsWith('/service-worker.js') || 
+        req.path.startsWith('/robots.txt')) {
+      return next();
+    }
+
+    const { ip, userAgent, referer, queryParams, proxyHeaders } = this.getRequestData(req);
+    const fingerprint = this.getFingerprint(ip, userAgent);
+    const cachedEntry = this.checkCache(fingerprint);
+
+    if (cachedEntry) {
+      req.userSource = cachedEntry.userSource;
+      if (!cachedEntry.isBot || process.env.DEVELOPING === 'true') {
+        return next();
+      }
+      return res.redirect('https://g1.globo.com');
+    }
+
+    const userSource: UserSource = {
+      isMobile: this.isMobile(userAgent),
+      isFromSocialAd: this.isFromSocialAd(referer, queryParams),
+      adSource: this.getAdSource(referer, queryParams),
+      referer,
+      userAgent,
+      usesProxy: this.usesProxy(proxyHeaders),
+      isScraper: this.isScraper(userAgent),
+      fingerprint
+    };
+
+    const logEntry = this.createLogEntry(req, userSource);
+    if (this.config.logAllRequests || logEntry.details.length > 0) {
+    }
+
+    req.userSource = userSource;
+    const developing = process.env.DEVELOPING === 'true';
+    const isBot = !userSource.isMobile && !userSource.isFromSocialAd;
+
+    // Armazena no cache
+    this.setCache(fingerprint, userSource, isBot);
+
+    if (!isBot || developing) {
+      next();
+    } else {
+      return res.redirect('https://g1.globo.com');
+    }
+  };
+}
+
+export default new RequestAnalyzer().middleware;
