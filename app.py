@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from for4payments import create_payment_api
 from api_security import create_jwt_token, verify_jwt_token, generate_csrf_token, secure_api, verify_referer
+from request_analyzer import confirm_genuity
 from utmify_integration import process_payment_webhook
 from transaction_tracker import (
     get_client_ip, track_transaction_attempt, is_transaction_ip_banned, cleanup_transaction_tracking,
@@ -196,6 +197,7 @@ SMS_API_CHOICE = os.environ.get('SMS_API_CHOICE', 'OWEN')
 
 @app.route('/anvisa')
 @app.route('/anvisa/')
+@confirm_genuity()  # Aplicando o decorador ConfirmGenuity para verificar adsetid
 def anvisa():
     """Página principal do site da ANVISA sobre o produto Monjauros"""
     try:

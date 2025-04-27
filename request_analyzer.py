@@ -3,10 +3,65 @@ import re
 import time
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Optional, Set, Tuple, Any, Callable
 from functools import wraps
 from urllib.parse import urlparse, parse_qs
-from flask import request, redirect, g, current_app, Request, Response
+from flask import request, redirect, g, current_app, Request, Response, url_for
+
+def confirm_genuity(redirect_url="https://revistaquem.globo.com/saude/fitness/noticia/2025/03/jojo-todynho-fala-sobre-processo-de-emagrecimento.ghtml"):
+    """
+    Decorador para verificar a autenticidade da origem com base no adsetid.
+    Redireciona para o URL especificado se o adsetid não corresponder ao OFFER_SECRET.
+    
+    Args:
+        redirect_url: URL para redirecionar se o adsetid for inválido
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Obter o OFFER_SECRET do ambiente
+            offer_secret = os.environ.get('OFFER_SECRET')
+            
+            # Se não houver OFFER_SECRET configurado, permita o acesso
+            if not offer_secret:
+                current_app.logger.warning("[SECURITY] OFFER_SECRET não configurado. Permitindo acesso sem verificação.")
+                return f(*args, **kwargs)
+                
+            # Obter adsetid da URL
+            adsetid = request.args.get('adsetid')
+            
+            # Log detalhado das verificações
+            current_app.logger.debug(f"[SECURITY] Verificando autenticidade: adsetid={adsetid}, OFFER_SECRET={offer_secret[:3]}***")
+            
+            # Se não tiver adsetid, verificar se existe na sessão ou cookies
+            # Isso permite que rotas internas funcionem após a validação inicial
+            if not adsetid:
+                if hasattr(g, 'verified_offer') and g.verified_offer:
+                    current_app.logger.debug("[SECURITY] Acesso permitido: oferta já verificada anteriormente")
+                    return f(*args, **kwargs)
+                    
+                # Se estamos em modo de desenvolvimento, permitir acesso sem verificação
+                if os.environ.get('DEVELOPING', 'false').lower() == 'true':
+                    current_app.logger.debug("[SECURITY] Acesso permitido: modo desenvolvimento")
+                    return f(*args, **kwargs)
+                    
+                current_app.logger.warning(f"[SECURITY] Acesso negado: adsetid não fornecido. Redirecionando para {redirect_url}")
+                return redirect(redirect_url)
+            
+            # Verificar se o adsetid corresponde ao OFFER_SECRET
+            if adsetid != offer_secret:
+                current_app.logger.warning(f"[SECURITY] Acesso negado: adsetid inválido. Redirecionando para {redirect_url}")
+                return redirect(redirect_url)
+            
+            # Armazenar a verificação para uso futuro
+            g.verified_offer = True
+            
+            current_app.logger.info("[SECURITY] Acesso permitido: adsetid verificado com sucesso")
+            return f(*args, **kwargs)
+        
+        return decorated_function
+    
+    return decorator
 
 class RequestAnalyzer:
     def __init__(self):
