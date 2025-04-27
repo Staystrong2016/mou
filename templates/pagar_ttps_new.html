@@ -262,19 +262,111 @@
     // Função para recuperar os dados do usuário do localStorage
     function getUserPaymentData() {
       try {
+        // Primeiro tentamos obter os dados específicos da compra
         const userDataStr = localStorage.getItem('userPaymentData');
-        if (!userDataStr) {
-          console.log('Nenhum dado de pagamento do usuário encontrado no localStorage');
-          return null;
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          console.log('Dados de pagamento do usuário recuperados de userPaymentData:', userData);
+          return {
+            name: userData.nome || userData.name,
+            cpf: userData.cpf,
+            email: userData.email,
+            phone: userData.telefone || userData.phone
+          };
         }
         
-        const userData = JSON.parse(userDataStr);
-        console.log('Dados de pagamento do usuário recuperados:', userData);
-        return userData;
+        // Caso não encontre, buscamos dados de outras fontes do localStorage
+        const name = localStorage.getItem('nomeCompleto') || localStorage.getItem('nome');
+        const cpf = localStorage.getItem('cpfValidado') || localStorage.getItem('cpf');
+        const email = localStorage.getItem('email') || localStorage.getItem('emailCliente');
+        const phone = localStorage.getItem('telefone') || localStorage.getItem('phoneNumber');
+        
+        if (name || cpf) {
+          const data = { name, cpf, email, phone };
+          console.log('Dados recuperados de chaves individuais do localStorage:', data);
+          return data;
+        }
+        
+        console.log('Nenhum dado de pagamento do usuário encontrado no localStorage');
+        return null;
       } catch (e) {
         console.error('Erro ao recuperar dados do usuário do localStorage:', e);
         return null;
       }
+    }
+    
+    // Função para gerar pagamento TTPS com os dados do usuário
+    function generateTTPSPayment(userData) {
+      // Verificar se temos um código PIX - se sim, não precisamos gerar novo pagamento
+      const pixCodeElement = document.getElementById('pixCode');
+      if (pixCodeElement && pixCodeElement.textContent.trim().length > 20) {
+        console.log('Código PIX já existe, não é necessário gerar novo pagamento');
+        return;
+      }
+      
+      // Validar dados mínimos necessários
+      if (!userData || !userData.name || !userData.cpf) {
+        console.error('Dados insuficientes para gerar pagamento TTPS', userData);
+        return;
+      }
+      
+      console.log('Gerando pagamento TTPS com dados:', userData);
+      
+      // Mostrar indicador de loading
+      const paymentContainer = document.querySelector('.payment-content');
+      if (paymentContainer) {
+        const loadingElement = document.createElement('div');
+        loadingElement.id = 'payment-loading';
+        loadingElement.className = 'text-center py-4';
+        loadingElement.innerHTML = '<i class="fas fa-circle-notch fa-spin fa-2x text-blue-500"></i><p class="mt-2">Gerando pagamento...</p>';
+        paymentContainer.prepend(loadingElement);
+      }
+      
+      // Enviar dados para o servidor para gerar novo pagamento
+      fetch('/pagar-ttps', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(userData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erro ao gerar pagamento TTPS');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Pagamento gerado com sucesso:', data);
+        
+        // Atualizar elementos da página com os dados do pagamento
+        if (data.pix_code && pixCodeElement) {
+          pixCodeElement.textContent = data.pix_code;
+        }
+        
+        if (data.qr_code_url) {
+          const qrCodeImg = document.getElementById('qrCodeImage');
+          if (qrCodeImg) {
+            qrCodeImg.src = data.qr_code_url;
+          }
+        }
+        
+        // Remover indicador de loading
+        const loadingElement = document.getElementById('payment-loading');
+        if (loadingElement) {
+          loadingElement.remove();
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao gerar pagamento:', error);
+        
+        // Remover indicador de loading
+        const loadingElement = document.getElementById('payment-loading');
+        if (loadingElement) {
+          loadingElement.innerHTML = '<p class="text-red-500">Erro ao gerar pagamento. Recarregue a página para tentar novamente.</p>';
+        }
+      });
     }
     
     document.addEventListener('DOMContentLoaded', function() {
@@ -302,6 +394,9 @@
             }
           }
         });
+        
+        // Gerar pagamento PIX com os dados do usuário
+        generateTTPSPayment(userData);
       }
       
       const copyPixButton = document.getElementById('copyPixButton');

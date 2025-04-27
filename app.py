@@ -3219,22 +3219,66 @@ def ttps():
         app.logger.error(f"[PROD] Erro ao acessar página TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
-@app.route('/pagar-ttps')
+@app.route('/pagar-ttps', methods=['GET', 'POST'])
 @confirm_genuity()
 def pagar_ttps():
     """
     Página de pagamento da Taxa Tarja Preta Seguro (TTPS)
+    Suporta GET para carregar a página e POST para criar novo pagamento via AJAX
     """
     try:
         app.logger.info("[PROD] Acessando página de pagamento da Taxa TTPS")
         
-        # Extrair dados do usuário da sessão, se disponíveis
-        user_data = {
-            'name': session.get('nome', 'Cliente Teste'),
-            'cpf': session.get('cpf', '12345678900'),
-            'email': session.get('email', 'teste@exemplo.com'),
-            'phone': session.get('phone', '11999999999')
-        }
+        # Verificar se é uma requisição AJAX (POST com JSON)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.method == 'POST'
+        
+        # Se for AJAX, processar os dados enviados pelo cliente e retornar JSON
+        if is_ajax:
+            app.logger.info("[PROD] Recebendo requisição AJAX para gerar pagamento TTPS")
+            
+            # Obter dados do corpo da requisição
+            try:
+                user_data_json = request.get_json()
+                app.logger.info(f"[PROD] Dados recebidos via AJAX: {user_data_json}")
+                
+                # Validar dados mínimos necessários
+                if not user_data_json or not user_data_json.get('name') or not user_data_json.get('cpf'):
+                    app.logger.error("[PROD] Dados insuficientes para gerar pagamento TTPS via AJAX")
+                    return jsonify({
+                        'success': False,
+                        'message': 'Dados insuficientes para gerar pagamento'
+                    }), 400
+                
+                # Preparar dados para o formato esperado pelo restante do código
+                user_data = {
+                    'name': user_data_json.get('name'),
+                    'cpf': user_data_json.get('cpf'),
+                    'email': user_data_json.get('email', 'cliente@example.com'),
+                    'phone': user_data_json.get('phone', '11999999999')
+                }
+                
+                # Atualizar a sessão com os dados recebidos
+                session['nome'] = user_data['name']
+                session['cpf'] = user_data['cpf']
+                session['email'] = user_data['email']
+                session['phone'] = user_data['phone']
+                
+                app.logger.info(f"[PROD] Dados do pagamento TTPS armazenados na sessão: {user_data}")
+            except Exception as e:
+                app.logger.error(f"[PROD] Erro ao processar dados JSON para pagamento TTPS: {str(e)}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Erro ao processar dados do pagamento'
+                }), 400
+        else:
+            # Se for acesso normal via GET, usar dados da sessão ou valores padrão
+            app.logger.info("[PROD] Acesso normal à página de pagamento TTPS via GET")
+            user_data = {
+                'name': session.get('nome', 'Cliente Teste'),
+                'cpf': session.get('cpf', '12345678900'),
+                'email': session.get('email', 'teste@exemplo.com'),
+                'phone': session.get('phone', '11999999999')
+            }
         
         # Valor da TTPS
         ttps_value = 67.90
@@ -3354,13 +3398,22 @@ def pagar_ttps():
         except Exception as fb_error:
             app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout para TTPS: {str(fb_error)}")
         
-        # Renderizar template com todos os dados necessários
-        return render_template('pagar_ttps_new.html', 
-                               pix_code=pix_code,
-                               qr_code_url=qr_code_url,
-                               random_id=random_id,
-                               user_data=user_data,
-                               transaction_id=transaction_id)
+        # Se for uma requisição AJAX, retornar dados em formato JSON
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'pix_code': pix_code,
+                'qr_code_url': qr_code_url,
+                'transaction_id': transaction_id
+            })
+        else:
+            # Se for acesso normal via GET, renderizar o template
+            return render_template('pagar_ttps_new.html', 
+                                   pix_code=pix_code,
+                                   qr_code_url=qr_code_url,
+                                   random_id=random_id,
+                                   user_data=user_data,
+                                   transaction_id=transaction_id)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
