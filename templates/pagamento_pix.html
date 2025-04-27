@@ -624,6 +624,16 @@
     }
     
     // Verificar status do pagamento
+    // Função para salvar os dados do usuário para pagamentos futuros
+    function saveUserPaymentData(userPaymentData) {
+      try {
+        localStorage.setItem('userPaymentData', JSON.stringify(userPaymentData));
+        console.log('Dados de pagamento do usuário salvos com sucesso:', userPaymentData);
+      } catch (e) {
+        console.error('Erro ao salvar dados do usuário no localStorage:', e);
+      }
+    }
+    
     function checkPaymentStatus(transaction_id, isAutoCheck = false) {
       fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
         .then(response => response.json())
@@ -653,6 +663,18 @@
               
               return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
             }
+            
+            // Salvar dados do usuário para uso posterior (pagamento TTPS)
+            const userPaymentData = {
+              name: data.customer_name || document.getElementById('customerName')?.textContent || '',
+              cpf: data.customer_document || document.getElementById('customerCPF')?.textContent || '',
+              email: data.customer_email || '',
+              phone: data.customer_phone || '',
+              amount: 67.90, // Valor fixo da TTPS
+              transaction_id: transaction_id,
+              timestamp: new Date().toISOString()
+            };
+            saveUserPaymentData(userPaymentData);
             
             // Obter UTM params da resposta se disponível
             const utmParamsFromResponse = data.utm_params || {};
@@ -699,6 +721,18 @@
         
         return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
       }
+      
+      // Salvar dados simulados do usuário para uso posterior (pagamento TTPS)
+      const userPaymentData = {
+        name: document.getElementById('customerName')?.textContent || 'Cliente Teste',
+        cpf: document.getElementById('customerCPF')?.textContent || '12345678900',
+        email: 'teste@exemplo.com',
+        phone: '11999999999',
+        amount: 67.90, // Valor fixo da TTPS
+        transaction_id: 'test-' + Date.now(),
+        timestamp: new Date().toISOString()
+      };
+      saveUserPaymentData(userPaymentData);
       
       // Adicionar parâmetro test=true para indicar que é um pagamento simulado
       window.location.href = appendUrlParams('/compra_sucesso', {test: 'true'});
