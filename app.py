@@ -3199,7 +3199,6 @@ def utm_demo_form():
 
 # Rotas para a Taxa Tarja Preta Seguro (TTPS)
 @app.route('/ttps')
-@confirm_genuity()
 def ttps():
     """
     Página da Taxa Tarja Preta Seguro (TTPS)
@@ -3220,7 +3219,6 @@ def ttps():
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/pagar-ttps', methods=['GET', 'POST'])
-@confirm_genuity()
 def pagar_ttps():
     """
     Página de pagamento da Taxa Tarja Preta Seguro (TTPS)
@@ -3580,19 +3578,40 @@ def pagar_ttps():
                 'transaction_id': transaction_id
             })
         else:
-            # Se for acesso normal via GET, renderizar o template
+            # Capturar parâmetros UTM para preservá-los
+            utm_params = {}
+            utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid']
+            
+            # Verificar UTMs na URL atual
+            for key in utm_keys:
+                if key in request.args:
+                    utm_params[key] = request.args.get(key)
+            
+            # Se não houver UTMs na URL, verificar na sessão
+            if not utm_params and 'utm_params' in session:
+                utm_params = session.get('utm_params', {})
+            
+            # Log dos parâmetros UTM encontrados
+            if utm_params:
+                app.logger.info(f"[UTM] Parâmetros UTM preservados na página de pagamento TTPS: {utm_params}")
+                # Armazenar UTMs na sessão para uso futuro
+                session['utm_params'] = utm_params
+            else:
+                app.logger.warning("[UTM] Nenhum parâmetro UTM encontrado para página de pagamento TTPS")
+            
+            # Se for acesso normal via GET, renderizar o template com parâmetros UTM
             return render_template('pagar_ttps_new.html', 
                                    pix_code=pix_code,
                                    qr_code_url=qr_code_url,
                                    random_id=random_id,
                                    user_data=user_data,
-                                   transaction_id=transaction_id)
+                                   transaction_id=transaction_id,
+                                   utm_params=utm_params)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/verificar-pagamento-ttps')
-@confirm_genuity()
 def verificar_pagamento_ttps():
     """
     Endpoint para verificar o status do pagamento TTPS
@@ -3753,7 +3772,6 @@ def verificar_pagamento_ttps():
         }), 500
 
 @app.route('/ttps_sucesso')
-@confirm_genuity()
 def ttps_sucesso():
     """
     Página de sucesso após o pagamento da Taxa Tarja Preta Seguro (TTPS)

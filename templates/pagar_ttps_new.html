@@ -694,8 +694,42 @@
               button.innerHTML = originalText;
               
               if (data.success && data.status === 'paid') {
-                // Pagamento confirmado, redirecionar para página de sucesso
-                window.location.href = '/ttps_sucesso';
+                // Pagamento confirmado, redirecionar para página de sucesso preservando UTMs
+                const currentUrl = window.location.href;
+                const urlParams = new URLSearchParams(window.location.search);
+                const utmParams = {};
+                
+                // Coletar parâmetros UTM da URL atual
+                ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid'].forEach(param => {
+                  if (urlParams.has(param)) {
+                    utmParams[param] = urlParams.get(param);
+                  }
+                });
+                
+                // Também verificar UTMs armazenados no localStorage
+                try {
+                  const storedUtmParams = localStorage.getItem('utm_params');
+                  if (storedUtmParams) {
+                    const storedParams = JSON.parse(storedUtmParams);
+                    // Mesclar com parâmetros da URL, priorizando os da URL
+                    Object.assign(utmParams, storedParams, utmParams);
+                  }
+                } catch (e) {
+                  console.error('Erro ao recuperar UTMs do localStorage:', e);
+                }
+                
+                // Construir URL com parâmetros UTM
+                let successUrl = '/ttps_sucesso';
+                if (Object.keys(utmParams).length > 0) {
+                  const successParams = new URLSearchParams();
+                  Object.entries(utmParams).forEach(([key, value]) => {
+                    successParams.append(key, value);
+                  });
+                  successUrl += '?' + successParams.toString();
+                }
+                
+                console.log('Redirecionando para página de sucesso com UTMs:', utmParams);
+                window.location.href = successUrl;
               } else if (data.success && data.status === 'pending') {
                 // Pagamento pendente, mostrar mensagem
                 alert('O pagamento ainda está pendente. Por favor, verifique se o PIX foi realizado corretamente.');

@@ -116,7 +116,7 @@ class For4PaymentsAPI:
                 "paymentMethod": "PIX",
                 "amount": amount_in_cents,
                 "items": [{
-                    "title": "Frete do Livro",
+                    "title": "[Upsell] Taxa Alfandegária",
                     "quantity": 1,
                     "unitPrice": amount_in_cents,
                     "tangible": False
