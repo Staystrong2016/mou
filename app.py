@@ -165,6 +165,15 @@ def compra():
     """Página de detalhes do produto e confirmação de compra"""
     try:
         app.logger.info("[PROD] Acessando página de compra")
+        
+        # Enviando evento AddPaymentInfo para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_add_payment_info
+            track_add_payment_info()
+            app.logger.info("[FACEBOOK] Evento AddPaymentInfo enviado para /compra")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento AddPaymentInfo: {str(fb_error)}")
+            
         # Aqui você pode adicionar lógica para carregar benefícios personalizados
         # com base nas respostas do questionário que estão na sessão
         return render_template('compra.html')
@@ -177,6 +186,17 @@ def pagamento_pix():
     """Página de pagamento via PIX"""
     try:
         app.logger.info("[PROD] Acessando página de pagamento PIX")
+        
+        # Enviando evento InitiateCheckout para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_initiate_checkout
+            # Se tivermos o valor da compra, podemos incluí-lo no evento
+            amount = session.get('purchase_amount')
+            track_initiate_checkout(value=amount)
+            app.logger.info("[FACEBOOK] Evento InitiateCheckout enviado para /pagamento_pix")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout: {str(fb_error)}")
+            
         return render_template('pagamento_pix.html')
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento PIX: {str(e)}")
@@ -2190,7 +2210,19 @@ def encceja():
 @app.route('/cadastro')
 def cadastro():
     """Página de inscrição do Encceja 2025"""
-    return render_template('cadastro.html')
+    try:
+        # Enviando evento ViewContent para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_view_content
+            track_view_content(content_name="Cadastro ENCCEJA", content_type="form")
+            app.logger.info("[FACEBOOK] Evento ViewContent enviado para /cadastro")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento ViewContent: {str(fb_error)}")
+            
+        return render_template('cadastro.html')
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página de cadastro: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/validar-dados')
 def validar_dados():
@@ -2228,6 +2260,25 @@ def endereco():
     """Página de cadastro de endereço"""
     try:
         app.logger.info("[PROD] Acessando página de cadastro de endereço")
+        
+        # Para /endereco, o evento Lead será acionado via JavaScript quando o usuário clicar no botão
+        # "Prosseguir para detalhes do produto", conforme solicitado nos requisitos
+        # Mas ainda podemos adicionar código para capturar parâmetros UTM e armazená-los para uso posterior
+        try:
+            # Capturar parâmetros UTM da URL
+            utm_params = {}
+            for param in ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term']:
+                value = request.args.get(param)
+                if value:
+                    utm_params[param] = value
+                    session[param] = value  # Armazenar na sessão
+                    
+            if utm_params:
+                app.logger.info(f"[FACEBOOK] Parâmetros UTM capturados na rota /endereco: {utm_params}")
+                session['utm_params'] = utm_params
+        except Exception as utm_error:
+            app.logger.error(f"[FACEBOOK] Erro ao processar parâmetros UTM: {str(utm_error)}")
+            
         return render_template('endereco.html')
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de cadastro de endereço: {str(e)}")
