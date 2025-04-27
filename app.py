@@ -3783,6 +3783,29 @@ def ttps_sucesso():
         customer_name = session.get('nome', '')
         customer_cpf = session.get('cpf', '')
         
+        # Capturar e preservar parâmetros UTM
+        utm_params = {}
+        utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid']
+        
+        # Verificar UTMs na URL atual
+        for key in utm_keys:
+            if key in request.args:
+                utm_params[key] = request.args.get(key)
+                # Atualizar também na sessão
+                session[key] = request.args.get(key)
+        
+        # Se não houver UTMs na URL, verificar na sessão
+        if not utm_params and 'utm_params' in session:
+            utm_params = session.get('utm_params', {})
+        
+        # Log dos parâmetros UTM encontrados
+        if utm_params:
+            app.logger.info(f"[UTM] Parâmetros UTM preservados na página de sucesso TTPS: {utm_params}")
+            # Atualizar a sessão com os UTMs
+            session['utm_params'] = utm_params
+        else:
+            app.logger.warning("[UTM] Nenhum parâmetro UTM encontrado para página de sucesso TTPS")
+        
         # Registrar evento de Purchase no Facebook CAPI
         try:
             from facebook_conversion_api import track_purchase, prepare_user_data
@@ -3821,7 +3844,8 @@ def ttps_sucesso():
         
         return render_template('ttps_sucesso.html', 
                               customer_name=customer_name,
-                              customer_cpf=customer_cpf)
+                              customer_cpf=customer_cpf,
+                              utm_params=utm_params)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de sucesso TTPS: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500

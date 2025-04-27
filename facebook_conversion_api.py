@@ -75,25 +75,49 @@ def get_fbp_fbc_cookies() -> Dict[str, str]:
 
 def get_utm_parameters() -> Dict[str, str]:
     """
-    Obtém os parâmetros UTM da sessão ou da URL
+    Obtém os parâmetros UTM da sessão ou da URL com múltiplas estratégias de fallback
+    para garantir máxima preservação de dados de atribuição
     """
-    # Prioridade para parâmetros da sessão
-    utm_params = {
-        'utm_source': session.get('utm_source'),
-        'utm_campaign': session.get('utm_campaign'),
-        'utm_medium': session.get('utm_medium'),
-        'utm_content': session.get('utm_content'),
-        'utm_term': session.get('utm_term'),
-    }
+    utm_params = {}
+    utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
+                'fbclid', 'gclid', 'ttclid']  # Incluir parâmetros de click ID também
     
-    # Se não estiver na sessão, verificar na URL
+    # 1. Estratégia: verificar o objeto utm_params na sessão (forma preferida)
+    if 'utm_params' in session and isinstance(session.get('utm_params'), dict):
+        session_utm_params = session.get('utm_params', {})
+        logger.debug(f"UTM params encontrados na sessão (objeto): {session_utm_params}")
+        for key in utm_keys:
+            if key in session_utm_params and session_utm_params[key]:
+                utm_params[key] = session_utm_params[key]
+    
+    # 2. Estratégia: verificar parâmetros UTM armazenados individualmente na sessão
+    for key in utm_keys:
+        # Se já temos o valor da estratégia anterior, pular
+        if key in utm_params and utm_params[key]:
+            continue
+            
+        if key in session and session[key]:
+            utm_params[key] = session[key]
+            logger.debug(f"UTM param {key} encontrado na sessão: {utm_params[key]}")
+    
+    # 3. Estratégia: verificar na URL atual
     if request.args:
-        for param in utm_params:
-            if not utm_params[param] and param in request.args:
-                utm_params[param] = request.args.get(param)
+        for key in utm_keys:
+            # Se já temos o valor das estratégias anteriores, pular
+            if key in utm_params and utm_params[key]:
+                continue
+                
+            if key in request.args and request.args.get(key):
+                utm_params[key] = request.args.get(key)
+                logger.debug(f"UTM param {key} encontrado na URL: {utm_params[key]}")
     
-    # Remover valores None
-    return {k: v for k, v in utm_params.items() if v}
+    # Log detalhado para depuração
+    if utm_params:
+        logger.debug(f"Parâmetros UTM completos capturados: {utm_params}")
+    else:
+        logger.debug("Nenhum parâmetro UTM encontrado em sessão ou URL")
+    
+    return utm_params
 
 def generate_event_id() -> str:
     """
