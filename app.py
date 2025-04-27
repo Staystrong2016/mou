@@ -172,8 +172,10 @@ logging.basicConfig(level=logging.DEBUG)
 # Configuração para escolher qual API SMS usar: 'SMSDEV' ou 'OWEN'
 SMS_API_CHOICE = os.environ.get('SMS_API_CHOICE', 'OWEN')
 
+
 @app.route('/anvisa')
 @app.route('/anvisa/')
+@check_referer
 def anvisa():
     """Página principal do site da ANVISA sobre o produto Monjauros"""
     try:
