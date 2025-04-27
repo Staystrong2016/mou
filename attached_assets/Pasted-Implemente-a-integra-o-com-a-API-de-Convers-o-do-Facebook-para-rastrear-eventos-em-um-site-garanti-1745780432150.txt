@@ -1,0 +1,65 @@
+Implemente a integração com a API de Conversão do Facebook para rastrear eventos em um site, garantindo precisão, deduplicação e conformidade com privacidade. As URLs do site devem incluir os parâmetros:
+
+utm_source=FB&utm_campaign={{campaign.name}}|{{campaign.id}}&utm_medium={{adset.name}}|{{adset.id}}&utm_content={{ad.name}}|{{ad.id}}&utm_term={{placement}}
+
+Configure os seguintes eventos para as respectivas rotas e ações:
+
+
+
+
+
+/anvisa: Envie o evento PageView quando o usuário acessar a página.
+
+
+
+/cadastro: Envie o evento ViewContent quando o usuário acessar a página.
+
+
+
+/endereco: Envie o evento Lead quando o usuário clicar no botão "Prosseguir para detalhes do produto".
+
+
+
+/compra: Envie o evento AddPaymentInfo quando o usuário acessar a página.
+
+
+
+/pagamento_pix: Envie o evento InitiateCheckout quando o usuário acessar a página.
+
+
+
+/confirmacao_compra: Envie o evento Purchase com os parâmetros value (valor total da compra) e currency (BRL) quando o usuário concluir a compra.
+
+Garanta que:
+
+
+
+
+
+Deduplicação: Cada evento deve incluir um event_id único (ex.: UUID ou hash de usuário e timestamp) para evitar duplicação no servidor do Facebook.
+
+
+
+Dados do Usuário: Capturar _fbp e _fbc do navegador e enviar no payload. Para dados pessoais (e-mail, telefone), aplicar hash SHA-256 antes do envio, respeitando GDPR/LGPD.
+
+
+
+Parâmetros UTM: Capturar e enviar os parâmetros de URL (utm_source, utm_campaign, utm_medium, utm_content, utm_term) para identificar a origem da campanha, conjunto de anúncios e anúncio.
+
+
+
+Gerenciamento de Erros: Implementar retentativas (máximo de 3, com intervalo exponencial) para falhas de rede ou erros 429. Registrar erros em um sistema de logging.
+
+
+
+Validação: Testar eventos com o Test Events Tool no Gerenciador de Eventos do Facebook para garantir payloads corretos e rastreamento de UTM.
+
+
+
+Conformidade com Bloqueadores: Priorizar a implementação server-side para contornar bloqueadores de anúncios.
+
+
+
+Eventos Offline (Opcional): Se a compra for confirmada em sistemas externos, usar a API de Conversão Offline para enviar o evento Purchase com os parâmetros UTM.
+
+A implementação deve ser compatível com a API de Conversão do Facebook e seguir as melhores práticas para rastreamento preciso e otimização de campanhas.
