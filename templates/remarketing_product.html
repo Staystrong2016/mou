@@ -754,12 +754,30 @@
     
     // Inicializar dados da página
     function initializePageData() {
+      // Obter o ID da transação da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const transactionIdFromUrl = window.location.pathname.split('/').pop();
+      
+      // Obter dados do PIX do localStorage
       const { transaction_id, pix_code, pix_qrcode, amount } = getPixData();
       
-      // Se não houver dados suficientes, redirecionar para a página de compra
+      // Se não houver dados suficientes no localStorage, usar os dados da URL
       if (!transaction_id || !pix_code || !pix_qrcode) {
-        console.error("Dados insuficientes para exibir a página de pagamento");
-        window.location.href = '/compra';
+        console.warn("Dados insuficientes no localStorage, tentando obter do servidor para transação: " + transactionIdFromUrl);
+        
+        // Verificar status do pagamento para obter dados do cliente via API
+        fetch(`/verificar_pagamento_mounjaro?transaction_id=${transactionIdFromUrl}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log("Dados obtidos do servidor:", data);
+            
+            // Atualizar os dados na página
+            updateClientData(data);
+          })
+          .catch(error => {
+            console.error("Erro ao obter dados do servidor:", error);
+          });
+        
         return;
       }
       
@@ -841,6 +859,64 @@
         button.style.borderColor = '';
         button.style.color = '';
       }, 2000);
+    }
+    
+    // Atualizar dados do cliente na interface com dados vindos da API
+    function updateClientData(data) {
+      console.log("Atualizando dados do cliente:", data);
+      
+      // Extrair dados do cliente
+      const customerName = data.customer_name || '';
+      const customerCpf = data.customer_document || data.cpf || '';
+      const pixCode = data.pix_code || '';
+      const qrCodeUrl = data.pix_qr_code || '';
+      const amount = data.amount || 197.90;
+      const transactionId = data.transaction_id || data.id || window.location.pathname.split('/').pop();
+      
+      // Atualizar elementos na página, se existirem
+      if (customerName && document.getElementById('clientName')) {
+        document.getElementById('clientName').textContent = customerName;
+      }
+      
+      if (customerCpf && document.getElementById('clientCpf')) {
+        document.getElementById('clientCpf').textContent = formatCPF(customerCpf);
+      }
+      
+      if (pixCode && document.getElementById('pixCode')) {
+        document.getElementById('pixCode').textContent = pixCode;
+      }
+      
+      if (qrCodeUrl && document.getElementById('pixQrCode')) {
+        document.getElementById('pixQrCode').src = qrCodeUrl;
+      }
+      
+      if (amount && document.getElementById('totalAmount')) {
+        document.getElementById('totalAmount').textContent = `R$ ${parseFloat(amount).toFixed(2).replace('.', ',')}`;
+      }
+      
+      // Configurar contador
+      startCountdown(30 * 60); // 30 minutos em segundos
+      
+      // Configurar verificação automática de status
+      if (transactionId) {
+        // Configurar botão de verificação de status
+        document.getElementById('checkStatusButton').addEventListener('click', function(e) {
+          e.preventDefault();
+          checkPaymentStatus(transactionId);
+        });
+        
+        // Checar status automaticamente a cada 10 segundos
+        setInterval(function() {
+          checkPaymentStatus(transactionId, true);
+        }, 10000);
+      }
+      
+      // Configurar botão de cópia
+      if (pixCode) {
+        document.getElementById('copyButton').addEventListener('click', function() {
+          copyToClipboard(pixCode);
+        });
+      }
     }
     
     // Iniciar contagem regressiva
