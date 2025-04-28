@@ -371,12 +371,7 @@
               <label for="phone" class="form-label">Telefone para contato</label>
               <div class="input-icon-wrapper">
                 <i class="fas fa-phone input-icon"></i>
-                <input type="tel" id="phone" name="phone" class="form-input with-icon" 
-                  placeholder="Ex: 62992969590" 
-                  pattern="^[1-9]{2}[9]{1}[0-9]{8}$" 
-                  title="Digite apenas os números do celular no formato: DDD + 9 + número (Ex: 62992969590)"
-                  required>
-                <div class="text-xs text-gray-500 mt-1">Digite apenas números, formato: DDD + 9 + número (Ex: 62992969590)</div>
+                <input type="tel" id="phone" name="phone" class="form-input with-icon" placeholder="(XX) XXXXX-XXXX" required>
               </div>
             </div>
           </div>
@@ -431,34 +426,29 @@
       e.target.value = value;
     });
     
-    // Validação para o campo de telefone (apenas dígitos no formato brasileiro)
+    // Máscara para o campo de telefone
     document.getElementById('phone').addEventListener('input', function(e) {
-      // Remover todos os caracteres não-numéricos
       let value = e.target.value.replace(/\D/g, '');
       
-      // Limitar a um máximo de 11 dígitos (DDD + 9 + 8 dígitos)
-      if (value.length > 11) {
-        value = value.substring(0, 11);
-      }
-      
-      // Guardar apenas os dígitos no valor do campo
-      e.target.value = value;
-      
-      // Validar o formato (DDD + 9 + 8 dígitos)
-      const isValid = /^[1-9]{2}[9]{1}[0-9]{8}$/.test(value);
-      
-      // Atualizar visualmente a validação do campo
-      if (value.length > 0) {
-        if (isValid) {
-          e.target.classList.remove('border-red-500');
-          e.target.classList.add('border-green-500');
-        } else {
-          e.target.classList.remove('border-green-500');
-          e.target.classList.add('border-red-500');
+      if (value.length <= 10) {
+        // Formato (XX) XXXX-XXXX
+        if (value.length > 2) {
+          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+        }
+        if (value.length > 9) {
+          value = value.substring(0, 9) + '-' + value.substring(9);
         }
       } else {
-        e.target.classList.remove('border-red-500', 'border-green-500');
+        // Formato (XX) XXXXX-XXXX para celular
+        if (value.length > 2) {
+          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+        }
+        if (value.length > 10) {
+          value = value.substring(0, 10) + '-' + value.substring(10, 15);
+        }
       }
+      
+      e.target.value = value;
     });
     
     // Consulta de CEP via ViaCEP
