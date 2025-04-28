@@ -12,10 +12,45 @@ import urllib.parse
 import hashlib
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, abort, make_response, g
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 from dotenv import load_dotenv
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
+
+# Configuração da Base de Dados
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
+
+# Inicializar a aplicação Flask
+app = Flask(__name__)
+
+# Importar secrets mais cedo para usar na chave secreta
+import secrets
+
+# Configuração da chave secreta
+app.secret_key = os.environ.get("SESSION_SECRET") or secrets.token_hex(32)
+
+# Configurar a conexão com banco de dados PostgreSQL (verificando se a variável existe)
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    
+    # Inicializar SQLAlchemy com a aplicação
+    db.init_app(app)
+    print(f"Conexão com banco de dados configurada: {database_url[:20]}...")
+else:
+    print("AVISO: Variável DATABASE_URL não encontrada. Funcionalidades de banco de dados não estarão disponíveis.")
+
+# Importações após a inicialização da app e do db
 from for4payments import create_payment_api
 from api_security import create_jwt_token, verify_jwt_token, generate_csrf_token, secure_api, verify_referer
 from request_analyzer import confirm_genuity
@@ -30,8 +65,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import redis
 from datetime import datetime, timedelta
-
-app = Flask(__name__)
 
 
 
