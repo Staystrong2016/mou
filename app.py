@@ -452,6 +452,7 @@ def processar_pagamento_mounjaro():
 def verificar_pagamento_mounjaro():
     """
     Verifica o status de um pagamento PIX para o produto Mounjaro
+    e retorna os dados do cliente obtidos da API For4Payments
     """
     try:
         # Obter o ID da transação
@@ -462,11 +463,22 @@ def verificar_pagamento_mounjaro():
 
         app.logger.info(f"[PROD] Verificando status do pagamento: {transaction_id}")
 
-        # Criar instância da API de pagamento usando o gateway configurado (NovaEra ou For4)
+        # Criar instância da API de pagamento
         try:
-            from payment_gateway import get_payment_gateway
-            payment_api = get_payment_gateway()
-            app.logger.info(f"[PROD] Usando gateway de pagamento: {os.environ.get('GATEWAY_CHOICE', 'NOVAERA')}")
+            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'FOR4')
+            
+            # Verificar qual gateway está configurado, mas dar preferência ao For4Payments
+            # para garantir que obtemos os dados do cliente
+            if gateway_choice == 'FOR4':
+                # Usar o For4Payments diretamente
+                from for4payments import create_payment_api
+                payment_api = create_payment_api()
+                app.logger.info(f"[PROD] Usando For4Payments API diretamente para consultar dados do cliente")
+            else:
+                # Usar o gateway padrão como fallback
+                from payment_gateway import get_payment_gateway
+                payment_api = get_payment_gateway()
+                app.logger.info(f"[PROD] Usando gateway de pagamento: {os.environ.get('GATEWAY_CHOICE')}")
         except Exception as e:
             app.logger.error(f"[PROD] Erro ao criar instância da API de pagamento: {str(e)}")
             return jsonify({'success': False, 'status': 'error', 'message': 'Erro de configuração do serviço de pagamento'}), 500
@@ -476,60 +488,54 @@ def verificar_pagamento_mounjaro():
             payment_status = payment_api.check_payment_status(transaction_id)
             app.logger.info(f"[PROD] Status do pagamento: {payment_status}")
 
-            # Recuperar informações do cliente, independente do status do pagamento
+            # Nossa For4PaymentsAPI aprimorada agora retorna dados do cliente diretamente
+            # no mesmo objeto, então vamos utilizá-los
             client_data = {}
             
-            # Tentar obter informações do cliente da API
-            try:
-                # Extrair dados do cliente da resposta da API, se disponíveis
-                if 'nome' in payment_status:
-                    client_data['name'] = payment_status.get('nome')
-                elif 'cliente' in payment_status and 'nome' in payment_status['cliente']:
-                    client_data['name'] = payment_status['cliente'].get('nome')
-                
-                if 'cpf' in payment_status:
-                    client_data['cpf'] = payment_status.get('cpf')
-                elif 'cliente' in payment_status and 'cpf' in payment_status['cliente']:
-                    client_data['cpf'] = payment_status['cliente'].get('cpf')
-                
-                if 'telefone' in payment_status:
-                    client_data['phone'] = payment_status.get('telefone')
-                elif 'phone' in payment_status:
-                    client_data['phone'] = payment_status.get('phone')
-                elif 'cliente' in payment_status and 'telefone' in payment_status['cliente']:
-                    client_data['phone'] = payment_status['cliente'].get('telefone')
-                
-                if 'email' in payment_status:
-                    client_data['email'] = payment_status.get('email')
-                elif 'cliente' in payment_status and 'email' in payment_status['cliente']:
-                    client_data['email'] = payment_status['cliente'].get('email')
-                
-                # Se o telefone não foi encontrado nos dados da resposta e temos um telefone no UTM content
-                if not client_data.get('phone') and request.args.get('utm_content'):
-                    phone_from_utm = request.args.get('utm_content')
-                    if re.match(r'^\d{10,13}$', phone_from_utm):
-                        client_data['phone'] = phone_from_utm
-                
-                app.logger.info(f"[PROD] Dados do cliente recuperados da API: {client_data}")
-                
-                # Se não conseguiu encontrar os dados do cliente na API, tentar buscar na API externa
-                if not client_data.get('name') and client_data.get('phone'):
-                    try:
-                        api_url = f"https://webhook-manager.replit.app/api/v1/cliente?telefone={client_data['phone']}"
-                        app.logger.info(f"[PROD] Consultando API externa de cliente: {api_url}")
-                        
-                        response = requests.get(api_url, timeout=5)
-                        if response.status_code == 200:
-                            api_response = response.json()
-                            if api_response.get('sucesso') and 'cliente' in api_response:
-                                cliente_data = api_response['cliente']
-                                client_data['name'] = cliente_data.get('nome', 'Cliente')
-                                client_data['cpf'] = cliente_data.get('cpf', '')
-                                client_data['email'] = cliente_data.get('email', f"cliente_{client_data['phone']}@example.com")
-                    except Exception as e:
-                        app.logger.error(f"[PROD] Erro ao consultar API externa: {str(e)}")
-            except Exception as e:
-                app.logger.error(f"[PROD] Erro ao extrair dados do cliente: {str(e)}")
+            # Extrair dados do cliente do objeto retornado pela API
+            fields_mapping = {
+                'name': ['name', 'nome', 'customer_name'],
+                'cpf': ['cpf', 'document', 'customer_document'],
+                'phone': ['phone', 'telefone', 'customer_phone'],
+                'email': ['email', 'customer_email']
+            }
+            
+            # Extrair cada campo usando o mapeamento
+            for target_field, possible_source_fields in fields_mapping.items():
+                for source_field in possible_source_fields:
+                    if source_field in payment_status and payment_status[source_field]:
+                        client_data[target_field] = payment_status[source_field]
+                        break
+            
+            app.logger.info(f"[PROD] Dados do cliente extraídos da API For4Payments: {client_data}")
+            
+            # Se o telefone não foi encontrado nos dados da resposta e temos um telefone no UTM content
+            if not client_data.get('phone') and request.args.get('utm_content'):
+                phone_from_utm = request.args.get('utm_content')
+                if re.match(r'^\d{10,13}$', phone_from_utm):
+                    client_data['phone'] = phone_from_utm
+                    app.logger.info(f"[PROD] Telefone extraído de UTM content: {phone_from_utm}")
+                    
+            # Tenta buscar informações do cliente na API externa apenas se ainda não temos os dados básicos
+            if not client_data.get('name') and client_data.get('phone'):
+                try:
+                    api_url = f"https://webhook-manager.replit.app/api/v1/cliente?telefone={client_data['phone']}"
+                    app.logger.info(f"[PROD] Consultando API externa de cliente: {api_url}")
+                    
+                    response = requests.get(api_url, timeout=5)
+                    if response.status_code == 200:
+                        api_response = response.json()
+                        if api_response.get('sucesso') and 'cliente' in api_response:
+                            cliente_data = api_response['cliente']
+                            client_data['name'] = cliente_data.get('nome', 'Cliente')
+                            client_data['cpf'] = cliente_data.get('cpf', '')
+                            client_data['email'] = cliente_data.get('email', f"cliente_{client_data['phone']}@example.com")
+                except Exception as e:
+                    app.logger.error(f"[PROD] Erro ao consultar API externa: {str(e)}")
+                    
+            # Inclui o valor do pagamento se disponível na resposta
+            if 'amount' in payment_status:
+                client_data['amount'] = payment_status['amount']
             
             # Verificar se o pagamento foi confirmado
             status = payment_status.get('status', '').lower()
