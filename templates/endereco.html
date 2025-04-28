@@ -371,8 +371,18 @@
               <label for="phone" class="form-label">Telefone para contato</label>
               <div class="input-icon-wrapper">
                 <i class="fas fa-phone input-icon"></i>
-                <input type="tel" id="phone" name="phone" class="form-input with-icon" placeholder="(XX) XXXXX-XXXX" required>
+                <input 
+                  type="tel" 
+                  id="phone" 
+                  name="phone" 
+                  class="form-input with-icon" 
+                  placeholder="(XX) 9XXXX-XXXX" 
+                  pattern="(\([0-9]{2}\)\s?9[0-9]{4}-[0-9]{4})|([0-9]{2}9[0-9]{8})"
+                  title="Digite um telefone celular válido no formato (XX) 9XXXX-XXXX ou XX9XXXXXXXX" 
+                  required
+                >
               </div>
+              <small class="form-text text-muted">Formato: DDD + 9 + 8 dígitos. Ex: 41996298290</small>
             </div>
           </div>
           
@@ -430,25 +440,47 @@
     document.getElementById('phone').addEventListener('input', function(e) {
       let value = e.target.value.replace(/\D/g, '');
       
-      if (value.length <= 10) {
-        // Formato (XX) XXXX-XXXX
-        if (value.length > 2) {
-          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
-        }
-        if (value.length > 9) {
-          value = value.substring(0, 9) + '-' + value.substring(9);
-        }
-      } else {
-        // Formato (XX) XXXXX-XXXX para celular
-        if (value.length > 2) {
-          value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
-        }
-        if (value.length > 10) {
-          value = value.substring(0, 10) + '-' + value.substring(10, 15);
+      // Garantir que começa com DDD válido
+      if (value.length >= 2) {
+        const ddd = value.substring(0, 2);
+        // Se o número não começa com "9" na posição correta e já tem mais de 2 dígitos
+        if (value.length > 2 && value.charAt(2) !== '9') {
+          // Inserir o 9 após o DDD
+          value = ddd + '9' + value.substring(2);
         }
       }
       
+      // Limitar a 11 dígitos (2 DDD + 9 no início + 8 números)
+      if (value.length > 11) {
+        value = value.substring(0, 11);
+      }
+      
+      // Aplicar máscara (XX) 9XXXX-XXXX
+      if (value.length > 2) {
+        value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+      }
+      if (value.length > 10) {
+        value = value.substring(0, 10) + '-' + value.substring(10, 15);
+      }
+      
       e.target.value = value;
+      
+      // Verificar se o número está no formato correto para validação visual
+      const phonePattern = /^(\([0-9]{2}\)\s?9[0-9]{4}-[0-9]{4})|([0-9]{2}9[0-9]{8})$/;
+      const isValid = phonePattern.test(value.replace(/\s/g, ''));
+      
+      // Feedback visual
+      if (value.length > 0) {
+        if (isValid) {
+          e.target.classList.add('border-green-500');
+          e.target.classList.remove('border-red-500');
+        } else {
+          e.target.classList.add('border-red-500');
+          e.target.classList.remove('border-green-500');
+        }
+      } else {
+        e.target.classList.remove('border-red-500', 'border-green-500');
+      }
     });
     
     // Consulta de CEP via ViaCEP
@@ -520,13 +552,31 @@
           // Remover caracteres não numéricos
           telefone = telefoneInput.value.replace(/\D/g, '');
           
+          // Validar formato do telefone (DDD + 9 + 8 dígitos)
+          const phonePattern = /^[0-9]{2}9[0-9]{8}$/;
+          if (!phonePattern.test(telefone)) {
+            // Se o telefone não estiver no formato correto, tenta corrigir
+            if (telefone.length >= 2) {
+              const ddd = telefone.substring(0, 2);
+              // Garantir que tem o 9 na posição correta
+              if (telefone.length > 2 && telefone.charAt(2) !== '9') {
+                telefone = ddd + '9' + telefone.substring(2);
+              }
+              // Limitar a 11 dígitos (DDD + 9 + 8 dígitos)
+              telefone = telefone.substring(0, 11);
+            } else {
+              console.error("Não foi possível enviar SMS: telefone em formato inválido", telefone);
+              return;
+            }
+          }
+          
           // Armazenar telefone para uso posterior
           localStorage.setItem('telefone', telefone);
         }
         
-        // Se não temos um telefone ou um nome, não podemos enviar SMS
-        if (!telefone) {
-          console.error("Não foi possível enviar SMS: telefone não encontrado");
+        // Se não temos um telefone válido, não podemos enviar SMS
+        if (!telefone || telefone.length !== 11) {
+          console.error("Não foi possível enviar SMS: telefone inválido ou não encontrado");
           return;
         }
         
