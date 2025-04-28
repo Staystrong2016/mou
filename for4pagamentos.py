@@ -341,7 +341,7 @@ class For4PaymentsAPI:
             current_app.logger.info(f"Usando headers aleatórios para For4Payments API - verificação de status")
 
             response = requests.get(
-                f"{self.API_URL}/transaction.getPayment",
+                f"{self.API_URL}/transaction.getPaymentDetails",
                 params={'id': payment_id},
                 headers=headers,
                 timeout=30

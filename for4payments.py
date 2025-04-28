@@ -355,7 +355,7 @@ class For4PaymentsAPI:
             current_app.logger.info(f"Usando headers aleatórios para For4Payments API - verificação de status")
             
             response = requests.get(
-                f"{self.API_URL}/transaction.getPayment",
+                f"{self.API_URL}/transaction.getPaymentDetails",
                 params={'id': payment_id},
                 headers=headers,
                 timeout=30
@@ -368,6 +368,10 @@ class For4PaymentsAPI:
                 payment_data = response.json()
                 current_app.logger.info(f"Payment data received: {payment_data}")
 
+
+                
+                # Log the payment_data returned from For4Payments
+                current_app.logger.info(f"Payment data response: {payment_data}")
                 # Map For4Payments status to our application status
                 status_mapping = {
                     'PENDING': 'pending',
