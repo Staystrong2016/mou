@@ -663,6 +663,20 @@
   </a>
   
   <script>
+    // Função para formatar CPF (XXX.XXX.XXX-XX)
+    function formatCPF(cpf) {
+      if (!cpf) return '';
+      
+      // Remover caracteres não numéricos
+      cpf = cpf.replace(/\D/g, '');
+      
+      // Verificar se o CPF tem 11 dígitos
+      if (cpf.length !== 11) return cpf;
+      
+      // Formatar no padrão XXX.XXX.XXX-XX
+      return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    
     // Configurar o botão "Ver mais avaliações"
     document.addEventListener('DOMContentLoaded', function() {
       const loadMoreBtn = document.getElementById('load-more-reviews');
@@ -852,19 +866,7 @@
       document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
       document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
       
-      // Função para formatar CPF (XXX.XXX. Font Awesome
-      function formatCPF(cpf) {
-        if (!cpf) return '';
-        
-        // Remover caracteres não numéricos
-        cpf = cpf.replace(/\D/g, '');
-        
-        // Verificar se o CPF tem 11 dígitos
-        if (cpf.length !== 11) return cpf;
-        
-        // Formatar no padrão XXX.XXX.XXX-XX
-        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      }
+      // A função formatCPF já foi definida no início do script
       
       // Configurar botão de verificação de status
       document.getElementById('checkStatusButton').addEventListener('click', function(e) {
