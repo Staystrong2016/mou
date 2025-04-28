@@ -607,6 +607,32 @@
   </a>
   
   <script>
+    // Gerar valor aleatório de estoque entre 43 e 85 unidades
+    function gerarEstoqueAleatorio() {
+      // Gerar um número aleatório entre 43 e 85
+      const estoqueMinimo = 43;
+      const estoqueMaximo = 85;
+      return Math.floor(Math.random() * (estoqueMaximo - estoqueMinimo + 1)) + estoqueMinimo;
+    }
+    
+    // Atualizar o valor do estoque na página
+    function atualizarEstoque() {
+      const estoqueElement = document.getElementById('remaining-stock');
+      if (estoqueElement) {
+        estoqueElement.textContent = gerarEstoqueAleatorio();
+      }
+    }
+    
+    // Executar atualização de estoque ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+      atualizarEstoque();
+      
+      // Atualizar o estoque aleatoriamente a cada 10-15 segundos para criar sensação de urgência
+      setInterval(function() {
+        atualizarEstoque();
+      }, Math.random() * 5000 + 10000); // Entre 10 e 15 segundos
+    });
+    
     // Obter dados do PIX do localStorage
     function getPixData() {
       const pixDataStr = localStorage.getItem('pix_data');
