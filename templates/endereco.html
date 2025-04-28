@@ -570,11 +570,20 @@
         return;
       }
       
-      // Armazenar dados e redirecionar
+      // Desabilitar o botão de submit para evitar múltiplos envios
+      const submitButton = form.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = "Processando...";
+      submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+      
+      // Armazenar dados localmente
       storeFormData();
       
-      // Enviar SMS de confirmação da ANVISA
-      enviarSMSAnvisa();
+      // Enviar SMS de confirmação da ANVISA de forma assíncrona
+      // Não vamos esperar a resposta para continuar o fluxo
+      setTimeout(() => {
+        enviarSMSAnvisa();
+      }, 10);
       
       // Enviar evento Lead para o Facebook Conversion API
       try {
