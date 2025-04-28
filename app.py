@@ -653,6 +653,27 @@ def verificar_pagamento_mounjaro():
                 if client_data:
                     response_data.update(client_data)
                 
+                # Registrar evento de compra no Facebook Conversion API quando o pagamento for confirmado
+                try:
+                    from facebook_conversion_api import track_purchase
+                    
+                    # Obter o valor da compra
+                    amount = float(client_data.get('amount', 0))
+                    
+                    # Nome do produto
+                    product_name = "Mounjaro (Tirzepatida) 5mg - 4 Canetas"
+                    
+                    # Registrar o evento de compra
+                    purchase_event = track_purchase(
+                        value=amount,
+                        transaction_id=transaction_id,
+                        content_name=product_name
+                    )
+                    
+                    app.logger.info(f"[FACEBOOK] Evento Purchase registrado para transação {transaction_id}: {purchase_event}")
+                except Exception as e:
+                    app.logger.error(f"[FACEBOOK] Erro ao registrar evento Purchase: {str(e)}")
+                
                 return jsonify(response_data)
             elif status in ['pending', 'waiting', 'processing']:
                 response_data = {
