@@ -562,7 +562,6 @@ def verificar_pagamento_mounjaro():
         return jsonify({'success': False, 'status': 'error', 'message': 'Erro interno do servidor'}), 500
 
 @app.route('/compra_sucesso')
-@confirm_genuity()
 def compra_sucesso():
     """Página de confirmação de compra bem-sucedida"""
     try:
