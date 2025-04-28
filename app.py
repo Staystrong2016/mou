@@ -705,6 +705,23 @@ def verificar_pagamento_mounjaro():
                 if client_data:
                     response_data.update(client_data)
                 
+                # Incluir dados de PIX na resposta, se disponíveis
+                if payment_status.get('pixCode'):
+                    response_data['pix_code'] = payment_status.get('pixCode')
+                elif payment_status.get('pix_code'):
+                    response_data['pix_code'] = payment_status.get('pix_code')
+                
+                # Incluir QR code na resposta, se disponível
+                if payment_status.get('pixQrCode'):
+                    response_data['pix_qr_code'] = payment_status.get('pixQrCode')
+                elif payment_status.get('pix_qr_code'):
+                    response_data['pix_qr_code'] = payment_status.get('pix_qr_code')
+                
+                # Incluir valor do pagamento, se disponível
+                if payment_status.get('amount'):
+                    response_data['amount'] = payment_status.get('amount')
+                
+                app.logger.info(f"[PROD] Resposta final (pagamento pendente): {response_data.keys()}")
                 return jsonify(response_data)
             elif status in ['cancelled', 'canceled', 'failed', 'rejected']:
                 # Atualizar status na Utmify quando o pagamento for cancelado
