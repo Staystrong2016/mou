@@ -104,7 +104,17 @@
                                             </div>
                                         {% endif %}
                                     </td>
-                                    <td class="py-3 px-4 text-sm">{{ purchase.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td class="py-3 px-4 text-sm">
+                                        {% if purchase.created_at %}
+                                            {% if purchase.created_at is string %}
+                                                {{ purchase.created_at }}
+                                            {% else %}
+                                                {{ purchase.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                            {% endif %}
+                                        {% else %}
+                                            Data não disponível
+                                        {% endif %}
+                                    </td>
                                     <td class="py-3 px-4 text-sm">
                                         {% if purchase.device_type == 'mobile' %}
                                             <span class="flex items-center">

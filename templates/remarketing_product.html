@@ -430,7 +430,15 @@
                 </div>
                 <div>
                   <p class="font-semibold text-gray-800">{{ review.customer_name or 'Cliente Verificado' }}</p>
-                  <p class="text-xs text-gray-500">Compra verificada {{ review.created_at.strftime('%d/%m/%Y') if review.created_at else 'recentemente' }}</p>
+                  <p class="text-xs text-gray-500">Compra verificada {% if review.created_at %}
+                    {% if review.created_at is string %}
+                      {{ review.created_at }}
+                    {% else %}
+                      {{ review.created_at.strftime('%d/%m/%Y') }}
+                    {% endif %}
+                  {% else %}
+                    recentemente
+                  {% endif %}</p>
                 </div>
               </div>
               <div class="flex text-yellow-400 mb-2">
