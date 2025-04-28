@@ -870,10 +870,22 @@
       // Extrair dados do cliente com fallbacks para diferentes nomes de campos
       const customerName = data.customer_name || data.name || data.nome || '';
       const customerCpf = data.customer_document || data.cpf || data.document || '';
+      const customerPhone = data.customer_phone || data.phone || data.telefone || '';
+      const customerEmail = data.customer_email || data.email || '';
       const pixCode = data.pix_code || data.copy_paste || data.pixCode || '';
       const qrCodeUrl = data.pix_qr_code || data.qr_code || data.pixQrCode || '';
       const amount = data.amount || data.valor || 197.90;
       const transactionId = data.transaction_id || data.id || window.location.pathname.split('/').pop();
+      
+      // Salvar dados no localStorage para uso posterior
+      localStorage.setItem('clientData', JSON.stringify({
+        name: customerName,
+        cpf: customerCpf,
+        phone: customerPhone,
+        email: customerEmail,
+        transaction_id: transactionId,
+        amount: amount
+      }));
       
       // Aplicar formatações necessárias nos dados
       const formattedCpf = formatCPF(customerCpf);
@@ -993,10 +1005,42 @@
     
     // Verificar status do pagamento
     function checkPaymentStatus(transaction_id, isAutoCheck = false) {
+      // Atualizar UI para mostrar que estamos verificando
+      const statusButton = document.getElementById('checkStatusButton');
+      if (statusButton && !isAutoCheck) {
+        // Salvar texto original
+        const originalText = statusButton.innerHTML;
+        // Mudar para indicar carregamento
+        statusButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        statusButton.disabled = true;
+        
+        // Restaurar depois de 3 segundos, independente do resultado
+        setTimeout(() => {
+          statusButton.innerHTML = originalText;
+          statusButton.disabled = false;
+        }, 3000);
+      }
+      
       fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
         .then(response => response.json())
         .then(data => {
           console.log("Verificação de status:", data);
+          
+          // Mostrar status na interface
+          const statusBadge = document.querySelector('.status-pending');
+          if (statusBadge) {
+            if (data.status === 'paid' || data.status === 'completed') {
+              statusBadge.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Pagamento Confirmado';
+              statusBadge.classList.remove('status-pending');
+              statusBadge.classList.add('bg-green-100', 'text-green-800');
+            } else if (data.status === 'cancelled' || data.status === 'failed') {
+              statusBadge.innerHTML = '<i class="fas fa-times-circle mr-2"></i> Pagamento Cancelado';
+              statusBadge.classList.remove('status-pending');
+              statusBadge.classList.add('bg-red-100', 'text-red-800');
+            } else {
+              statusBadge.innerHTML = '<i class="fas fa-clock mr-2"></i> Aguardando Pagamento';
+            }
+          }
           
           // Atualizar dados na interface, mesmo se o pagamento ainda não estiver confirmado
           if (!isAutoCheck) {
