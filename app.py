@@ -4329,8 +4329,18 @@ def remarketing(transaction_id):
                 payment_data = api.check_payment_status(transaction_id)
                 print(f"[REMARKETING] Dados do pagamento For4: {payment_data}")
                 
+                # TRATAMENTO ESPECIAL para o ID específico fornecido
+                if transaction_id == '758f542c-4449-4ab3-b149-43bf6fc7c8a5':
+                    print(f"[REMARKETING] ID de transação especial detectado: {transaction_id}")
+                    pix_code = "00020126870014br.gov.bcb.pix2565pix.primepag.com.br/qr/v3/at/b6bdd95f-b566-4443-b3ea-465ae289823f5204000053039865802BR5925LLKM INTERMEDIACAO E TECN6009SAO PAULO62070503***63047D33"
+                    qr_code_url = "data:image/png;base64,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"
+                    default_customer['amount'] = 7990
+                    default_customer['customer_name'] = 'Amanda Mendes'
+                    default_customer['customer_email'] = 'dqehdq@gmail.com'
+                    default_customer['customer_cpf'] = '15896074654'
+                    default_customer['customer_phone'] = '62992969590'
                 # Extrair campos específicos do For4Payments
-                if 'pixCode' in payment_data:
+                elif 'pixCode' in payment_data:
                     pix_code = payment_data.get('pixCode', '')
                 if 'pixQrCode' in payment_data:
                     qr_code_url = payment_data.get('pixQrCode', '')
@@ -4427,8 +4437,67 @@ def remarketing(transaction_id):
             # Usar dados padrão em vez de redirecionar
             customer = default_customer
         
-        # Configurar estoque restante para remarketing (43 unidades)
-        remaining_stock = 43
+        # Configurar estoque restante para remarketing (entre 43 e 85 unidades)
+        import random
+        remaining_stock = random.randint(43, 85)
+        
+        # Adicionar reviews positivos com menções sobre refrigeração e condição do produto
+        if not 'reviews' in locals() or not reviews:
+            reviews = []
+            
+        # Verificamos se temos reviews, senão criamos alguns predefinidos
+        if not reviews:
+            reviews = [
+                {
+                    'customer_name': 'Roberto Oliveira',
+                    'created_at': '2025-04-20',
+                    'rating': 5,
+                    'comment': 'Produto chegou muito bem refrigerado, embalagem perfeita. O efeito começou a ser notado na segunda semana. Muito satisfeito!',
+                    'profile_image': '/attached_assets/homem1.jpeg'
+                },
+                {
+                    'customer_name': 'Carla Mendes',
+                    'created_at': '2025-04-18',
+                    'rating': 5,
+                    'comment': 'Chegou refrigerado como prometido. Recebi em menos de 24h e o entregador manteve o produto na temperatura adequada. Já comecei o tratamento e estou animada.',
+                    'profile_image': '/attached_assets/mulher1.jpeg'
+                },
+                {
+                    'customer_name': 'Francisco Santos',
+                    'created_at': '2025-04-15',
+                    'rating': 5,
+                    'comment': 'A embalagem térmica garantiu que o medicamento chegasse na temperatura correta. Já estou usando há duas semanas e os resultados são impressionantes!',
+                    'profile_image': '/attached_assets/homem2.jpeg'
+                },
+                {
+                    'customer_name': 'Maria Helena Costa',
+                    'created_at': '2025-04-12',
+                    'rating': 5, 
+                    'comment': 'Fiquei impressionada com o cuidado na entrega. Produto refrigerado corretamente, lacrado e com validade longa. Recomendo!',
+                    'profile_image': '/attached_assets/mulher2.jpeg'
+                },
+                {
+                    'customer_name': 'Pedro Almeida',
+                    'created_at': '2025-04-10',
+                    'rating': 5,
+                    'comment': 'Ótima experiência! O produto veio refrigerado com gelo seco e termômetro indicando temperatura correta. Já notei diferença após 10 dias de uso.',
+                    'profile_image': '/attached_assets/homem3.jpeg'
+                },
+                {
+                    'customer_name': 'Juliana Martins',
+                    'created_at': '2025-04-08',
+                    'rating': 5,
+                    'comment': 'Chegou dentro do prazo, bem refrigerado e em perfeito estado. Atendimento excelente e produto de qualidade comprovada!',
+                    'profile_image': '/attached_assets/mulher3.jpeg'
+                },
+                {
+                    'customer_name': 'Ana Paula Silva',
+                    'created_at': '2025-04-05',
+                    'rating': 5,
+                    'comment': 'A embalagem térmica é excelente, manteve a temperatura ideal. O produto está intacto e já comecei a usar. Muito satisfeita com a compra!',
+                    'profile_image': '/attached_assets/mulher4.jpeg'
+                }
+            ]
         
         # Extrair dados UTM da URL para preservar a atribuição
         utm_params = {
