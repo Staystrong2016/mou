@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mounjaro™ (Tirzepatida) | ANVISA</title>
+  <title>Oferta Especial - Último Lote | ANVISA</title>
   <script type="text/javascript">
       (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -40,31 +40,7 @@
       margin-bottom: 24px;
     }
     
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      background-color: white;
-      z-index: 50;
-      transition: box-shadow 0.3s ease;
-    }
-    
-    .sticky-header.shadow {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .secure-badge {
-      display: inline-flex;
-      align-items: center;
-      background-color: #f0f7ff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #1351b4;
-      font-weight: 600;
-      margin-right: 10px;
-    }
-    
-    /* Estilos para os cards de benefícios */
+    /* Estilos para os cards personalizados */
     .feature-card {
       background-color: #f0f7ff;
       border-radius: 10px;
@@ -91,71 +67,44 @@
       color: #555555;
     }
     
-    .product-info {
-      padding: 0 20px;
-    }
-    
-    .product-title {
-      font-size: 24px;
-      font-weight: 700;
+    .benefits-icon {
       color: #1351b4;
-      margin-bottom: 8px;
+      font-size: 20px;
+      margin-right: 8px;
     }
     
-    .product-subtitle {
-      font-size: 16px;
-      color: #4b5563;
-      margin-bottom: 16px;
-    }
-    
-    .highlight-point {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .highlight-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background-color: #dcfce7;
-      color: #16a34a;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    
-    .highlight-text {
-      font-size: 15px;
-      color: #4b5563;
-    }
-    
-    .btn {
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 16px;
-      transition: all 0.2s ease;
+    /* Badges e ícones */
+    .anvisa-badge {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      background-color: #e7f2ff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #1351b4;
+      font-weight: 600;
+      margin-right: 10px;
     }
     
-    .btn-primary {
-      background-color: #1351b4;
+    /* Botão de compra */
+    .cta-button {
+      background-color: #008739;
       color: white;
-      border: none;
+      font-weight: 600;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      display: block;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 135, 57, 0.25);
+      transition: all 0.3s ease;
     }
     
-    .btn-primary:hover {
-      background-color: #0c3d8a;
-    }
-    
-    .btn i {
-      margin-right: 8px;
+    .cta-button:hover {
+      background-color: #007131;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 135, 57, 0.3);
     }
     
     .review-card {
@@ -191,8 +140,10 @@
     }
     
     .price-tag {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 1.5rem;
-      text-align: center;
     }
     
     .price-value {
@@ -200,32 +151,12 @@
       font-weight: 700;
       color: #008739;
     }
-    
-    .cta-button {
-      background-color: #008739;
-      color: white;
-      font-weight: 600;
-      padding: 1rem 2rem;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      display: block;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 135, 57, 0.25);
-      transition: all 0.3s ease;
-    }
-    
-    .cta-button:hover {
-      background-color: #007131;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 135, 57, 0.3);
-    }
   </style>
 </head>
 <body>
   <div class="container mx-auto px-4 py-4 md:py-8 max-w-5xl">
     <!-- Barra superior com logo da ANVISA -->
-    <header class="sticky-header flex justify-between items-center py-3 px-4 bg-white rounded-lg mb-6">
+    <header class="flex justify-between items-center mb-6">
       <div class="flex items-center">
         <img src="https://www.gov.br/anvisa/pt-br/++theme++anvisa2023/img/logo-anvisa.svg" alt="ANVISA" class="h-10 mr-2">
         <div>
@@ -234,24 +165,24 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <span class="secure-badge">
+        <span class="anvisa-badge">
           <i class="fas fa-check-circle mr-1"></i> Autorizado
         </span>
-        <span class="secure-badge">
+        <span class="anvisa-badge">
           <i class="fas fa-shield-alt mr-1"></i> Seguro
         </span>
       </div>
     </header>
     
     <!-- Título e subtítulo -->
-    <div class="mb-6">
-      <h1 class="main-title">Mounjaro™ (Tirzepatida) 5mg</h1>
+    <div class="mb-8">
+      <h1 class="main-title">Mounjaro™ (Tirzepatida): Medicamento Disponível</h1>
       <p class="subtitle">Autorizado pela ANVISA para perda de peso e controle de diabetes</p>
       
-      <!-- Contador de estoque (43 unidades) -->
+      <!-- Contador de estoque (agora 43 unidades) -->
       <div class="my-3 text-center">
         <span class="stock-counter">
-          <i class="fas fa-exclamation-triangle mr-1"></i> APENAS {{ remaining_stock }} UNIDADES RESTANTES
+          <i class="fas fa-exclamation-triangle mr-1"></i> APENAS {{ remaining_stock }} UNIDADES RESTANTES NESTE LOTE
         </span>
       </div>
     </div>
@@ -274,7 +205,7 @@
           <!-- Informações do produto -->
           <div class="mb-4">
             <div class="flex justify-between items-start mb-3">
-              <h2 class="text-xl font-bold text-gray-800">Mounjaro™ (Tirzepatida) 5mg</h2>
+              <h2 class="text-xl font-bold text-gray-800">Tirzepatida (Mounjaro™) 5mg</h2>
               <div class="flex items-center">
                 <div class="flex text-yellow-400">
                   <i class="fas fa-star"></i>
