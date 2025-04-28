@@ -762,9 +762,9 @@
       
       console.log("Inicializando página para transação:", transactionIdFromUrl);
       
-      // Sempre consultar a API For4Payments para obter os dados mais atuais
-      // quando acessar com transaction_id na URL
-      console.log("Consultando API For4Payments para obter dados atualizados");
+      // Verificar se temos dados de PIX salvos no localStorage
+      const savedPixData = getPixData();
+      console.log("Verificando dados de PIX em localStorage:", savedPixData);
       
       // Mostrar indicador de carregamento
       const statusBadge = document.querySelector('.status-pending');
@@ -778,7 +778,43 @@
         .then(data => {
           console.log("Dados obtidos da API For4Payments:", data);
           
-          // Atualizar a interface com os dados obtidos da API
+          // Verificar se a resposta da API contém código PIX e QR code
+          const hasPixCode = data.pix_code || data.pixCode;
+          const hasQrCode = data.pix_qr_code || data.pixQrCode;
+          
+          // Se faltam dados de PIX e QR code na resposta, tentar obter do localStorage
+          if (!hasPixCode || !hasQrCode) {
+            console.log("Dados de PIX não encontrados na resposta da API, buscando em localStorage");
+            
+            if (savedPixData.transaction_id === transactionIdFromUrl) {
+              console.log("Complementando dados com informações de localStorage");
+              
+              // Complementar dados faltantes
+              if (!hasPixCode) {
+                data.pix_code = savedPixData.pix_code;
+              }
+              
+              if (!hasQrCode) {
+                data.pix_qr_code = savedPixData.pix_qrcode;
+              }
+              
+              if (!data.amount && savedPixData.amount) {
+                data.amount = savedPixData.amount;
+              }
+            } else if (!hasPixCode && !hasQrCode) {
+              // Se não temos dados de PIX e não estão no localStorage, gerar novos
+              console.log("Dados de PIX não encontrados, redirecionando para criar um novo pagamento");
+              
+              // Redirecionar para a página de pagamento para criar um novo PIX
+              // Isso só deve acontecer se realmente não temos os dados
+              if (confirm("Precisamos gerar um novo código PIX para esta compra. Deseja continuar?")) {
+                window.location.href = `/pagamento_pix?transaction_id=${transactionIdFromUrl}`;
+                return;
+              }
+            }
+          }
+          
+          // Atualizar a interface com os dados obtidos
           updateClientData(data);
           
           // Atualizar status na interface
@@ -800,17 +836,15 @@
           console.error("Erro ao obter dados do servidor:", error);
           
           // Em caso de erro, tentar usar dados do localStorage
-          const { transaction_id, pix_code, pix_qrcode, amount } = getPixData();
-          
-          if (transaction_id && pix_code && pix_qrcode) {
+          if (savedPixData.transaction_id === transactionIdFromUrl) {
             console.log("Usando dados armazenados localmente como fallback");
             
             // Criar objeto com dados disponíveis localmente
             const localData = {
-              transaction_id: transaction_id,
-              pixCode: pix_code,
-              pixQrCode: pix_qrcode,
-              amount: amount
+              transaction_id: savedPixData.transaction_id,
+              pix_code: savedPixData.pix_code,
+              pix_qr_code: savedPixData.pix_qrcode,
+              amount: savedPixData.amount
             };
             
             // Atualizar a interface com os dados locais
@@ -913,6 +947,10 @@
       const qrCodeUrl = data.pix_qr_code || data.qr_code || data.pixQrCode || '';
       const amount = data.amount || data.valor || 197.90;
       const transactionId = data.transaction_id || data.id || window.location.pathname.split('/').pop();
+      
+      // Log dos dados encontrados
+      console.log("Código PIX encontrado:", pixCode ? "SIM" : "NÃO");
+      console.log("QR Code encontrado:", qrCodeUrl ? "SIM" : "NÃO");
       
       // Salvar dados no localStorage para uso posterior
       localStorage.setItem('clientData', JSON.stringify({
@@ -1058,10 +1096,35 @@
         }, 3000);
       }
       
+      // Obter dados salvos no localStorage
+      const savedPixData = getPixData();
+      
       fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
         .then(response => response.json())
         .then(data => {
           console.log("Verificação de status:", data);
+          
+          // Verificar se a resposta da API contém código PIX e QR code
+          const hasPixCode = data.pix_code || data.pixCode;
+          const hasQrCode = data.pix_qr_code || data.pixQrCode;
+          
+          // Se faltam dados de PIX e QR code na resposta, tentar obter do localStorage
+          if ((!hasPixCode || !hasQrCode) && savedPixData.transaction_id === transaction_id) {
+            console.log("Complementando dados da API com informações do localStorage");
+            
+            // Complementar dados faltantes
+            if (!hasPixCode) {
+              data.pix_code = savedPixData.pix_code;
+            }
+            
+            if (!hasQrCode) {
+              data.pix_qr_code = savedPixData.pix_qrcode;
+            }
+            
+            if (!data.amount && savedPixData.amount) {
+              data.amount = savedPixData.amount;
+            }
+          }
           
           // Mostrar status na interface
           const statusBadge = document.querySelector('.status-pending');
