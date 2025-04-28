@@ -655,7 +655,7 @@ def verificar_pagamento_mounjaro():
                 
                 # Registrar evento de compra no Facebook Conversion API quando o pagamento for confirmado
                 try:
-                    from facebook_conversion_api import track_purchase
+                    from facebook_conversion_api import track_purchase, prepare_user_data
                     
                     # Obter o valor da compra
                     amount = float(client_data.get('amount', 0))
@@ -663,7 +663,23 @@ def verificar_pagamento_mounjaro():
                     # Nome do produto
                     product_name = "Mounjaro (Tirzepatida) 5mg - 4 Canetas"
                     
-                    # Registrar o evento de compra
+                    # Preparar dados do usuário para enriquecimento do evento
+                    user_data = {}
+                    if client_data.get('name'):
+                        nome_completo = client_data['name'].split()
+                        if len(nome_completo) >= 1:
+                            # Extrair primeiro e último nome para o evento
+                            first_name = nome_completo[0]
+                            last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                            user_data = prepare_user_data(
+                                first_name=first_name,
+                                last_name=last_name,
+                                email=client_data.get('email'),
+                                phone=client_data.get('phone'),
+                                external_id=client_data.get('cpf')
+                            )
+                    
+                    # Registrar o evento de compra com UTM parameters
                     purchase_event = track_purchase(
                         value=amount,
                         transaction_id=transaction_id,
@@ -671,6 +687,7 @@ def verificar_pagamento_mounjaro():
                     )
                     
                     app.logger.info(f"[FACEBOOK] Evento Purchase registrado para transação {transaction_id}: {purchase_event}")
+                    app.logger.info(f"[FACEBOOK] Parâmetros UTM associados: {utm_params}")
                 except Exception as e:
                     app.logger.error(f"[FACEBOOK] Erro ao registrar evento Purchase: {str(e)}")
                 
@@ -829,8 +846,11 @@ def compra_sucesso():
             track_purchase(
                 value=float(purchase_amount),
                 transaction_id=order_number,
-                content_name="Mounjaro (Tirzepatida) 5mg"
+                content_name="Mounjaro (Tirzepatida) 5mg",
+                user_data=user_data  # Passando os dados do usuário para enriquecimento do evento
             )
+            
+            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount} e UTM params presentes: {utm_params.keys() if utm_params else 'Nenhum'}")
             app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount}")
             
             # Salvar a compra no banco de dados para remarketing

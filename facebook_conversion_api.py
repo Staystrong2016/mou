@@ -555,7 +555,8 @@ def track_initiate_checkout(value: Optional[float] = None) -> List[Dict[str, Any
 def track_purchase(
     value: float,
     transaction_id: Optional[str] = None,
-    content_name: Optional[str] = None
+    content_name: Optional[str] = None,
+    user_data: Optional[Dict[str, Any]] = None
 ) -> List[Dict[str, Any]]:
     """
     Envia um evento Purchase para todos os pixels
@@ -564,7 +565,9 @@ def track_purchase(
         value: Valor da compra
         transaction_id: ID da transação
         content_name: Nome do produto/conteúdo
+        user_data: Dados do usuário para enriquecimento do evento
     """
+    # Construir dados da compra
     custom_data = {
         'value': value,
         'currency': 'BRL'
@@ -576,9 +579,27 @@ def track_purchase(
     if content_name:
         custom_data['content_name'] = content_name
     
+    # Extrair parâmetros UTM de todas as fontes possíveis
+    utm_params = get_utm_parameters()
+    
+    # Registrar no log detalhes sobre os parâmetros UTM encontrados
+    if utm_params:
+        utm_keys = [k for k in utm_params.keys() if k.startswith('utm_') or k.endswith('clid')]
+        logger.info(f"✅ [UTM] Parâmetros UTM incluídos no evento Purchase: {utm_keys}")
+        
+        # Incluir os parâmetros UTM nos custom_data (eles serão automaticamente mesclados na função send_event)
+        for key, value in utm_params.items():
+            # Garantir que não sobrescrevemos campos essenciais com valores incompatíveis
+            if key not in ['value', 'currency', 'transaction_id']:
+                custom_data[key] = value
+    else:
+        logger.warning("⚠️ [UTM] Nenhum parâmetro UTM encontrado para o evento Purchase")
+    
+    # Enviar o evento para todos os pixels configurados
     return send_event_to_all_pixels(
         event_name='Purchase',
-        custom_data=custom_data
+        custom_data=custom_data,
+        user_data=user_data
     )
 
 # Middleware e função para registrar eventos automaticamente em rotas específicas
