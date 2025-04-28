@@ -476,6 +476,61 @@ def verificar_pagamento_mounjaro():
             payment_status = payment_api.check_payment_status(transaction_id)
             app.logger.info(f"[PROD] Status do pagamento: {payment_status}")
 
+            # Recuperar informações do cliente, independente do status do pagamento
+            client_data = {}
+            
+            # Tentar obter informações do cliente da API
+            try:
+                # Extrair dados do cliente da resposta da API, se disponíveis
+                if 'nome' in payment_status:
+                    client_data['name'] = payment_status.get('nome')
+                elif 'cliente' in payment_status and 'nome' in payment_status['cliente']:
+                    client_data['name'] = payment_status['cliente'].get('nome')
+                
+                if 'cpf' in payment_status:
+                    client_data['cpf'] = payment_status.get('cpf')
+                elif 'cliente' in payment_status and 'cpf' in payment_status['cliente']:
+                    client_data['cpf'] = payment_status['cliente'].get('cpf')
+                
+                if 'telefone' in payment_status:
+                    client_data['phone'] = payment_status.get('telefone')
+                elif 'phone' in payment_status:
+                    client_data['phone'] = payment_status.get('phone')
+                elif 'cliente' in payment_status and 'telefone' in payment_status['cliente']:
+                    client_data['phone'] = payment_status['cliente'].get('telefone')
+                
+                if 'email' in payment_status:
+                    client_data['email'] = payment_status.get('email')
+                elif 'cliente' in payment_status and 'email' in payment_status['cliente']:
+                    client_data['email'] = payment_status['cliente'].get('email')
+                
+                # Se o telefone não foi encontrado nos dados da resposta e temos um telefone no UTM content
+                if not client_data.get('phone') and request.args.get('utm_content'):
+                    phone_from_utm = request.args.get('utm_content')
+                    if re.match(r'^\d{10,13}$', phone_from_utm):
+                        client_data['phone'] = phone_from_utm
+                
+                app.logger.info(f"[PROD] Dados do cliente recuperados da API: {client_data}")
+                
+                # Se não conseguiu encontrar os dados do cliente na API, tentar buscar na API externa
+                if not client_data.get('name') and client_data.get('phone'):
+                    try:
+                        api_url = f"https://webhook-manager.replit.app/api/v1/cliente?telefone={client_data['phone']}"
+                        app.logger.info(f"[PROD] Consultando API externa de cliente: {api_url}")
+                        
+                        response = requests.get(api_url, timeout=5)
+                        if response.status_code == 200:
+                            api_response = response.json()
+                            if api_response.get('sucesso') and 'cliente' in api_response:
+                                cliente_data = api_response['cliente']
+                                client_data['name'] = cliente_data.get('nome', 'Cliente')
+                                client_data['cpf'] = cliente_data.get('cpf', '')
+                                client_data['email'] = cliente_data.get('email', f"cliente_{client_data['phone']}@example.com")
+                    except Exception as e:
+                        app.logger.error(f"[PROD] Erro ao consultar API externa: {str(e)}")
+            except Exception as e:
+                app.logger.error(f"[PROD] Erro ao extrair dados do cliente: {str(e)}")
+            
             # Verificar se o pagamento foi confirmado
             status = payment_status.get('status', '').lower()
 
@@ -526,14 +581,30 @@ def verificar_pagamento_mounjaro():
                 
                 app.logger.info(f"[PROD] Recuperados parâmetros UTM da sessão: {utm_params}")
                 
-                return jsonify({
+                response_data = {
                     'success': True, 
                     'status': 'paid', 
                     'message': 'Pagamento confirmado', 
-                    'utm_params': utm_params  # Retornar UTM parâmetros na resposta
-                })
+                    'utm_params': utm_params,  # Retornar UTM parâmetros na resposta
+                }
+                
+                # Incluir dados do cliente na resposta
+                if client_data:
+                    response_data.update(client_data)
+                
+                return jsonify(response_data)
             elif status in ['pending', 'waiting', 'processing']:
-                return jsonify({'success': True, 'status': 'pending', 'message': 'Aguardando pagamento'})
+                response_data = {
+                    'success': True, 
+                    'status': 'pending', 
+                    'message': 'Aguardando pagamento'
+                }
+                
+                # Incluir dados do cliente na resposta
+                if client_data:
+                    response_data.update(client_data)
+                
+                return jsonify(response_data)
             elif status in ['cancelled', 'canceled', 'failed', 'rejected']:
                 # Atualizar status na Utmify quando o pagamento for cancelado
                 try:
@@ -549,9 +620,29 @@ def verificar_pagamento_mounjaro():
                     # Não interrompemos o fluxo se houver erro com a Utmify
                     app.logger.error(f"[PROD] Erro ao atualizar status na Utmify: {str(e)}")
                 
-                return jsonify({'success': False, 'status': 'cancelled', 'message': 'Pagamento cancelado ou rejeitado'})
+                response_data = {
+                    'success': False, 
+                    'status': 'cancelled', 
+                    'message': 'Pagamento cancelado ou rejeitado'
+                }
+                
+                # Incluir dados do cliente na resposta
+                if client_data:
+                    response_data.update(client_data)
+                
+                return jsonify(response_data)
             else:
-                return jsonify({'success': False, 'status': 'unknown', 'message': f'Status desconhecido: {status}'})
+                response_data = {
+                    'success': False, 
+                    'status': 'unknown', 
+                    'message': f'Status desconhecido: {status}'
+                }
+                
+                # Incluir dados do cliente na resposta
+                if client_data:
+                    response_data.update(client_data)
+                
+                return jsonify(response_data)
 
         except Exception as e:
             app.logger.error(f"[PROD] Erro ao verificar status do pagamento: {str(e)}")

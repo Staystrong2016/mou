@@ -752,6 +752,8 @@
       }
     }
     
+    // Função que será definida em detalhes mais abaixo
+    
     // Inicializar dados da página
     function initializePageData() {
       // Obter o ID da transação da URL
@@ -865,33 +867,61 @@
     function updateClientData(data) {
       console.log("Atualizando dados do cliente:", data);
       
-      // Extrair dados do cliente
-      const customerName = data.customer_name || '';
-      const customerCpf = data.customer_document || data.cpf || '';
-      const pixCode = data.pix_code || '';
-      const qrCodeUrl = data.pix_qr_code || '';
-      const amount = data.amount || 197.90;
+      // Extrair dados do cliente com fallbacks para diferentes nomes de campos
+      const customerName = data.customer_name || data.name || data.nome || '';
+      const customerCpf = data.customer_document || data.cpf || data.document || '';
+      const pixCode = data.pix_code || data.copy_paste || data.pixCode || '';
+      const qrCodeUrl = data.pix_qr_code || data.qr_code || data.pixQrCode || '';
+      const amount = data.amount || data.valor || 197.90;
       const transactionId = data.transaction_id || data.id || window.location.pathname.split('/').pop();
       
-      // Atualizar elementos na página, se existirem
-      if (customerName && document.getElementById('clientName')) {
-        document.getElementById('clientName').textContent = customerName;
+      // Aplicar formatações necessárias nos dados
+      const formattedCpf = formatCPF(customerCpf);
+      
+      // Atualizar elementos na página
+      if (document.getElementById('clientName')) {
+        document.getElementById('clientName').textContent = customerName || 'Cliente Anvisa';
       }
       
-      if (customerCpf && document.getElementById('clientCpf')) {
-        document.getElementById('clientCpf').textContent = formatCPF(customerCpf);
+      if (document.getElementById('clientCpf')) {
+        document.getElementById('clientCpf').textContent = formattedCpf || 'CPF não disponível';
       }
       
-      if (pixCode && document.getElementById('pixCode')) {
+      if (document.getElementById('pixCode') && pixCode) {
         document.getElementById('pixCode').textContent = pixCode;
       }
       
-      if (qrCodeUrl && document.getElementById('pixQrCode')) {
+      if (document.getElementById('pixQrCode') && qrCodeUrl) {
         document.getElementById('pixQrCode').src = qrCodeUrl;
       }
       
-      if (amount && document.getElementById('totalAmount')) {
+      if (document.getElementById('totalAmount')) {
         document.getElementById('totalAmount').textContent = `R$ ${parseFloat(amount).toFixed(2).replace('.', ',')}`;
+      }
+      
+      // Salvar os dados no localStorage para uso futuro
+      try {
+        const userData = {
+          nomeCompleto: customerName,
+          cpfValidado: customerCpf,
+          transaction_id: transactionId
+        };
+        
+        if (customerName) localStorage.setItem('nomeCompleto', customerName);
+        if (customerCpf) localStorage.setItem('cpfValidado', customerCpf);
+        
+        // Salvar dados do PIX, se disponíveis
+        if (pixCode && qrCodeUrl) {
+          const pixData = {
+            transaction_id: transactionId,
+            pix_code: pixCode,
+            pix_qrcode: qrCodeUrl,
+            amount: amount
+          };
+          localStorage.setItem('pix_data', JSON.stringify(pixData));
+        }
+      } catch (e) {
+        console.error("Erro ao salvar dados no localStorage:", e);
       }
       
       // Configurar contador
@@ -900,22 +930,43 @@
       // Configurar verificação automática de status
       if (transactionId) {
         // Configurar botão de verificação de status
-        document.getElementById('checkStatusButton').addEventListener('click', function(e) {
-          e.preventDefault();
-          checkPaymentStatus(transactionId);
-        });
+        const checkStatusBtn = document.getElementById('checkStatusButton');
+        if (checkStatusBtn) {
+          // Remover handlers antigos para evitar duplicações
+          const newBtn = checkStatusBtn.cloneNode(true);
+          checkStatusBtn.parentNode.replaceChild(newBtn, checkStatusBtn);
+          
+          // Adicionar novo handler
+          newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            checkPaymentStatus(transactionId);
+          });
+        }
+        
+        // Limpar intervalos existentes
+        if (window.statusCheckInterval) {
+          clearInterval(window.statusCheckInterval);
+        }
         
         // Checar status automaticamente a cada 10 segundos
-        setInterval(function() {
+        window.statusCheckInterval = setInterval(function() {
           checkPaymentStatus(transactionId, true);
         }, 10000);
       }
       
       // Configurar botão de cópia
       if (pixCode) {
-        document.getElementById('copyButton').addEventListener('click', function() {
-          copyToClipboard(pixCode);
-        });
+        const copyBtn = document.getElementById('copyButton');
+        if (copyBtn) {
+          // Remover handlers antigos
+          const newCopyBtn = copyBtn.cloneNode(true);
+          copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+          
+          // Adicionar novo handler
+          newCopyBtn.addEventListener('click', function() {
+            copyToClipboard(pixCode);
+          });
+        }
       }
     }
     
@@ -945,6 +996,13 @@
       fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
         .then(response => response.json())
         .then(data => {
+          console.log("Verificação de status:", data);
+          
+          // Atualizar dados na interface, mesmo se o pagamento ainda não estiver confirmado
+          if (!isAutoCheck) {
+            updateClientData(data);
+          }
+          
           if (data.status === 'paid' || data.status === 'confirmed' || data.status === 'completed') {
             // Função para capturar todos os parâmetros da URL atual
             function getAllUrlParams() {
@@ -971,18 +1029,32 @@
               return baseUrl + (baseUrl.includes('?') ? '&' : '?') + urlSearchParams.toString();
             }
             
+            // Extrair dados do cliente com fallbacks para diferentes nomes de campos
+            const customerName = data.customer_name || data.name || data.nome || document.getElementById('clientName')?.textContent || '';
+            const customerCpf = data.customer_document || data.cpf || data.document || document.getElementById('clientCpf')?.textContent || '';
+            const customerEmail = data.email || data.customer_email || '';
+            const customerPhone = data.phone || data.telefone || data.customer_phone || '';
+            const amount = data.amount || data.valor || 197.90;
+            
             // Salvar dados do usuário para uso posterior
             const userPaymentData = {
-              name: data.customer_name || document.getElementById('clientName')?.textContent || '',
-              cpf: data.customer_document || document.getElementById('clientCpf')?.textContent || '',
-              email: data.customer_email || '',
-              phone: data.customer_phone || '',
-              amount: 197.90,
+              name: customerName,
+              cpf: customerCpf,
+              email: customerEmail,
+              phone: customerPhone,
+              amount: amount,
               transaction_id: transaction_id,
               timestamp: new Date().toISOString()
             };
-            localStorage.setItem('userPaymentData', JSON.stringify(userPaymentData));
             
+            try {
+              localStorage.setItem('userPaymentData', JSON.stringify(userPaymentData));
+              console.log("Dados de pagamento do usuário salvos:", userPaymentData);
+            } catch (e) {
+              console.error("Erro ao salvar dados do usuário:", e);
+            }
+            
+            // Redirecionar para página de sucesso
             window.location.href = appendUrlParams('/compra_sucesso');
           } else if (!isAutoCheck) {
             alert('Pagamento ainda não confirmado. Por favor, aguarde ou verifique se o pagamento foi realizado corretamente.');
