@@ -465,7 +465,7 @@ def verificar_pagamento_mounjaro():
 
         # Criar instância da API de pagamento
         try:
-            qr_code_urlgateway_choice = os.environ.get('GATEWAY_CHOICE', 'FOR4')
+            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'FOR4')
             
             # Verificar qual gateway está configurado, mas dar preferência ao For4Payments
             # para garantir que obtemos os dados do cliente
