@@ -485,9 +485,60 @@ def verificar_pagamento_mounjaro():
 
         # Verificar o status do pagamento
         try:
+            # Primeiro verificar status básico do pagamento
             payment_status = payment_api.check_payment_status(transaction_id)
             app.logger.info(f"[PROD] Status do pagamento: {payment_status}")
-
+            
+            # Se estamos usando For4Payments e o método é PIX, consultar os detalhes completos
+            # para obter QR code e código PIX
+            if gateway_choice == 'FOR4' and payment_status.get('method') == 'PIX':
+                try:
+                    app.logger.info(f"[PROD] Obtendo detalhes completos do pagamento PIX: {transaction_id}")
+                    
+                    # Criar headers para a API
+                    import random
+                    user_agents = [
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15",
+                        "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36"
+                    ]
+                    
+                    headers = {
+                        "Authorization": f"Bearer {os.environ.get('FOR4_SECRET_KEY', 'vl_live_KDIuDfmpOXv4qNZvJoOo5YJc1KiDaZ8L')}",
+                        "Content-Type": "application/json",
+                        "User-Agent": random.choice(user_agents)
+                    }
+                    
+                    # Consultar detalhes completos do pagamento
+                    details_url = f"https://app.for4payments.com.br/api/v1/transaction.getPaymentDetails"
+                    response = requests.get(
+                        details_url,
+                        params={'id': transaction_id},
+                        headers=headers
+                    )
+                    
+                    if response.status_code == 200:
+                        details_data = response.json()
+                        app.logger.info(f"[PROD] Detalhes do pagamento obtidos com sucesso")
+                        app.logger.debug(f"[PROD] Detalhes completos: {details_data}")
+                        
+                        # Atualizar os dados do status com os detalhes completos do pagamento
+                        payment_status['pixCode'] = details_data.get('pixCode')
+                        payment_status['pixQrCode'] = details_data.get('pixQrCode')
+                        
+                        # Se há dados do cliente nos detalhes, atualizar também
+                        if details_data.get('customer'):
+                            payment_status['customer'] = details_data.get('customer')
+                        
+                        # Se há itens no pagamento, extrair o valor do primeiro item
+                        if details_data.get('items') and len(details_data['items']) > 0:
+                            payment_status['amount'] = details_data['items'][0].get('unitPrice')
+                    else:
+                        app.logger.warning(f"[PROD] Não foi possível obter detalhes do pagamento: {response.status_code}")
+                        app.logger.debug(f"[PROD] Resposta da API: {response.text}")
+                except Exception as e:
+                    app.logger.error(f"[PROD] Erro ao obter detalhes do pagamento: {str(e)}")
+            
             # Nossa For4PaymentsAPI aprimorada agora retorna dados do cliente diretamente
             # no mesmo objeto, então vamos utilizá-los
             client_data = {}
