@@ -288,15 +288,81 @@
             </ul>
           </div>
           
-          <!-- Botão de compra -->
+          <!-- Informações de pagamento PIX -->
+          <div class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-semibold text-center text-blue-800 mb-3">Faça o pagamento via PIX</h3>
+            
+            {% if qr_code_url %}
+              <!-- QR Code do PIX -->
+              <div class="flex justify-center mb-4">
+                <div class="p-3 bg-white rounded-lg border border-gray-200 max-w-xs">
+                  <img src="{{ qr_code_url }}" alt="QR Code PIX" class="w-full h-auto">
+                </div>
+              </div>
+            {% endif %}
+            
+            {% if pix_code %}
+              <!-- Código PIX copiável -->
+              <div class="relative bg-white rounded-lg border border-gray-200 p-3 mb-4">
+                <div class="text-sm break-all text-gray-700 overflow-hidden" id="pixCode">{{ pix_code }}</div>
+                <button onclick="copyPixCode()" class="absolute right-2 top-2 bg-blue-600 text-white rounded-md px-3 py-1 text-xs hover:bg-blue-700">
+                  <i class="fas fa-copy mr-1"></i> Copiar
+                </button>
+              </div>
+              
+              <script>
+                function copyPixCode() {
+                  const pixCode = document.getElementById('pixCode').innerText;
+                  navigator.clipboard.writeText(pixCode).then(() => {
+                    alert('Código PIX copiado!');
+                  }).catch(err => {
+                    console.error('Erro ao copiar: ', err);
+                  });
+                }
+              </script>
+            {% endif %}
+            
+            <!-- Instruções -->
+            <div class="text-sm text-gray-600">
+              <p class="mb-2 font-semibold">Como pagar:</p>
+              <ol class="list-decimal pl-5 space-y-1">
+                <li>Abra o app do seu banco</li>
+                <li>Escolha pagar via PIX usando QR code ou copie e cole o código</li>
+                <li>Confirme o pagamento</li>
+                <li>Seu pedido será processado imediatamente após a confirmação</li>
+              </ol>
+            </div>
+          </div>
+          
+          <!-- Botão de compra (alternativa) -->
           <a href="/compra?cpf={{ customer.customer_cpf }}&utm_source={{ utm_params.utm_source }}&utm_medium={{ utm_params.utm_medium }}&utm_campaign={{ utm_params.utm_campaign }}&utm_content={{ utm_params.utm_content }}&utm_term={{ utm_params.utm_term }}" class="cta-button">
             <i class="fas fa-lock mr-2"></i> GARANTIR MEU FRASCO AGORA
           </a>
-          <p class="text-center text-sm text-gray-500 mt-2">Pague via PIX em ambiente seguro</p>
+          <p class="text-center text-sm text-gray-500 mt-2">Apenas {{ remaining_stock }} unidades restantes</p>
         </div>
       </div>
     </div>
     
+    <!-- Seção de verificação de pagamento -->
+    <div class="mt-6 mb-8 bg-white p-5 rounded-lg shadow-md">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Verificar meu pagamento</h2>
+        <div class="text-sm text-gray-500">ID: {{ transaction_id }}</div>
+      </div>
+      
+      <form action="/verificar_pagamento_mounjaro" method="get" class="mb-4">
+        <input type="hidden" name="transaction_id" value="{{ transaction_id }}">
+        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md w-full hover:bg-blue-700">
+          <i class="fas fa-sync-alt mr-2"></i> Verificar status do pagamento
+        </button>
+      </form>
+      
+      <div class="text-sm text-gray-600">
+        <p class="mb-2"><i class="fas fa-info-circle mr-1 text-blue-500"></i> Após realizar o pagamento, clique no botão acima para confirmar.</p>
+        <p><i class="fas fa-clock mr-1 text-blue-500"></i> O processamento do PIX pode levar até 30 segundos.</p>
+      </div>
+    </div>
+
     <!-- Seção de reviews de clientes do lote anterior -->
     <div class="mt-10 mb-4">
       <h2 class="text-xl font-bold text-gray-800 mb-4">O que pessoas do lote anterior estão dizendo:</h2>
