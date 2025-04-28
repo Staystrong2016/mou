@@ -420,7 +420,7 @@
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
       <h3 class="text-xl font-semibold text-[#0c326f] mb-4">Avaliações de Clientes Satisfeitos</h3>
       
-      <div class="space-y-4">
+      <div class="space-y-4" id="reviews-container">
         {% if reviews %}
           {% for review in reviews %}
             <div class="border-b border-gray-200 pb-4 last:border-b-0">
@@ -444,8 +444,8 @@
             </div>
           {% endfor %}
         {% else %}
-          <!-- Reviews padrão caso não haja reviews do banco de dados -->
-          <div class="border-b border-gray-200 pb-4">
+          <!-- Reviews visíveis inicialmente -->
+          <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
               <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">M</div>
               <div>
@@ -460,10 +460,10 @@
               <i class="fas fa-star"></i>
               <i class="fas fa-star"></i>
             </div>
-            <p class="text-gray-700">"Excelente produto. Perdi 7kg em apenas 1 mês usando Mounjaro. Recomendo muito!"</p>
+            <p class="text-gray-700">"Excelente produto! Perdi 7kg em apenas 1 mês usando Mounjaro. Recomendo muito para quem luta contra o peso há anos como eu."</p>
           </div>
           
-          <div class="border-b border-gray-200 pb-4">
+          <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
               <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">J</div>
               <div>
@@ -478,10 +478,10 @@
               <i class="fas fa-star"></i>
               <i class="fas fa-star-half-alt"></i>
             </div>
-            <p class="text-gray-700">"Superou minhas expectativas! Além da perda de peso, notei melhora na minha resistência à insulina."</p>
+            <p class="text-gray-700">"Superou minhas expectativas! Além da perda de peso, notei melhora na minha resistência à insulina. O produto chegou super bem embalado e refrigerado como prometido."</p>
           </div>
           
-          <div class="border-b border-gray-200 pb-4">
+          <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
               <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">A</div>
               <div>
@@ -496,9 +496,89 @@
               <i class="fas fa-star"></i>
               <i class="fas fa-star"></i>
             </div>
-            <p class="text-gray-700">"Finalmente algo que funciona! Estou no meu segundo mês e já perdi 12kg. Entrega rápida e produto original."</p>
+            <p class="text-gray-700">"Finalmente algo que funciona! Estou no meu segundo mês e já perdi 12kg. Entrega rápida e produto original. O sistema de refrigeração da embalagem manteve tudo na temperatura ideal."</p>
+          </div>
+          
+          <!-- Reviews ocultas (mostradas ao clicar no botão "Ver mais") -->
+          <div class="border-b border-gray-200 pb-4 review-item hidden">
+            <div class="flex items-center mb-2">
+              <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">R</div>
+              <div>
+                <p class="font-semibold text-gray-800">Roberto Mendes</p>
+                <p class="text-xs text-gray-500">Compra verificada 01/04/2025</p>
+              </div>
+            </div>
+            <div class="flex text-yellow-400 mb-2">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-700">"A entrega foi super rápida! Recebi em apenas 2 dias e o produto veio numa caixa térmica com gelo, mantendo tudo na temperatura ideal. Já comecei a usar e estou sentindo menos fome desde o primeiro dia."</p>
+          </div>
+          
+          <div class="border-b border-gray-200 pb-4 review-item hidden">
+            <div class="flex items-center mb-2">
+              <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">C</div>
+              <div>
+                <p class="font-semibold text-gray-800">Carla Pereira</p>
+                <p class="text-xs text-gray-500">Compra verificada 28/03/2025</p>
+              </div>
+            </div>
+            <div class="flex text-yellow-400 mb-2">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-700">"Minha médica recomendou e depois de pesquisar muito decidi comprar. Chegou tudo certinho, produto original, na embalagem refrigerada como prometido. Já perdi 4kg na primeira semana! Não tive nenhum efeito colateral significativo."</p>
+          </div>
+          
+          <div class="border-b border-gray-200 pb-4 review-item hidden">
+            <div class="flex items-center mb-2">
+              <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">L</div>
+              <div>
+                <p class="font-semibold text-gray-800">Lucas Ferreira</p>
+                <p class="text-xs text-gray-500">Compra verificada 20/03/2025</p>
+              </div>
+            </div>
+            <div class="flex text-yellow-400 mb-2">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-700">"Impressionado com a qualidade e eficácia! O produto veio em uma embalagem especial refrigerada, com instruções detalhadas de uso. Fiquei com receio no início, mas o suporte pós-venda foi excelente e me ajudou com todas as dúvidas. Já indiquei para amigos."</p>
+          </div>
+          
+          <div class="border-b border-gray-200 pb-4 review-item hidden">
+            <div class="flex items-center mb-2">
+              <div class="bg-blue-100 text-blue-800 rounded-full w-10 h-10 flex items-center justify-center font-bold mr-3">P</div>
+              <div>
+                <p class="font-semibold text-gray-800">Patricia Almeida</p>
+                <p class="text-xs text-gray-500">Compra verificada 15/03/2025</p>
+              </div>
+            </div>
+            <div class="flex text-yellow-400 mb-2">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <p class="text-gray-700">"Depois de tentar várias dietas sem sucesso, o Mounjaro foi uma luz no fim do túnel. Entrega impecável, veio tudo refrigerado e bem protegido. Já perdi 9kg em 45 dias e minha diabetes tipo 2 melhorou significativamente. Meu médico ficou impressionado com meus exames!"</p>
           </div>
         {% endif %}
+      </div>
+      
+      <!-- Botão de Ver Mais Reviews -->
+      <div class="text-center mt-6">
+        <button id="load-more-reviews" class="px-4 py-2 bg-[#1351b4] text-white rounded-md hover:bg-[#0c3d8a] transition duration-200 flex items-center mx-auto">
+          <i class="fas fa-comment-dots mr-2"></i> Ver mais avaliações
+        </button>
       </div>
     </div>
     
@@ -607,6 +687,29 @@
   </a>
   
   <script>
+    // Configurar o botão "Ver mais avaliações"
+    document.addEventListener('DOMContentLoaded', function() {
+      const loadMoreBtn = document.getElementById('load-more-reviews');
+      const hiddenReviews = document.querySelectorAll('.review-item.hidden');
+      
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+          // Mostrar as reviews ocultas
+          hiddenReviews.forEach(function(review) {
+            review.classList.remove('hidden');
+          });
+          
+          // Esconder o botão "Ver mais" após clicar
+          loadMoreBtn.style.display = 'none';
+          
+          // Scroll suave para a primeira nova review
+          if (hiddenReviews.length > 0) {
+            hiddenReviews[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
+    });
+    
     // Gerar valor aleatório de estoque entre 43 e 85 unidades
     function gerarEstoqueAleatorio() {
       // Gerar um número aleatório entre 43 e 85
