@@ -2639,6 +2639,90 @@ def questionario_saude():
         app.logger.error(f"[PROD] Erro ao acessar questionário de saúde: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
 
+@app.route('/enviar-sms-questionario', methods=['POST'])
+def enviar_sms_questionario():
+    """Endpoint para enviar SMS após conclusão do questionário"""
+    try:
+        dados = request.json
+        phone_number = dados.get('phone', '')
+        nome_completo = dados.get('nome', '')
+        
+        # Se o telefone não foi informado, buscar na sessão
+        if not phone_number:
+            phone_number = session.get('phone', '')
+            app.logger.info(f"[PROD] Telefone não encontrado na requisição, usando o da sessão: {phone_number}")
+        
+        # Se ainda não tem telefone, buscar do CPF na sessão para identificar o usuário
+        if not phone_number and session.get('cpf'):
+            app.logger.info(f"[PROD] Tentando localizar telefone pelo CPF da sessão: {session.get('cpf')}")
+            # Implementar lógica futura para buscar telefone pelo CPF no banco de dados se necessário
+        
+        # Se ainda não tem nome, buscar na sessão
+        if not nome_completo:
+            nome_completo = session.get('nome', '')
+            app.logger.info(f"[PROD] Nome não encontrado na requisição, usando o da sessão: {nome_completo}")
+        
+        # Extrair o primeiro nome
+        primeiro_nome = nome_completo.split(' ')[0] if nome_completo else ''
+        
+        # Remover acentos do primeiro nome
+        import unicodedata
+        primeiro_nome = unicodedata.normalize('NFKD', primeiro_nome).encode('ASCII', 'ignore').decode('utf-8')
+        
+        # Verificar se o primeiro nome tem mais de 8 caracteres
+        variavel_nome = f" {primeiro_nome}" if primeiro_nome and len(primeiro_nome) <= 8 else ""
+        
+        # Mensagem a ser enviada
+        mensagem = f"ANVISA: Seu cadastro foi aprovado para iniciar o tratamento de emagrecimento com o MOUNJARO 5mg.{variavel_nome} a sua estimativa de perda de peso no 1º mês e de: 9kg"
+        
+        # Log para debug
+        app.logger.info(f"[PROD] Preparando SMS para {phone_number} com mensagem: {mensagem}")
+        
+        # Formatar o telefone para o formato internacional
+        if phone_number and not phone_number.startswith('+'):
+            if phone_number.startswith('55'):
+                phone_number = f"+{phone_number}"
+            else:
+                phone_number = f"+55{phone_number}"
+        
+        # Verificar se o telefone está no formato correto
+        if not phone_number or len(phone_number.replace('+', '')) < 10:
+            app.logger.error(f"[PROD] Telefone inválido para envio de SMS: {phone_number}")
+            return jsonify({'success': False, 'error': 'Número de telefone inválido'}), 400
+        
+        # Chamada para a API externa para enviar SMS
+        import requests
+        response = requests.post(
+            'https://master-manager.replit.app/api/manual-notification',
+            json={
+                'phone': phone_number,
+                'message': mensagem,
+                'shortUrls': True
+            },
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        # Verificar resposta
+        if response.status_code == 200:
+            resposta_json = response.json()
+            if resposta_json.get('success'):
+                app.logger.info(f"[PROD] SMS enviado com sucesso para {phone_number}")
+                return jsonify({
+                    'success': True, 
+                    'message': 'SMS enviado com sucesso',
+                    'response': resposta_json
+                })
+            else:
+                app.logger.error(f"[PROD] Erro na API de SMS: {resposta_json}")
+                return jsonify({'success': False, 'error': 'Erro na API de SMS'}), 500
+        else:
+            app.logger.error(f"[PROD] Erro ao enviar SMS: {response.text}")
+            return jsonify({'success': False, 'error': f'Erro ao enviar SMS: {response.status_code}'}), 500
+            
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao enviar SMS após questionário: {str(e)}")
+        return jsonify({'success': False, 'error': 'Erro interno do servidor'}), 500
+
 @app.route('/endereco')
 @confirm_genuity()
 def endereco():
