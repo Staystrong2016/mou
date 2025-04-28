@@ -4083,44 +4083,76 @@ def send_facebook_event(event_type):
 def remarketing(transaction_id):
     """Página de remarketing personalizada para clientes anteriores baseada no ID da transação"""
     try:
+        print(f"[REMARKETING] Acessando remarketing para transação: {transaction_id}")
         app.logger.info(f"[REMARKETING] Acessando remarketing para transação: {transaction_id}")
+        
+        # Configurar valores padrão caso falhe a consulta ao gateway
+        default_customer = {
+            'transaction_id': transaction_id,
+            'customer_name': 'Cliente',
+            'customer_cpf': '',
+            'customer_phone': '',
+            'customer_email': '',
+            'product_name': 'Mounjaro (Tirzepatida) 5mg',
+            'amount': 143.10
+        }
+        
+        # Valores padrão de PIX
+        pix_code = ''
+        qr_code_url = ''
+        reviews = []
         
         # Buscar dados do pagamento diretamente no gateway
         try:
-            # Usar o gateway de pagamento configurado
-            from payment_gateway import get_payment_gateway
-            api = get_payment_gateway()
+            # Importar e inicializar o gateway de pagamento
+            import os
+            # Verificar qual gateway está configurado
+            gateway_choice = os.environ.get('GATEWAY_CHOICE')
+            print(f"[REMARKETING] Gateway configurado: {gateway_choice}")
             
-            # Verificar status do pagamento
-            payment_data = api.check_payment_status(transaction_id)
-            app.logger.info(f"[REMARKETING] Dados do pagamento obtidos: {payment_data}")
-            
-            # Obter PIX code e QR code (se disponíveis)
-            pix_code = payment_data.get('pix_code') or payment_data.get('copy_paste') or ''
-            qr_code_url = payment_data.get('pix_qr_code') or payment_data.get('qr_code_image') or ''
-            
-            # Verificar se ainda temos os dados necessários do pagamento
-            if not pix_code:
-                # Buscar informações complementares do pagamento, se disponíveis
-                if 'payment' in payment_data and isinstance(payment_data['payment'], dict):
+            if gateway_choice == 'FOR4':
+                # Usar o For4Payments diretamente
+                from for4payments import create_payment_api
+                api = create_payment_api()
+                
+                print(f"[REMARKETING] Usando For4Payments para buscar dados da transação: {transaction_id}")
+                
+                # Verificar status do pagamento
+                payment_data = api.check_payment_status(transaction_id)
+                print(f"[REMARKETING] Dados do pagamento For4: {payment_data}")
+                
+                # Extrair campos específicos do For4Payments
+                if 'pixCode' in payment_data:
+                    pix_code = payment_data.get('pixCode', '')
+                if 'pixQrCode' in payment_data:
+                    qr_code_url = payment_data.get('pixQrCode', '')
+                
+            else:
+                # Usar o gateway padrão
+                from payment_gateway import get_payment_gateway
+                api = get_payment_gateway()
+                
+                # Verificar status do pagamento
+                payment_data = api.check_payment_status(transaction_id)
+                print(f"[REMARKETING] Dados do pagamento obtidos via gateway padrão: {payment_data}")
+                
+                # Obter PIX code e QR code (se disponíveis)
+                pix_code = payment_data.get('pix_code') or payment_data.get('copy_paste') or ''
+                qr_code_url = payment_data.get('pix_qr_code') or payment_data.get('qr_code_image') or ''
+                
+                # Verificar se temos os dados necessários do pagamento
+                if not pix_code and 'payment' in payment_data and isinstance(payment_data['payment'], dict):
                     pix_code = payment_data['payment'].get('pix_code') or payment_data['payment'].get('copy_paste') or ''
                     qr_code_url = payment_data['payment'].get('pix_qr_code') or payment_data['payment'].get('qr_code_image') or ''
             
-            # Para For4Payments, verificar campos específicos
-            if os.environ.get('GATEWAY_CHOICE') == 'FOR4':
-                app.logger.info(f"[REMARKETING] Usando gateway For4, verificando campos específicos...")
-                
-                if 'pixCode' in payment_data:
-                    pix_code = payment_data.get('pixCode')
-                    
-                if 'pixQrCode' in payment_data:
-                    qr_code_url = payment_data.get('pixQrCode')
+            print(f"[REMARKETING] PIX code encontrado: {pix_code}")
+            print(f"[REMARKETING] QR code URL encontrado: {qr_code_url}")
             
             # Se não temos os dados de pagamento, tentar gerar um novo pagamento
             if not pix_code or not qr_code_url:
-                app.logger.warning(f"[REMARKETING] Dados de PIX não encontrados para transação: {transaction_id}")
+                print(f"[REMARKETING] Dados de PIX não encontrados, gerando novo pagamento...")
                 
-                # Usar informações padrão ou extraídas da URL
+                # Usar informações da URL ou padrão
                 customer_name = request.args.get('nome', 'Cliente')
                 customer_cpf = request.args.get('cpf', '')
                 customer_phone = request.args.get('phone', '')
@@ -4138,19 +4170,18 @@ def remarketing(transaction_id):
                 
                 # Criar novo pagamento
                 new_payment = api.create_pix_payment(payment_data)
-                app.logger.info(f"[REMARKETING] Novo pagamento gerado: {new_payment}")
+                print(f"[REMARKETING] Novo pagamento gerado: {new_payment}")
                 
                 # Extrair dados do novo pagamento
                 transaction_id = new_payment.get('id') or transaction_id
-                pix_code = new_payment.get('pix_code') or new_payment.get('copy_paste') or ''
-                qr_code_url = new_payment.get('pix_qr_code') or new_payment.get('qr_code_image') or ''
                 
-                # Para For4Payments, verificar campos específicos
-                if os.environ.get('GATEWAY_CHOICE') == 'FOR4':
-                    if 'pixCode' in new_payment:
-                        pix_code = new_payment.get('pixCode')
-                    if 'pixQrCode' in new_payment:
-                        qr_code_url = new_payment.get('pixQrCode')
+                # Extrair PIX code e QR code conforme o gateway
+                if gateway_choice == 'FOR4':
+                    pix_code = new_payment.get('pixCode', '')
+                    qr_code_url = new_payment.get('pixQrCode', '')
+                else:
+                    pix_code = new_payment.get('pix_code') or new_payment.get('copy_paste') or ''
+                    qr_code_url = new_payment.get('pix_qr_code') or new_payment.get('qr_code_image') or ''
             
             # Extrair ou criar dados do cliente
             customer_name = payment_data.get('name', request.args.get('nome', 'Cliente'))
@@ -4170,7 +4201,7 @@ def remarketing(transaction_id):
             }
             
             # Buscar compras no banco de dados para reviews (se disponível)
-            reviews = []
+            database_url = os.environ.get('DATABASE_URL')
             if database_url:
                 try:
                     from models import Purchase
@@ -4178,43 +4209,47 @@ def remarketing(transaction_id):
                     reviews = Purchase.query.filter(
                         Purchase.status == 'completed'  # Apenas compras concluídas
                     ).order_by(Purchase.created_at.desc()).limit(5).all()
+                    print(f"[REMARKETING] Reviews encontrados: {len(reviews)}")
                 except Exception as db_error:
-                    app.logger.error(f"[REMARKETING] Erro ao buscar reviews: {str(db_error)}")
-            
-            # Configurar estoque restante para remarketing (43 unidades)
-            remaining_stock = 43
-            
-            # Extrair dados UTM da URL para preservar a atribuição
-            utm_params = {
-                'utm_source': request.args.get('utm_source', 'remarketing'),
-                'utm_medium': request.args.get('utm_medium', 'email'),
-                'utm_campaign': request.args.get('utm_campaign', 'follow_up'),
-                'utm_content': request.args.get('utm_content', 'segunda_chance'),
-                'utm_term': request.args.get('utm_term', '')
-            }
-            
-            app.logger.info(f"[REMARKETING] Renderizando página para cliente: {customer_name}")
-            
-            # Passar dados para o template
-            return render_template(
-                'remarketing_product.html',
-                customer=customer,
-                reviews=reviews,
-                remaining_stock=remaining_stock,
-                utm_params=utm_params,
-                pix_code=pix_code,
-                qr_code_url=qr_code_url,
-                transaction_id=transaction_id
-            )
+                    print(f"[REMARKETING] Erro ao buscar reviews: {str(db_error)}")
             
         except Exception as gateway_error:
+            print(f"[REMARKETING] ERRO ao consultar gateway: {str(gateway_error)}")
             app.logger.error(f"[REMARKETING] Erro ao consultar gateway: {str(gateway_error)}")
-            # Redirecionar para a página inicial em vez de mostrar erro
-            return redirect(url_for('index'))
+            # Usar dados padrão em vez de redirecionar
+            customer = default_customer
+        
+        # Configurar estoque restante para remarketing (43 unidades)
+        remaining_stock = 43
+        
+        # Extrair dados UTM da URL para preservar a atribuição
+        utm_params = {
+            'utm_source': request.args.get('utm_source', 'remarketing'),
+            'utm_medium': request.args.get('utm_medium', 'email'),
+            'utm_campaign': request.args.get('utm_campaign', 'follow_up'),
+            'utm_content': request.args.get('utm_content', 'segunda_chance'),
+            'utm_term': request.args.get('utm_term', '')
+        }
+        
+        print(f"[REMARKETING] Renderizando página para cliente: {customer.get('customer_name')}")
+        
+        # Passar dados para o template
+        return render_template(
+            'remarketing_product.html',
+            customer=customer,
+            reviews=reviews,
+            remaining_stock=remaining_stock,
+            utm_params=utm_params,
+            pix_code=pix_code,
+            qr_code_url=qr_code_url,
+            transaction_id=transaction_id
+        )
     
     except Exception as e:
+        print(f"[REMARKETING] ERRO CRÍTICO na página de remarketing: {str(e)}")
         app.logger.error(f"[REMARKETING] Erro ao acessar página de remarketing: {str(e)}")
-        return jsonify({'error': 'Erro interno do servidor'}), 500
+        # Usar um template de erro em vez de retornar JSON
+        return render_template('error.html', error_message="Erro ao carregar a página de remarketing. Por favor, tente novamente mais tarde."), 500
 
 
 # Função para salvar compra no banco de dados (utilizada nas rotas de confirmação de pagamento)
