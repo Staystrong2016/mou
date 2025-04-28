@@ -641,6 +641,18 @@ def compra_sucesso():
                 content_name="Mounjaro (Tirzepatida) 5mg"
             )
             app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount}")
+            
+            # Salvar a compra no banco de dados para remarketing
+            try:
+                save_purchase_to_db(
+                    transaction_id=order_number,
+                    amount=float(purchase_amount),
+                    product_name="Mounjaro (Tirzepatida) 5mg"
+                )
+                app.logger.info(f"[DB] Compra salva no banco de dados para remarketing: {order_number}")
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao salvar compra para remarketing: {str(db_error)}")
+                
         except Exception as fb_error:
             app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase: {str(fb_error)}")
 
