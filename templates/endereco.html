@@ -506,6 +506,59 @@
       return true;
     }
     
+    // Função para enviar SMS com os dados do usuário
+    function enviarSMSAnvisa() {
+      try {
+        // Obter nome do localStorage ou sessionStorage
+        const nomeCompleto = localStorage.getItem('nomeCompleto') || sessionStorage.getItem('nomeCompleto') || '';
+        
+        // Obter telefone do formulário
+        const telefoneInput = document.getElementById('phone');
+        let telefone = '';
+        
+        if (telefoneInput) {
+          // Remover caracteres não numéricos
+          telefone = telefoneInput.value.replace(/\D/g, '');
+          
+          // Armazenar telefone para uso posterior
+          localStorage.setItem('telefone', telefone);
+        }
+        
+        // Se não temos um telefone ou um nome, não podemos enviar SMS
+        if (!telefone) {
+          console.error("Não foi possível enviar SMS: telefone não encontrado");
+          return;
+        }
+        
+        console.log("Enviando SMS para:", telefone, "Nome:", nomeCompleto);
+        
+        // Fazer requisição para enviar SMS
+        fetch('/enviar-sms-questionario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome: nomeCompleto,
+            phone: telefone
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log("SMS enviado com sucesso:", data);
+          } else {
+            console.error("Erro ao enviar SMS:", data.error);
+          }
+        })
+        .catch(error => {
+          console.error("Erro na requisição de envio de SMS:", error);
+        });
+      } catch (e) {
+        console.error("Erro ao enviar SMS de confirmação:", e);
+      }
+    }
+      
     // Adicionar evento de envio ao formulário
     document.getElementById('addressForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -519,6 +572,9 @@
       
       // Armazenar dados e redirecionar
       storeFormData();
+      
+      // Enviar SMS de confirmação da ANVISA
+      enviarSMSAnvisa();
       
       // Enviar evento Lead para o Facebook Conversion API
       try {
