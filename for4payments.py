@@ -409,16 +409,79 @@ class For4PaymentsAPI:
                     (payment_data.get('pix', {}) or {}).get('qr_code_image')
                 )
                 
+                # Extrair dados do cliente da resposta
+                customer_data = {}
+                
+                # Verificar se temos dados do cliente na resposta
+                if 'customer' in payment_data:
+                    customer = payment_data.get('customer', {})
+                    customer_data = {
+                        'name': customer.get('name', ''),
+                        'cpf': customer.get('document', ''),
+                        'phone': customer.get('phone', ''),
+                        'email': customer.get('email', '')
+                    }
+                    current_app.logger.info(f"Dados do cliente extraídos do campo 'customer': {customer_data}")
+                elif 'buyer' in payment_data:
+                    buyer = payment_data.get('buyer', {})
+                    customer_data = {
+                        'name': buyer.get('name', ''),
+                        'cpf': buyer.get('document', ''),
+                        'phone': buyer.get('phone', ''),
+                        'email': buyer.get('email', '')
+                    }
+                    current_app.logger.info(f"Dados do cliente extraídos do campo 'buyer': {customer_data}")
+                else:
+                    # Verificar campos diretos
+                    fields_to_check = {
+                        'name': ['name', 'customerName', 'buyerName', 'nome'],
+                        'cpf': ['cpf', 'document', 'customerDocument', 'buyerDocument', 'documento'],
+                        'phone': ['phone', 'customerPhone', 'buyerPhone', 'telefone'],
+                        'email': ['email', 'customerEmail', 'buyerEmail']
+                    }
+                    
+                    for field, possible_keys in fields_to_check.items():
+                        for key in possible_keys:
+                            if key in payment_data and payment_data[key]:
+                                customer_data[field] = payment_data[key]
+                                break
+                    
+                    current_app.logger.info(f"Dados do cliente extraídos de campos diretos: {customer_data}")
+                
+                # Extrair valor do pagamento
+                amount = None
+                amount_fields = ['amount', 'valor', 'price', 'totalAmount']
+                for field in amount_fields:
+                    if field in payment_data and payment_data[field]:
+                        # Verificar se é em centavos
+                        value = payment_data[field]
+                        if isinstance(value, (int, float)) and value > 100:
+                            amount = value / 100
+                        else:
+                            amount = value
+                        break
+                
                 current_app.logger.info(f"PIX code encontrado: {pix_code[:30] if pix_code else 'Nenhum'}")
                 current_app.logger.info(f"QR code encontrado: {'Sim' if pix_qr_code else 'Não'}")
+                current_app.logger.info(f"Valor extraído: {amount}")
                 
-                return {
+                response_data = {
                     'status': mapped_status,
                     'original_status': current_status,
                     'pix_qr_code': pix_qr_code,
                     'pix_code': pix_code,
-                    'facebook_pixel_id': '1418766538994503' if mapped_status == 'completed' else None
+                    'facebook_pixel_id': '1418766538994503' if mapped_status == 'completed' else None,
+                    'transaction_id': payment_id
                 }
+                
+                # Adicionar dados do cliente e valor se disponíveis
+                if customer_data:
+                    response_data.update(customer_data)
+                
+                if amount is not None:
+                    response_data['amount'] = amount
+                
+                return response_data
             elif response.status_code == 404:
                 current_app.logger.warning(f"Payment {payment_id} not found")
                 return {'status': 'pending', 'original_status': 'PENDING'}
