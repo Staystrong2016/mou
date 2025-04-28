@@ -1996,6 +1996,29 @@ def create_pix_payment():
                 'status': payment_result.get('status', 'pending')
             }
             
+            # Salvar os dados da transação PIX no banco de dados para remarketing
+            try:
+                # Obter o ID da transação
+                transaction_id = payment_result.get('id') or f"PIX-{int(time.time())}"
+                
+                # Obter o valor do pagamento
+                amount = float(data.get('amount', 0))
+                
+                # Obter o nome do produto (padrão "Mounjaro")
+                product_name = data.get('product_name', 'Mounjaro (Tirzepatida) 5mg')
+                
+                # Salvar no banco de dados com status "pending"
+                save_purchase_to_db(
+                    transaction_id=transaction_id,
+                    amount=amount,
+                    product_name=product_name
+                )
+                
+                app.logger.info(f"[DB] Pagamento PIX pendente salvo no banco para remarketing: {transaction_id}")
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao salvar pagamento PIX no banco: {str(db_error)}")
+                # Não interromper o fluxo em caso de erro de banco de dados
+            
             # Log detalhado para depuração
             app.logger.info(f"[PROD] Resposta formatada: {response}")
             
@@ -2064,6 +2087,50 @@ def verificar_pagamento():
             
             # Adicionar os IDs dos Pixels ao resultado para processamento no frontend
             status_result['facebook_pixel_id'] = ['1418766538994503', '1345433039826605', '1390026985502891']
+            
+            # Atualizar ou criar registro de compra no banco de dados
+            try:
+                # Verificar se temos o valor na resposta da API ou nos dados do pagamento
+                payment_amount = status_result.get('amount', 0)
+                
+                # Para For4Payments, o valor pode estar em centavos
+                if isinstance(payment_amount, int) and payment_amount > 1000:
+                    payment_amount = payment_amount / 100
+                
+                # Se não houver valor, usar valor padrão para evitar erros
+                if not payment_amount:
+                    payment_amount = 143.10
+                
+                # Obter nome do produto
+                product_name = "Mounjaro (Tirzepatida) 5mg"
+                if abs(float(payment_amount) - 67.90) < 0.01:
+                    product_name = "Taxa Tarja Preta Seguro"
+                
+                # Atualizar ou criar no banco de dados
+                if database_url:
+                    try:
+                        from models import Purchase, db
+                        
+                        # Verificar se já existe no banco
+                        existing_purchase = Purchase.query.filter_by(transaction_id=transaction_id).first()
+                        
+                        if existing_purchase:
+                            # Atualizar status para completed
+                            existing_purchase.status = 'completed'
+                            existing_purchase.updated_at = datetime.utcnow()
+                            db.session.commit()
+                            app.logger.info(f"[DB] Compra atualizada no banco de dados: {transaction_id}")
+                        else:
+                            # Criar novo registro
+                            save_purchase_to_db(
+                                transaction_id=transaction_id,
+                                amount=float(payment_amount),
+                                product_name=product_name
+                            )
+                    except Exception as db_error:
+                        app.logger.error(f"[DB] Erro ao atualizar/criar compra no banco: {str(db_error)}")
+            except Exception as e:
+                app.logger.error(f"[PROD] Erro ao salvar dados de compra confirmada: {str(e)}")
             
             # Verificar se é um pagamento de R$ 143,10 para redirecionamento para /livro
             try:
