@@ -4079,9 +4079,9 @@ def send_facebook_event(event_type):
             'event_type': event_type
         }), 500
 
-@app.route('/remarketing')
-def remarketing():
-    """Página para remarketing de clientes que já compraram"""
+@app.route('/remarketing/<transaction_id>')
+def remarketing(transaction_id):
+    """Página de remarketing personalizada para clientes anteriores baseada no ID da transação"""
     try:
         if not database_url:
             app.logger.warning("[REMARKETING] Banco de dados não configurado")
@@ -4090,18 +4090,43 @@ def remarketing():
         # Importar o modelo de compra
         from models import Purchase
         
-        # Buscar compras recentes no banco de dados
-        recent_purchases = Purchase.query.order_by(Purchase.created_at.desc()).limit(100).all()
+        # Buscar a compra específica no banco de dados
+        purchase = Purchase.query.filter_by(transaction_id=transaction_id).first()
         
-        # Se não encontrou nenhuma compra, redirecionar para a página inicial
-        if not recent_purchases:
-            app.logger.info("[REMARKETING] Nenhuma compra encontrada para remarketing")
-            return render_template('remarketing.html', purchases=[])
+        # Se não encontrou a compra, redirecionar para a página inicial
+        if not purchase:
+            app.logger.warning(f"[REMARKETING] Compra não encontrada para transaction_id: {transaction_id}")
+            # Redirecionar para a página inicial em vez de mostrar um erro
+            return redirect(url_for('index'))
         
-        app.logger.info(f"[REMARKETING] Encontradas {len(recent_purchases)} compras para remarketing")
+        app.logger.info(f"[REMARKETING] Cliente encontrado: {purchase.customer_name}, transação: {transaction_id}")
         
-        # Passar a lista de compras para o template
-        return render_template('remarketing.html', purchases=recent_purchases)
+        # Buscar algumas compras para exibir como reviews (limitado a 5)
+        reviews = Purchase.query.filter(
+            Purchase.transaction_id != transaction_id,  # Excluir a compra atual
+            Purchase.status == 'completed'  # Apenas compras concluídas
+        ).order_by(Purchase.created_at.desc()).limit(5).all()
+        
+        # Configurar estoque restante para remarketing (43 unidades)
+        remaining_stock = 43
+        
+        # Extrair dados UTM da compra para preservar a atribuição
+        utm_params = {
+            'utm_source': purchase.utm_source or 'remarketing',
+            'utm_medium': purchase.utm_medium or 'email',
+            'utm_campaign': purchase.utm_campaign or 'follow_up',
+            'utm_content': purchase.utm_content or 'segunda_chance',
+            'utm_term': purchase.utm_term or ''
+        }
+        
+        # Passar dados para o template
+        return render_template(
+            'remarketing_product.html',
+            customer=purchase,
+            reviews=reviews,
+            remaining_stock=remaining_stock,
+            utm_params=utm_params
+        )
     except Exception as e:
         app.logger.error(f"[REMARKETING] Erro ao acessar página de remarketing: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
