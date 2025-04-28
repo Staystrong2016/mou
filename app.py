@@ -4000,5 +4000,104 @@ def send_facebook_event(event_type):
             'event_type': event_type
         }), 500
 
+@app.route('/remarketing')
+def remarketing():
+    """Página para remarketing de clientes que já compraram"""
+    try:
+        if not database_url:
+            app.logger.warning("[REMARKETING] Banco de dados não configurado")
+            return jsonify({'error': 'Banco de dados não configurado'}), 500
+            
+        # Importar o modelo de compra
+        from models import Purchase
+        
+        # Buscar compras recentes no banco de dados
+        recent_purchases = Purchase.query.order_by(Purchase.created_at.desc()).limit(100).all()
+        
+        # Se não encontrou nenhuma compra, redirecionar para a página inicial
+        if not recent_purchases:
+            app.logger.info("[REMARKETING] Nenhuma compra encontrada para remarketing")
+            return render_template('remarketing.html', purchases=[])
+        
+        app.logger.info(f"[REMARKETING] Encontradas {len(recent_purchases)} compras para remarketing")
+        
+        # Passar a lista de compras para o template
+        return render_template('remarketing.html', purchases=recent_purchases)
+    except Exception as e:
+        app.logger.error(f"[REMARKETING] Erro ao acessar página de remarketing: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
+
+# Função para salvar compra no banco de dados (utilizada nas rotas de confirmação de pagamento)
+def save_purchase_to_db(transaction_id, amount, product_name='Produto'):
+    """
+    Salva os dados de compra no banco de dados para uso em remarketing
+    """
+    if not database_url:
+        app.logger.warning("[DB] Banco de dados não configurado. Não foi possível salvar a compra.")
+        return False
+
+    try:
+        # Importar o modelo Purchase
+        from models import Purchase
+        
+        # Verificar se já existe uma compra com este transaction_id
+        existing_purchase = Purchase.query.filter_by(transaction_id=transaction_id).first()
+        if existing_purchase:
+            app.logger.info(f"[DB] Compra com transaction_id {transaction_id} já existe no banco de dados.")
+            return True
+        
+        # Obter dados do cliente
+        customer_name = session.get('nome', '') or session.get('customer_name', '')
+        customer_cpf = session.get('cpf', '') or session.get('customer_cpf', '')
+        customer_phone = session.get('phone', '') or session.get('customer_phone', '')
+        customer_email = session.get('email', '') or session.get('customer_email', '')
+        
+        # Obter UTM params da sessão
+        utm_source = session.get('utm_source', '')
+        utm_medium = session.get('utm_medium', '')
+        utm_campaign = session.get('utm_campaign', '')
+        utm_content = session.get('utm_content', '')
+        utm_term = session.get('utm_term', '')
+        fbclid = session.get('fbclid', '')
+        gclid = session.get('gclid', '')
+        
+        # Obter informações do dispositivo
+        device_type = 'mobile' if request.user_agent.platform in ['iphone', 'android'] else 'desktop'
+        user_agent = request.user_agent.string
+        
+        # Criar a transação no banco de dados
+        new_purchase = Purchase(
+            transaction_id=transaction_id,
+            customer_name=customer_name,
+            customer_cpf=customer_cpf,
+            customer_phone=customer_phone,
+            customer_email=customer_email,
+            product_name=product_name,
+            amount=float(amount),
+            status='completed',
+            utm_source=utm_source,
+            utm_medium=utm_medium,
+            utm_campaign=utm_campaign,
+            utm_content=utm_content,
+            utm_term=utm_term,
+            fbclid=fbclid,
+            gclid=gclid,
+            device_type=device_type,
+            user_agent=user_agent
+        )
+        
+        # Salvar no banco de dados
+        db.session.add(new_purchase)
+        db.session.commit()
+        
+        app.logger.info(f"[DB] Compra salva no banco de dados com ID: {new_purchase.id}")
+        return True
+    
+    except Exception as e:
+        app.logger.error(f"[DB] Erro ao salvar compra no banco de dados: {str(e)}")
+        return False
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
