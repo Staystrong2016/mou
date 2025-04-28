@@ -447,7 +447,7 @@
           <!-- Reviews visíveis inicialmente -->
           <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
-              <img src="/static/images/profile/mulher1.jpeg" alt="Maria Silva" class="w-10 h-10 rounded-full object-cover mr-3">
+              <img src="/attached_assets/mulher1.jpeg" alt="Maria Silva" class="w-10 h-10 rounded-full object-cover mr-3">
               <div>
                 <p class="font-semibold text-gray-800">Maria Silva</p>
                 <p class="text-xs text-gray-500">Compra verificada 15/04/2025</p>
@@ -465,7 +465,7 @@
           
           <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
-              <img src="/static/images/profile/homem1.jpeg" alt="João Oliveira" class="w-10 h-10 rounded-full object-cover mr-3">
+              <img src="/attached_assets/homem1.jpeg" alt="João Oliveira" class="w-10 h-10 rounded-full object-cover mr-3">
               <div>
                 <p class="font-semibold text-gray-800">João Oliveira</p>
                 <p class="text-xs text-gray-500">Compra verificada 10/04/2025</p>
@@ -483,7 +483,7 @@
           
           <div class="border-b border-gray-200 pb-4 review-item">
             <div class="flex items-center mb-2">
-              <img src="/static/images/profile/mulher2.jpeg" alt="Ana Carolina" class="w-10 h-10 rounded-full object-cover mr-3">
+              <img src="/attached_assets/mulher2.jpeg" alt="Ana Carolina" class="w-10 h-10 rounded-full object-cover mr-3">
               <div>
                 <p class="font-semibold text-gray-800">Ana Carolina</p>
                 <p class="text-xs text-gray-500">Compra verificada 05/04/2025</p>
@@ -502,7 +502,7 @@
           <!-- Reviews ocultas (mostradas ao clicar no botão "Ver mais") -->
           <div class="border-b border-gray-200 pb-4 review-item hidden">
             <div class="flex items-center mb-2">
-              <img src="/static/images/profile/homem2.jpeg" alt="Roberto Mendes" class="w-10 h-10 rounded-full object-cover mr-3">
+              <img src="/attached_assets/homem2.jpeg" alt="Roberto Mendes" class="w-10 h-10 rounded-full object-cover mr-3">
               <div>
                 <p class="font-semibold text-gray-800">Roberto Mendes</p>
                 <p class="text-xs text-gray-500">Compra verificada 01/04/2025</p>
@@ -760,28 +760,65 @@
       const urlParams = new URLSearchParams(window.location.search);
       const transactionIdFromUrl = window.location.pathname.split('/').pop();
       
-      // Obter dados do PIX do localStorage
-      const { transaction_id, pix_code, pix_qrcode, amount } = getPixData();
+      console.log("Inicializando página para transação:", transactionIdFromUrl);
       
-      // Se não houver dados suficientes no localStorage, usar os dados da URL
-      if (!transaction_id || !pix_code || !pix_qrcode) {
-        console.warn("Dados insuficientes no localStorage, tentando obter do servidor para transação: " + transactionIdFromUrl);
-        
-        // Verificar status do pagamento para obter dados do cliente via API
-        fetch(`/verificar_pagamento_mounjaro?transaction_id=${transactionIdFromUrl}`)
-          .then(response => response.json())
-          .then(data => {
-            console.log("Dados obtidos do servidor:", data);
-            
-            // Atualizar os dados na página
-            updateClientData(data);
-          })
-          .catch(error => {
-            console.error("Erro ao obter dados do servidor:", error);
-          });
-        
-        return;
+      // Sempre consultar a API For4Payments para obter os dados mais atuais
+      // quando acessar com transaction_id na URL
+      console.log("Consultando API For4Payments para obter dados atualizados");
+      
+      // Mostrar indicador de carregamento
+      const statusBadge = document.querySelector('.status-pending');
+      if (statusBadge) {
+        statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verificando Status...';
       }
+      
+      // Verificar status do pagamento e obter dados do cliente via API
+      fetch(`/verificar_pagamento_mounjaro?transaction_id=${transactionIdFromUrl}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Dados obtidos da API For4Payments:", data);
+          
+          // Atualizar a interface com os dados obtidos da API
+          updateClientData(data);
+          
+          // Atualizar status na interface
+          if (statusBadge) {
+            if (data.status === 'paid' || data.status === 'completed') {
+              statusBadge.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Pagamento Confirmado';
+              statusBadge.classList.remove('status-pending');
+              statusBadge.classList.add('bg-green-100', 'text-green-800');
+            } else if (data.status === 'cancelled' || data.status === 'failed') {
+              statusBadge.innerHTML = '<i class="fas fa-times-circle mr-2"></i> Pagamento Cancelado';
+              statusBadge.classList.remove('status-pending');
+              statusBadge.classList.add('bg-red-100', 'text-red-800');
+            } else {
+              statusBadge.innerHTML = '<i class="fas fa-clock mr-2"></i> Aguardando Pagamento';
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Erro ao obter dados do servidor:", error);
+          
+          // Em caso de erro, tentar usar dados do localStorage
+          const { transaction_id, pix_code, pix_qrcode, amount } = getPixData();
+          
+          if (transaction_id && pix_code && pix_qrcode) {
+            console.log("Usando dados armazenados localmente como fallback");
+            
+            // Criar objeto com dados disponíveis localmente
+            const localData = {
+              transaction_id: transaction_id,
+              pixCode: pix_code,
+              pixQrCode: pix_qrcode,
+              amount: amount
+            };
+            
+            // Atualizar a interface com os dados locais
+            updateClientData(localData);
+          }
+        });
+      
+      return; // Interromper a execução aqui, já que os dados serão atualizados pela API
       
       // Definir código PIX
       document.getElementById('pixCode').textContent = pix_code;
