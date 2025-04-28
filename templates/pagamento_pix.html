@@ -533,16 +533,28 @@
         document.getElementById('totalAmount').textContent = `R$ ${parseFloat(amount).toFixed(2).replace('.', ',')}`;
       }
       
-      // Obter e exibir dados do cliente do localStorage
+      // Obter e exibir dados do cliente do localStorage ou dos dados do PIX
       const nomeCompleto = localStorage.getItem('nomeCompleto') || '';
       const cpfValidado = localStorage.getItem('cpfValidado') || '';
       
       // Formatar CPF para exibição
       const cpfFormatado = formatCPF(cpfValidado);
       
-      // Atualizar os elementos na página
-      document.getElementById('clientName').textContent = nomeCompleto || 'Cliente Anvisa';
-      document.getElementById('clientCpf').textContent = cpfFormatado || 'CPF não disponível';
+      // Verificar se há dados na sessão
+      let clientNameElement = document.getElementById('clientName');
+      let clientCpfElement = document.getElementById('clientCpf');
+      
+      // Exibir nome do cliente - priorizar dados da sessão
+      if (nomeCompleto) {
+        console.log("Nome do cliente em pagamento:", nomeCompleto);
+        clientNameElement.textContent = nomeCompleto;
+      } else {
+        // Se não tiver o nome no localStorage, manter como genérico
+        clientNameElement.textContent = 'Cliente Anvisa';
+      }
+      
+      // Exibir CPF
+      clientCpfElement.textContent = cpfFormatado || 'CPF não disponível';
       
       // Função para formatar CPF (XXX.XXX.XXX-XX)
       function formatCPF(cpf) {
@@ -666,10 +678,10 @@
             
             // Salvar dados do usuário para uso posterior (pagamento TTPS)
             const userPaymentData = {
-              name: data.customer_name || document.getElementById('customerName')?.textContent || '',
-              cpf: data.customer_document || document.getElementById('customerCPF')?.textContent || '',
-              email: data.customer_email || '',
-              phone: data.customer_phone || '',
+              name: data.name || data.customer_name || document.getElementById('clientName')?.textContent || '',
+              cpf: data.cpf || data.customer_document || document.getElementById('clientCpf')?.textContent || '',
+              email: data.email || data.customer_email || '',
+              phone: data.phone || data.customer_phone || '',
               amount: 67.90, // Valor fixo da TTPS
               transaction_id: transaction_id,
               timestamp: new Date().toISOString()
@@ -724,8 +736,8 @@
       
       // Salvar dados simulados do usuário para uso posterior (pagamento TTPS)
       const userPaymentData = {
-        name: document.getElementById('customerName')?.textContent || 'Cliente Teste',
-        cpf: document.getElementById('customerCPF')?.textContent || '12345678900',
+        name: document.getElementById('clientName')?.textContent || 'Cliente Teste',
+        cpf: document.getElementById('clientCpf')?.textContent || '12345678900',
         email: 'teste@exemplo.com',
         phone: '11999999999',
         amount: 67.90, // Valor fixo da TTPS
