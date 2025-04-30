@@ -676,6 +676,38 @@
             </div>
           </div>
           
+          <!-- Seção 11: Perda de Peso Desejada -->
+          <div id="section11" class="form-section hidden">
+            <div class="question-title">
+              <span class="question-number">11</span>
+              Perda de Peso Desejada
+              <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
+            </div>
+            <div class="options-group" id="perdaPesoOptions">
+              <!-- As opções serão inseridas dinamicamente com base no peso informado -->
+              <label class="option-card">
+                <input type="radio" name="perdaPesoDesejada" value="5a10" required>
+                <span class="option-text">5 a 10 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="perdaPesoDesejada" value="11a15">
+                <span class="option-text">11 a 15 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="perdaPesoDesejada" value="16a20">
+                <span class="option-text">16 a 20 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="perdaPesoDesejada" value="mais20">
+                <span class="option-text">Mais de 20 kg</span>
+              </label>
+              <label class="option-card">
+                <input type="radio" name="perdaPesoDesejada" value="naoSei">
+                <span class="option-text">Não sei ao certo</span>
+              </label>
+            </div>
+          </div>
+          
           <!-- Tela de conclusão -->
           <div id="completion" class="hidden completion-container">
             <div class="completion-icon">
@@ -693,6 +725,15 @@
               <div class="bg-green-50 p-6 rounded-lg mb-6 text-left">
                 <h4 class="text-lg font-semibold text-green-800 mb-2">Elegibilidade Confirmada</h4>
                 <p class="text-green-700 mb-4">Você está elegível para aquisição do Monjauros.</p>
+                
+                <div class="border-b border-green-200 pb-4 mb-4">
+                  <p class="text-green-700 font-semibold mb-2">Projeção de Perda de Peso com Monjauros:</p>
+                  <div id="previsaoPerdaPeso" class="bg-white rounded-lg p-4 shadow-sm mb-2">
+                    <p class="text-green-800 font-bold text-lg">Estimativa de perda: <span id="estimativaPerdaPeso">0</span> kg</p>
+                    <p class="text-sm text-gray-600">Com base no seu perfil e objetivo de perda de peso</p>
+                  </div>
+                  <p class="text-xs text-green-700 italic">*Resultados individuais podem variar de acordo com diversos fatores</p>
+                </div>
                 
                 <div class="border-t border-green-200 pt-4 mt-4">
                   <p class="text-green-700 font-medium mb-2">Recomendações Personalizadas:</p>
@@ -762,7 +803,12 @@
 
     
     let currentSection = 1;
-    const totalSections = 10;
+    const totalSections = 11;
+    
+    // Armazenar o peso do usuário para uso posterior
+    let pesoUsuario = 0;
+    let alturaUsuario = 0;
+    let objetivoPerdaPeso = '';
     
     // Função para atualizar a barra de progresso
     function updateProgress() {
@@ -981,6 +1027,149 @@
       });
     });
     
+    // Função para capturar o peso do usuário da seção 2
+    function capturarPesoAltura() {
+      const form = document.getElementById('healthForm');
+      const formData = new FormData(form);
+      
+      // Obter valores de peso e altura
+      const peso = formData.get('peso');
+      const altura = formData.get('altura');
+      
+      if (peso) {
+        pesoUsuario = parseFloat(peso);
+      }
+      
+      if (altura) {
+        alturaUsuario = parseFloat(altura);
+      }
+      
+      console.log(`Peso capturado: ${pesoUsuario} kg, Altura: ${alturaUsuario} cm`);
+      
+      // Personalizar opções de perda de peso com base no peso informado
+      if (pesoUsuario > 0) {
+        personalizarOpcoesPerdaPeso(pesoUsuario);
+      }
+    }
+    
+    // Função para personalizar as opções de perda de peso com base no peso do usuário
+    function personalizarOpcoesPerdaPeso(pesoAtual) {
+      const opcoesPerdaPeso = document.getElementById('perdaPesoOptions');
+      
+      // Limpar opções existentes
+      opcoesPerdaPeso.innerHTML = '';
+      
+      // Criar opções personalizadas com base no peso
+      const perdaMinima = Math.max(5, Math.round(pesoAtual * 0.05));
+      const perdaMedia = Math.max(10, Math.round(pesoAtual * 0.10));
+      const perdaAlta = Math.max(15, Math.round(pesoAtual * 0.15));
+      const perdaMaxima = Math.max(20, Math.round(pesoAtual * 0.20));
+      
+      // Adicionar opções de perda de peso personalizadas
+      opcoesPerdaPeso.innerHTML = `
+        <label class="option-card">
+          <input type="radio" name="perdaPesoDesejada" value="${perdaMinima}" required>
+          <span class="option-text">${perdaMinima} kg</span>
+          <span class="option-subtext">Perda moderada</span>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="perdaPesoDesejada" value="${perdaMedia}">
+          <span class="option-text">${perdaMedia} kg</span>
+          <span class="option-subtext">Perda intermediária</span>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="perdaPesoDesejada" value="${perdaAlta}">
+          <span class="option-text">${perdaAlta} kg</span>
+          <span class="option-subtext">Perda significativa</span>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="perdaPesoDesejada" value="${perdaMaxima}">
+          <span class="option-text">${perdaMaxima} kg ou mais</span>
+          <span class="option-subtext">Perda substancial</span>
+        </label>
+        <label class="option-card">
+          <input type="radio" name="perdaPesoDesejada" value="naoSei">
+          <span class="option-text">Não sei ao certo</span>
+          <span class="option-subtext">Gostaria de uma recomendação</span>
+        </label>
+      `;
+      
+      // Adicionar eventos aos novos cards
+      document.querySelectorAll('#perdaPesoOptions .option-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const input = this.querySelector('input');
+          
+          // Desmarcar todos os cartões no mesmo grupo
+          const name = input.name;
+          document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+            radio.closest('.option-card').classList.remove('selected');
+          });
+          
+          // Marcar este cartão
+          this.classList.add('selected');
+          
+          // Capturar o valor selecionado
+          objetivoPerdaPeso = input.value;
+          
+          // Verificar se a seção está completa
+          checkSectionCompletion(currentSection);
+        });
+      });
+    }
+    
+    // Função para calcular a estimativa de perda de peso baseada nos dados do usuário
+    function calcularEstimativaPerdaPeso() {
+      let estimativa = 0;
+      
+      // Se objetivoPerdaPeso for "naoSei", calcular uma perda de peso recomendada (10% do peso atual)
+      if (objetivoPerdaPeso === 'naoSei' && pesoUsuario > 0) {
+        estimativa = Math.round(pesoUsuario * 0.1);
+      } 
+      // Caso contrário, usar o valor escolhido pelo usuário
+      else if (objetivoPerdaPeso !== 'naoSei' && !isNaN(parseInt(objetivoPerdaPeso))) {
+        estimativa = parseInt(objetivoPerdaPeso);
+      }
+      // Valor padrão se nada foi escolhido
+      else {
+        estimativa = 10; // Valor padrão 
+      }
+      
+      // Limitar a estimativa entre 5 e 25 kg para manter dentro de limites realistas
+      estimativa = Math.max(5, Math.min(25, estimativa));
+      
+      return estimativa;
+    }
+    
+    // Modificar a função finishQuestionnaire para calcular e mostrar a estimativa de perda de peso
+    function finishQuestionnaire() {
+      // Esconder todas as seções
+      for (let i = 1; i <= totalSections; i++) {
+        document.getElementById(`section${i}`).classList.add('hidden');
+      }
+      
+      // Esconder os botões de navegação
+      document.getElementById('navigationButtons').classList.add('hidden');
+      
+      // Mostrar a tela de conclusão
+      document.getElementById('completion').classList.remove('hidden');
+      
+      // Atualizar a barra de progresso para 100%
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressPercentage').textContent = '100%';
+      
+      // Calcular a estimativa de perda de peso
+      const estimativaPerdaPeso = calcularEstimativaPerdaPeso();
+      
+      // Simular processamento e mostrar mensagem de conclusão
+      setTimeout(() => {
+        // Atualizar a estimativa de perda de peso na tela
+        document.getElementById('estimativaPerdaPeso').textContent = estimativaPerdaPeso;
+        
+        document.getElementById('processingMessage').classList.add('hidden');
+        document.getElementById('completionMessage').classList.remove('hidden');
+      }, 3000);
+    }
+    
     window.onload = function() {
       checkAccess();
       
@@ -989,8 +1178,22 @@
       
       // Adicionar eventos aos inputs de radio e checkbox
       document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
-        input.addEventListener('change', () => checkSectionCompletion(currentSection));
+        input.addEventListener('change', () => {
+          // Se estivermos na seção 2 (peso e altura), capturar os valores
+          if (currentSection === 2 && (input.name === 'peso' || input.name === 'altura')) {
+            capturarPesoAltura();
+          }
+          
+          if (currentSection === 11 && input.name === 'perdaPesoDesejada') {
+            objetivoPerdaPeso = input.value;
+          }
+          
+          checkSectionCompletion(currentSection);
+        });
       });
+      
+      // Inicializar as opções de perda de peso padrão
+      personalizarOpcoesPerdaPeso(70); // Valor padrão inicial
     }
     
     window.addEventListener('scroll', function() {
