@@ -655,10 +655,10 @@
             </div>
           </div>
           
-          <!-- Seção 9: Acesso a Farmácias ou Postos de Saúde -->
-          <div id="section9" class="form-section hidden">
+          <!-- Seção 10: Acesso a Farmácias ou Postos de Saúde -->
+          <div id="section10" class="form-section hidden">
             <div class="question-title">
-              <span class="question-number">9</span>
+              <span class="question-number">10</span>
               Acesso a Farmácias ou Postos de Saúde
               <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
             </div>
@@ -682,10 +682,10 @@
             </div>
           </div>
           
-          <!-- Seção 10: Nível de Escolaridade -->
-          <div id="section10" class="form-section hidden">
+          <!-- Seção 11: Nível de Escolaridade -->
+          <div id="section11" class="form-section hidden">
             <div class="question-title">
-              <span class="question-number">10</span>
+              <span class="question-number">11</span>
               Nível de Escolaridade
               <span class="section-complete"><i class="fas fa-check-circle"></i> Completo</span>
             </div>
@@ -810,7 +810,7 @@
 
     
     let currentSection = 1;
-    const totalSections = 11;
+    const totalSections = 11; // Mantendo 11 pois temos seções de 1 a 11
     
     // Armazenar o peso do usuário para uso posterior
     let pesoUsuario = 0;
@@ -834,7 +834,7 @@
       }
       
       // Se estamos movendo para a seção de perda de peso desejada, atualizar as opções
-      if (sectionNumber === 11) {
+      if (sectionNumber === 2) {
         capturarPesoAltura();
       }
       
@@ -1039,24 +1039,30 @@
       });
     });
     
-    // Função para capturar o peso do usuário da seção 2
+    // Função para capturar o peso do usuário da seção 1 para usar na seção 2 (perda de peso)
     function capturarPesoAltura() {
       const form = document.getElementById('healthForm');
       const formData = new FormData(form);
       
       // Obter valores de peso e altura
       const peso = formData.get('peso');
-      const altura = formData.get('altura');
       
       if (peso) {
-        pesoUsuario = parseFloat(peso);
+        // Converter peso de string para um valor numérico baseado no intervalo
+        if (peso === 'menos60') {
+          pesoUsuario = 55;
+        } else if (peso === '60a80') {
+          pesoUsuario = 70;
+        } else if (peso === '81a100') {
+          pesoUsuario = 90;
+        } else if (peso === 'mais100') {
+          pesoUsuario = 110;
+        } else {
+          pesoUsuario = 80; // valor padrão
+        }
       }
       
-      if (altura) {
-        alturaUsuario = parseFloat(altura);
-      }
-      
-      console.log(`Peso capturado: ${pesoUsuario} kg, Altura: ${alturaUsuario} cm`);
+      console.log(`Peso estimado: ${pesoUsuario} kg`);
       
       // Personalizar opções de perda de peso com base no peso informado
       if (pesoUsuario > 0) {
@@ -1196,7 +1202,7 @@
             capturarPesoAltura();
           }
           
-          if (currentSection === 11 && input.name === 'perdaPesoDesejada') {
+          if (currentSection === 2 && input.name === 'perdaPesoDesejada') {
             objetivoPerdaPeso = input.value;
           }
           
