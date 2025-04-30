@@ -50,9 +50,10 @@
 
       function applyCPFMask(event) {
         const input = event.target;
-        // Com campo number, não aplicamos máscara visual, apenas limitamos o tamanho
-        // Garantimos que apenas números sejam inseridos
-        input.value = input.value.replace(/\D/g, '').substring(0, 11);
+        // Limita o input para apenas números
+        const numericValue = input.value.replace(/\D/g, '').substring(0, 11);
+        // Aplica a máscara visual usando a função maskCPF
+        input.value = maskCPF(numericValue);
       }
 
       // Exibe o indicador de força da senha
@@ -755,7 +756,7 @@
           <input 
             type="number" 
             id="cpfInput" 
-            placeholder="Digite seu CPF" 
+            placeholder="123.456.789-10" 
             inputmode="numeric" 
             pattern="[0-9]*"
             oninput="applyCPFMask(event)" 
