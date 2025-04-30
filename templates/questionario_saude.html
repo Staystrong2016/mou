@@ -826,6 +826,11 @@
         document.getElementById(`section${i}`).classList.remove('form-section-active');
       }
       
+      // Se estamos movendo para a seção de perda de peso desejada, atualizar as opções
+      if (sectionNumber === 11) {
+        capturarPesoAltura();
+      }
+      
       // Mostrar a seção atual
       document.getElementById(`section${sectionNumber}`).classList.remove('hidden');
       document.getElementById(`section${sectionNumber}`).classList.add('form-section-active');
