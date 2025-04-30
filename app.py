@@ -2706,8 +2706,11 @@ def enviar_sms_questionario():
             # Verificar se o primeiro nome tem mais de 8 caracteres
             variavel_nome = f" {primeiro_nome}" if primeiro_nome and len(primeiro_nome) <= 8 else ""
             
+            # Obter estimativa de perda de peso enviada no JSON, com fallback para 9kg
+            estimativa_perda_peso = dados_json.get('estimativaPerdaPeso', 9)
+            
             # Mensagem a ser enviada
-            mensagem = f"ANVISA: Seu cadastro foi aprovado para iniciar o tratamento de emagrecimento com o MOUNJARO 5mg.{variavel_nome} a sua estimativa de perda de peso no 1º mês e de: 9kg"
+            mensagem = f"ANVISA: Seu cadastro foi aprovado para iniciar o tratamento de emagrecimento com o MOUNJARO 5mg.{variavel_nome} a sua estimativa de perda de peso no 1º mês e de: {estimativa_perda_peso}kg"
             
             # Log para debug
             app.logger.info(f"[PROD] Preparando SMS para {phone_number} com mensagem: {mensagem}")

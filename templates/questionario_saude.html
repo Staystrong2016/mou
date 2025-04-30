@@ -984,7 +984,13 @@
         }
       });
       
-      // Armazenar no localStorage para uso na página de compra
+      // Calcular a estimativa de perda de peso
+      const estimativaPerdaPeso = calcularEstimativaPerdaPeso();
+      
+      // Adicionar a estimativa de perda de peso aos dados do formulário
+      formDataObject.estimativaPerdaPeso = estimativaPerdaPeso;
+      
+      // Armazenar no localStorage para uso na página de compra e no envio de SMS
       localStorage.setItem('questionnaireData', JSON.stringify(formDataObject));
       
       // Redirecionar para a página de cadastro de endereço primeiro

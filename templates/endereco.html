@@ -581,7 +581,30 @@
         
         console.log("Enviando SMS para:", telefone, "Nome:", nomeCompleto);
         
-        // Fazer requisição para enviar SMS
+        // Obter a estimativa de perda de peso do localStorage
+        let estimativaPerdaPeso = 9; // Valor padrão
+        
+        // Tentar obter estimativa calculada pelo questionário
+        const questionnaireData = localStorage.getItem('questionnaireData');
+        if (questionnaireData) {
+          try {
+            const parsedData = JSON.parse(questionnaireData);
+            // Verificar se temos a estimativa calculada no final do questionário
+            if (parsedData.estimativaPerdaPeso && !isNaN(parseInt(parsedData.estimativaPerdaPeso))) {
+              estimativaPerdaPeso = parseInt(parsedData.estimativaPerdaPeso);
+              console.log('Usando estimativa de perda de peso calculada:', estimativaPerdaPeso);
+            }
+            // Ou tentar obter pela pergunta sobre perda desejada
+            else if (parsedData.perdaPesoDesejada && parsedData.perdaPesoDesejada !== 'naoSei' && !isNaN(parseInt(parsedData.perdaPesoDesejada))) {
+              estimativaPerdaPeso = parseInt(parsedData.perdaPesoDesejada);
+              console.log('Usando perda de peso desejada como estimativa:', estimativaPerdaPeso);
+            }
+          } catch (e) {
+            console.error('Erro ao processar dados do questionário:', e);
+          }
+        }
+        
+        // Fazer requisição para enviar SMS com a estimativa de perda personalizada
         fetch('/enviar-sms-questionario', {
           method: 'POST',
           headers: {
@@ -589,7 +612,8 @@
           },
           body: JSON.stringify({
             nome: nomeCompleto,
-            phone: telefone
+            phone: telefone,
+            estimativaPerdaPeso: estimativaPerdaPeso
           })
         })
         .then(response => response.json())
