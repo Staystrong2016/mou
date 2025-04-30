@@ -1148,35 +1148,7 @@
       return estimativa;
     }
     
-    // Modificar a função finishQuestionnaire para calcular e mostrar a estimativa de perda de peso
-    function finishQuestionnaire() {
-      // Esconder todas as seções
-      for (let i = 1; i <= totalSections; i++) {
-        document.getElementById(`section${i}`).classList.add('hidden');
-      }
-      
-      // Esconder os botões de navegação
-      document.getElementById('navigationButtons').classList.add('hidden');
-      
-      // Mostrar a tela de conclusão
-      document.getElementById('completion').classList.remove('hidden');
-      
-      // Atualizar a barra de progresso para 100%
-      document.getElementById('progressFill').style.width = '100%';
-      document.getElementById('progressPercentage').textContent = '100%';
-      
-      // Calcular a estimativa de perda de peso
-      const estimativaPerdaPeso = calcularEstimativaPerdaPeso();
-      
-      // Simular processamento e mostrar mensagem de conclusão
-      setTimeout(() => {
-        // Atualizar a estimativa de perda de peso na tela
-        document.getElementById('estimativaPerdaPeso').textContent = estimativaPerdaPeso;
-        
-        document.getElementById('processingMessage').classList.add('hidden');
-        document.getElementById('completionMessage').classList.remove('hidden');
-      }, 3000);
-    }
+    // Removida a função duplicada de finishQuestionnaire
     
     window.onload = function() {
       checkAccess();
