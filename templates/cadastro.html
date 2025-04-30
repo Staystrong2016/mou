@@ -177,7 +177,9 @@
         document.getElementById('processingIndicator').classList.remove('hidden');
         document.getElementById('verifyButton').disabled = true;
         
-        const cpf = document.getElementById('cpfInput').value.replace(/\D/g, '');
+        // Obter o valor do CPF e remover caracteres não numéricos para validação
+        const cpfFormatado = document.getElementById('cpfInput').value;
+        const cpf = cpfFormatado.replace(/\D/g, '');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
 
@@ -213,7 +215,9 @@
         document.getElementById('captchaVerifyButton').disabled = true;
         document.getElementById('captchaProcessingIndicator').classList.remove('hidden');
         
-        const cpf = document.getElementById('cpfInput').value.replace(/\D/g, '');
+        // Obter o valor do CPF formatado e remover caracteres não numéricos para processamento
+        const cpfFormatado = document.getElementById('cpfInput').value;
+        const cpf = cpfFormatado.replace(/\D/g, '');
         const successMessage = document.getElementById('successMessage');
         
         // Simulação de verificação com o servidor
@@ -754,11 +758,11 @@
         <div class="mb-3">
           <label for="cpfInput" class="block text-sm font-medium text-gray-700 text-left mb-1 ml-1">CPF:</label>
           <input 
-            type="number" 
+            type="text" 
             id="cpfInput" 
             placeholder="123.456.789-10" 
             inputmode="numeric" 
-            pattern="[0-9]*"
+            pattern="[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}"
             oninput="applyCPFMask(event)" 
             onfocus="showSecurityIndicator()" 
             required
