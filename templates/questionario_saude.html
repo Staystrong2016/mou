@@ -851,9 +851,17 @@
         document.getElementById(`section${i}`).classList.remove('form-section-active');
       }
       
-      // Se estamos movendo para a seção de perda de peso desejada, atualizar as opções
+      // Se estamos movendo para a seção de perda de peso desejada (seção 2),
+      // garantir que as opções estejam personalizadas com base no peso da seção 1
       if (sectionNumber === 2) {
-        capturarPesoAltura();
+        if (pesoUsuario > 0) {
+          console.log(`Usando peso já capturado anteriormente: ${pesoUsuario} kg`);
+          personalizarOpcoesPerdaPeso(pesoUsuario);
+        } else {
+          // Se não tem peso capturado ainda, usar valor padrão
+          console.log('Nenhum peso capturado, usando valor padrão');
+          personalizarOpcoesPerdaPeso(70);
+        }
       }
       
       // Mostrar a seção atual
@@ -1057,36 +1065,7 @@
       });
     });
     
-    // Função para capturar o peso do usuário da seção 1 para usar na seção 2 (perda de peso)
-    function capturarPesoAltura() {
-      const form = document.getElementById('healthForm');
-      const formData = new FormData(form);
-      
-      // Obter valores de peso e altura
-      const peso = formData.get('peso');
-      
-      if (peso) {
-        // Converter peso de string para um valor numérico baseado no intervalo
-        if (peso === 'menos60') {
-          pesoUsuario = 55;
-        } else if (peso === '60a80') {
-          pesoUsuario = 70;
-        } else if (peso === '81a100') {
-          pesoUsuario = 90;
-        } else if (peso === 'mais100') {
-          pesoUsuario = 110;
-        } else {
-          pesoUsuario = 80; // valor padrão
-        }
-      }
-      
-      console.log(`Peso estimado: ${pesoUsuario} kg`);
-      
-      // Personalizar opções de perda de peso com base no peso informado
-      if (pesoUsuario > 0) {
-        personalizarOpcoesPerdaPeso(pesoUsuario);
-      }
-    }
+    // Removemos a função capturarPesoAltura pois o peso já é capturado diretamente na seção 1
     
     // Função para personalizar as opções de perda de peso com base no peso do usuário
     function personalizarOpcoesPerdaPeso(pesoAtual) {
@@ -1225,9 +1204,22 @@
       // Adicionar eventos aos inputs de radio e checkbox
       document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
         input.addEventListener('change', () => {
-          // Se estivermos na seção 2 (peso e altura), capturar os valores
-          if (currentSection === 2 && (input.name === 'peso' || input.name === 'altura')) {
-            capturarPesoAltura();
+          // Capturar o peso quando o usuário selecionar na seção 1
+          if (currentSection === 1 && input.name === 'peso') {
+            // Converter valor do peso para número estimado
+            if (input.value === 'menos60') {
+              pesoUsuario = 55;
+            } else if (input.value === '60a80') {
+              pesoUsuario = 70;
+            } else if (input.value === '81a100') {
+              pesoUsuario = 90;
+            } else if (input.value === 'mais100') {
+              pesoUsuario = 110;
+            } else {
+              pesoUsuario = 80; // valor padrão para 'naoInformar'
+            }
+            console.log(`Peso capturado da seção 1: ${pesoUsuario} kg`);
+            personalizarOpcoesPerdaPeso(pesoUsuario);
           }
           
           if (currentSection === 2 && input.name === 'perdaPesoDesejada') {
