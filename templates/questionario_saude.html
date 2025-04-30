@@ -379,15 +379,7 @@
     <div class="question-container">
       <div class="question-header">
         <h3 class="text-lg font-semibold text-[#0c326f]">Perfil de Saúde</h3>
-        <p class="text-sm text-gray-600">Complete as 10 questões abaixo para obter recomendações personalizadas</p>
-        
-        <div class="progress-bar">
-          <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="flex justify-between text-xs text-gray-500 mt-1">
-          <span>Questão <span id="currentQuestionNumber">1</span> de 10</span>
-          <span id="progressPercentage">0%</span>
-        </div>
+        <p class="text-sm text-gray-600">Complete o questionário abaixo para obter recomendações personalizadas</p>
       </div>
       
       <div class="question-content">
@@ -835,13 +827,7 @@
     let alturaUsuario = 0;
     let objetivoPerdaPeso = '';
     
-    // Função para atualizar a barra de progresso
-    function updateProgress() {
-      const progress = ((currentSection - 1) / totalSections) * 100;
-      document.getElementById('progressFill').style.width = `${progress}%`;
-      document.getElementById('progressPercentage').textContent = `${Math.round(progress)}%`;
-      document.getElementById('currentQuestionNumber').textContent = currentSection;
-    }
+    // Removida a função de atualizar progresso
     
     // Função para mostrar uma seção específica
     function showSection(sectionNumber) {
@@ -870,7 +856,6 @@
       
       // Atualizar contadores
       currentSection = sectionNumber;
-      updateProgress();
       
       // Mostrar/esconder botões de navegação
       if (currentSection > 1) {
@@ -960,9 +945,7 @@
       // Mostrar a tela de conclusão
       document.getElementById('completion').classList.remove('hidden');
       
-      // Atualizar a barra de progresso para 100%
-      document.getElementById('progressFill').style.width = '100%';
-      document.getElementById('progressPercentage').textContent = '100%';
+      // Barra de progresso removida
       
       // Simular processamento e mostrar mensagem de conclusão
       setTimeout(() => {
@@ -1075,10 +1058,10 @@
       opcoesPerdaPeso.innerHTML = '';
       
       // Criar opções personalizadas com base no peso
-      const perdaMinima = Math.max(5, Math.round(pesoAtual * 0.05));
-      const perdaMedia = Math.max(10, Math.round(pesoAtual * 0.10));
-      const perdaAlta = Math.max(15, Math.round(pesoAtual * 0.15));
-      const perdaMaxima = Math.max(20, Math.round(pesoAtual * 0.20));
+      const perdaMinima = Math.max(5, Math.round(pesoAtual * 0.10));
+      const perdaMedia = Math.max(10, Math.round(pesoAtual * 0.15));
+      const perdaAlta = Math.max(15, Math.round(pesoAtual * 0.20));
+      const perdaMaxima = Math.max(20, Math.round(pesoAtual * 0.25));
       
       // Adicionar opções de perda de peso personalizadas
       opcoesPerdaPeso.innerHTML = `
