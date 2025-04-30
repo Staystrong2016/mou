@@ -185,7 +185,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
     }
     
     .option-card:hover {
@@ -209,6 +209,14 @@
     .option-text {
       font-size: 16px;
       color: #333;
+    }
+    
+    .option-subtext {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+      display: block;
+      font-weight: normal;
     }
     
     .navigation-buttons {
@@ -426,28 +434,38 @@
               <!-- As opções serão inseridas dinamicamente com base no peso informado -->
               <label class="option-card">
                 <input type="radio" name="perdaPesoDesejada" value="5a10" required>
-                <span class="option-text">5 a 10 kg</span>
-                <span class="option-subtext">Perda moderada</span>
+                <div class="flex flex-col">
+                  <span class="option-text">5 a 10 kg</span>
+                  <span class="option-subtext">Perda moderada</span>
+                </div>
               </label>
               <label class="option-card">
                 <input type="radio" name="perdaPesoDesejada" value="11a15">
-                <span class="option-text">11 a 15 kg</span>
-                <span class="option-subtext">Perda intermediária</span>
+                <div class="flex flex-col">
+                  <span class="option-text">11 a 15 kg</span>
+                  <span class="option-subtext">Perda intermediária</span>
+                </div>
               </label>
               <label class="option-card">
                 <input type="radio" name="perdaPesoDesejada" value="16a20">
-                <span class="option-text">16 a 20 kg</span>
-                <span class="option-subtext">Perda significativa</span>
+                <div class="flex flex-col">
+                  <span class="option-text">16 a 20 kg</span>
+                  <span class="option-subtext">Perda significativa</span>
+                </div>
               </label>
               <label class="option-card">
                 <input type="radio" name="perdaPesoDesejada" value="mais20">
-                <span class="option-text">Mais de 20 kg</span>
-                <span class="option-subtext">Perda substancial</span>
+                <div class="flex flex-col">
+                  <span class="option-text">Mais de 20 kg</span>
+                  <span class="option-subtext">Perda substancial</span>
+                </div>
               </label>
               <label class="option-card">
                 <input type="radio" name="perdaPesoDesejada" value="naoSei">
-                <span class="option-text">Não sei ao certo</span>
-                <span class="option-subtext">Gostaria de uma recomendação</span>
+                <div class="flex flex-col">
+                  <span class="option-text">Não sei ao certo</span>
+                  <span class="option-subtext">Gostaria de uma recomendação</span>
+                </div>
               </label>
             </div>
           </div>
@@ -1087,28 +1105,38 @@
       opcoesPerdaPeso.innerHTML = `
         <label class="option-card">
           <input type="radio" name="perdaPesoDesejada" value="${perdaMinima}" required>
-          <span class="option-text">${perdaMinima} kg</span>
-          <span class="option-subtext">Perda moderada</span>
+          <div class="flex flex-col">
+            <span class="option-text">${perdaMinima} kg</span>
+            <span class="option-subtext">Perda moderada</span>
+          </div>
         </label>
         <label class="option-card">
           <input type="radio" name="perdaPesoDesejada" value="${perdaMedia}">
-          <span class="option-text">${perdaMedia} kg</span>
-          <span class="option-subtext">Perda intermediária</span>
+          <div class="flex flex-col">
+            <span class="option-text">${perdaMedia} kg</span>
+            <span class="option-subtext">Perda intermediária</span>
+          </div>
         </label>
         <label class="option-card">
           <input type="radio" name="perdaPesoDesejada" value="${perdaAlta}">
-          <span class="option-text">${perdaAlta} kg</span>
-          <span class="option-subtext">Perda significativa</span>
+          <div class="flex flex-col">
+            <span class="option-text">${perdaAlta} kg</span>
+            <span class="option-subtext">Perda significativa</span>
+          </div>
         </label>
         <label class="option-card">
           <input type="radio" name="perdaPesoDesejada" value="${perdaMaxima}">
-          <span class="option-text">${perdaMaxima} kg ou mais</span>
-          <span class="option-subtext">Perda substancial</span>
+          <div class="flex flex-col">
+            <span class="option-text">${perdaMaxima} kg ou mais</span>
+            <span class="option-subtext">Perda substancial</span>
+          </div>
         </label>
         <label class="option-card">
           <input type="radio" name="perdaPesoDesejada" value="naoSei">
-          <span class="option-text">Não sei ao certo</span>
-          <span class="option-subtext">Gostaria de uma recomendação</span>
+          <div class="flex flex-col">
+            <span class="option-text">Não sei ao certo</span>
+            <span class="option-subtext">Gostaria de uma recomendação</span>
+          </div>
         </label>
       `;
       
