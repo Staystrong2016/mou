@@ -947,8 +947,14 @@
       
       // Barra de progresso removida
       
+      // Calcular a estimativa de perda de peso
+      const estimativaPerdaPeso = calcularEstimativaPerdaPeso();
+      
       // Simular processamento e mostrar mensagem de conclusão
       setTimeout(() => {
+        // Atualizar a estimativa de perda de peso na tela
+        document.getElementById('estimativaPerdaPeso').textContent = estimativaPerdaPeso;
+        
         document.getElementById('processingMessage').classList.add('hidden');
         document.getElementById('completionMessage').classList.remove('hidden');
       }, 3000);
