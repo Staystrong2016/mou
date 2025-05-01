@@ -1,11 +1,34 @@
 import os
 import json
+import math
 import requests
 from flask import request, jsonify
-from geopy.distance import geodesic
 
 # Chave da API do Google Maps - obtida das variáveis de ambiente
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+
+# Função auxiliar para calcular distância entre dois pontos (fórmula de Haversine)
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calcula a distância entre dois pontos em quilômetros"""
+    # Raio da Terra em km
+    R = 6371.0
+    
+    # Converter para radianos
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+    
+    # Diferenças entre as coordenadas
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    
+    # Fórmula de Haversine
+    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = R * c
+    
+    return distance
 
 def init_pharmacy_routes(app):
     """Inicializa as rotas da API de farmácias"""
@@ -39,12 +62,15 @@ def init_pharmacy_routes(app):
                 user_location = (lat, lng)
                 
                 for pharmacy in pharmacies_result['data']['pharmacies']:
-                    pharmacy_location = (pharmacy.get('geometry', {}).get('location', {}).get('lat'), 
-                                       pharmacy.get('geometry', {}).get('location', {}).get('lng'))
+                    pharmacy_lat = pharmacy.get('location', {}).get('lat')
+                    pharmacy_lng = pharmacy.get('location', {}).get('lng')
                     
-                    # Calcular distância em km com 2 casas decimais
-                    distance_km = round(geodesic(user_location, pharmacy_location).kilometers, 2)
-                    pharmacy['distanceKm'] = distance_km
+                    if pharmacy_lat and pharmacy_lng:
+                        # Calcular distância em km com 2 casas decimais usando nossa função
+                        distance_km = round(calculate_distance(lat, lng, pharmacy_lat, pharmacy_lng), 2)
+                        pharmacy['distanceKm'] = distance_km
+                    else:
+                        pharmacy['distanceKm'] = 999.99  # Valor alto para desconhecidos
                 
                 # Ordenar farmácias por distância
                 pharmacies_result['data']['pharmacies'].sort(key=lambda x: x.get('distanceKm', float('inf')))
