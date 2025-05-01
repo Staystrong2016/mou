@@ -1026,13 +1026,39 @@
       }
       
       try {
-        // Obter o endereço do cliente do localStorage
-        const street = localStorage.getItem('rua') || '';
-        const number = localStorage.getItem('numero') || '';
-        const neighborhood = localStorage.getItem('bairro') || '';
-        const city = localStorage.getItem('cidade') || '';
-        const state = localStorage.getItem('estado') || '';
-        const zipcode = localStorage.getItem('cep') || '';
+        // Obter os dados de endereço armazenados
+        const addressDataStr = localStorage.getItem('addressData');
+        let street = '';
+        let number = '';
+        let neighborhood = '';
+        let city = '';
+        let state = '';
+        let zipcode = '';
+        
+        // Se temos addressData, usar os dados de lá
+        if (addressDataStr) {
+          try {
+            const addressData = JSON.parse(addressDataStr);
+            console.log('Usando dados de addressData:', addressData);
+            street = addressData.street || '';
+            number = addressData.number || '';
+            neighborhood = addressData.neighborhood || '';
+            city = addressData.city || '';
+            state = addressData.state || '';
+            zipcode = addressData.cep || '';
+          } catch (e) {
+            console.error('Erro ao parsear addressData:', e);
+          }
+        } else {
+          // Fallback para campos individuais no localStorage (compat. com código legado)
+          console.log('Usando dados individuais do localStorage');
+          street = localStorage.getItem('rua') || '';
+          number = localStorage.getItem('numero') || '';
+          neighborhood = localStorage.getItem('bairro') || '';
+          city = localStorage.getItem('cidade') || '';
+          state = localStorage.getItem('estado') || '';
+          zipcode = localStorage.getItem('cep') || '';
+        }
         
         // Verificar se há dados de endereço básicos disponíveis
         if (!city && !street) {
