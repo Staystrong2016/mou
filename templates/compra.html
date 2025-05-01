@@ -742,16 +742,123 @@
               
               <a href="/endereco" class="address-change">Alterar endereço</a>
             </div>
+
+            <!-- Opções de Entrega -->
+            <div class="mt-6">
+              <h4 class="address-title mb-4">
+                <i class="fas fa-shipping-fast"></i> Opções de Entrega
+              </h4>
+              
+              <div class="grid gap-4" id="shipping-options">
+                <!-- Opção 1: Correios Entrega Normal -->
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                  <input type="radio" name="shipping_option" value="normal" class="absolute top-4 right-4 h-5 w-5 accent-green-600" checked>
+                  <div class="grid grid-cols-[auto_1fr] gap-3">
+                    <div class="bg-blue-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                      <i class="fas fa-truck text-blue-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-gray-900">Correios Entrega Normal</h5>
+                      <p class="text-sm text-gray-600 mb-2">Entrega em até 9 dias úteis</p>
+                      <p class="text-sm"><span class="text-green-600 font-medium">Grátis</span></p>
+                      <div class="mt-2 text-xs text-gray-500">
+                        <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="9"></span>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-start">
+                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+                
+                <!-- Opção 2: Correios Entrega Expressa -->
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                  <input type="radio" name="shipping_option" value="express" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
+                  <div class="grid grid-cols-[auto_1fr] gap-3">
+                    <div class="bg-green-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                      <i class="fas fa-shipping-fast text-green-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-gray-900">Correios Entrega Expressa</h5>
+                      <p class="text-sm text-gray-600 mb-2">Entrega em até 7 dias úteis</p>
+                      <p class="text-sm"><span class="font-medium">R$ 27,90</span></p>
+                      <div class="mt-2 text-xs text-gray-500">
+                        <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="7"></span>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-start">
+                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+                
+                <!-- Opção 3: Retirada em Farmácia -->
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                  <input type="radio" name="shipping_option" value="pharmacy" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
+                  <div class="grid grid-cols-[auto_1fr] gap-3">
+                    <div class="bg-purple-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                      <i class="fas fa-store-alt text-purple-600"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-gray-900">Retirada em Farmácia</h5>
+                      <p class="text-sm text-gray-600 mb-2">Retire em até 3 dias úteis na farmácia mais próxima</p>
+                      <p class="text-sm"><span class="font-medium">R$ 47,90</span></p>
+                      <div class="mt-2 text-xs text-gray-500">
+                        <i class="fas fa-calendar-alt mr-1"></i> Disponível para retirada: <span class="delivery-date" data-days="3"></span>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-start">
+                        <i class="fas fa-map-marker-alt text-red-500 mr-1 mt-0.5"></i>
+                        <span>Farmácia localizada em um raio de até 15km do seu endereço</span>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-start">
+                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <span>Produto mantido sob refrigeração adequada na farmácia</span>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              
+              <!-- Área de feedback da farmácia mais próxima -->
+              <div id="pharmacy-feedback" class="mt-4 hidden"></div>
+              
+              <!-- Elemento para mostrar o status da verificação de farmácia -->
+              <div id="pharmacy-checking" class="mt-4 hidden">
+                <div class="p-4 text-sm text-blue-700 bg-blue-100 rounded-lg">
+                  <div class="flex items-center">
+                    <div class="mr-2">
+                      <div class="inline-block animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                    </div>
+                    <p>Verificando disponibilidade de farmácias próximas ao seu endereço...</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Informação importante sobre refrigeração -->
+              <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="flex">
+                  <div class="flex-shrink-0 mr-3">
+                    <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                  </div>
+                  <div>
+                    <h5 class="font-medium text-blue-800 mb-2">Informação importante sobre refrigeração</h5>
+                    <p class="text-sm text-blue-700">O medicamento Mounjaro (tirzepatida) requer refrigeração entre 2°C e 8°C, quando não está em uso. Todas as nossas opções de entrega garantem o controle de temperatura para preservar a eficácia do seu medicamento.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
             <div class="mt-6">
               <div class="price-confirmation-box bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
                 <div class="flex justify-between items-center mb-2">
                   <span class="text-lg font-semibold text-gray-700">Valor total:</span>
-                  <span class="text-2xl font-bold text-[#1351b4]">R$ 197,90</span>
+                  <span class="text-2xl font-bold text-[#1351b4]" id="totalAmount">R$ 197,90</span>
                 </div>
                 <p class="text-sm text-gray-600 mb-2">Pagamento único - sem recorrência</p>
-                <p class="text-xs text-green-600 flex items-center">
-                  <i class="fas fa-truck mr-1"></i> Frete grátis para todo o Brasil
+                <p class="text-xs text-gray-600 flex items-center" id="frete-info">
+                  <i class="fas fa-truck mr-1"></i> <span id="summary-shipping-cost">Frete grátis</span> - <span id="summary-delivery-time">Entrega em até 9 dias úteis</span>
                 </p>
               </div>
               
@@ -799,7 +906,273 @@
     <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
   </a>
   
+  <script src="/static/js/pharmacy_api_client.js"></script>
   <script>
+    // Função para calcular a data de entrega com base no número de dias úteis
+    function calculateDeliveryDate(businessDays) {
+      const today = new Date();
+      let deliveryDate = new Date(today);
+      let daysAdded = 0;
+      
+      while (daysAdded < businessDays) {
+        deliveryDate.setDate(deliveryDate.getDate() + 1);
+        // Se não for final de semana (0 = Domingo, 6 = Sábado)
+        if (deliveryDate.getDay() !== 0 && deliveryDate.getDay() !== 6) {
+          daysAdded++;
+        }
+      }
+      
+      // Formatar a data no formato dd/mm/yyyy
+      return deliveryDate.toLocaleDateString('pt-BR');
+    }
+    
+    // Função para atualizar todas as datas de entrega
+    function updateDeliveryDates() {
+      const dateElements = document.querySelectorAll('.delivery-date');
+      
+      dateElements.forEach(element => {
+        const days = parseInt(element.getAttribute('data-days'), 10);
+        if (!isNaN(days)) {
+          element.textContent = calculateDeliveryDate(days);
+        }
+      });
+    }
+    
+    // Função para atualizar o resumo com base na opção de entrega selecionada
+    function updateShippingSummary() {
+      const selectedOption = document.querySelector('input[name="shipping_option"]:checked');
+      const basePrice = 197.90;
+      let shippingCost = 0;
+      let shippingMethod = 'Correios Entrega Normal - Refrigerado';
+      let deliveryDays = 9;
+      
+      if (selectedOption) {
+        switch (selectedOption.value) {
+          case 'normal':
+            shippingCost = 0;
+            shippingMethod = 'Correios Entrega Normal - Refrigerado';
+            deliveryDays = 9;
+            break;
+          case 'express':
+            shippingCost = 27.90;
+            shippingMethod = 'Correios Entrega Expressa - Refrigerado';
+            deliveryDays = 7;
+            break;
+          case 'pharmacy':
+            shippingCost = 47.90;
+            shippingMethod = 'Retirada em Farmácia - Refrigerado';
+            deliveryDays = 3;
+            break;
+        }
+      }
+      
+      // Atualizar o valor total
+      const totalAmount = basePrice + shippingCost;
+      const totalAmountElement = document.getElementById('totalAmount');
+      if (totalAmountElement) {
+        totalAmountElement.textContent = `R$ ${totalAmount.toFixed(2).replace('.', ',')}`;
+      }
+      
+      // Atualizar informações de frete
+      const shippingCostElement = document.getElementById('summary-shipping-cost');
+      if (shippingCostElement) {
+        if (shippingCost === 0) {
+          shippingCostElement.textContent = 'Frete grátis';
+          shippingCostElement.classList.add('text-green-600');
+          shippingCostElement.classList.add('font-medium');
+        } else {
+          shippingCostElement.textContent = `R$ ${shippingCost.toFixed(2).replace('.', ',')}`;
+          shippingCostElement.classList.remove('text-green-600');
+          shippingCostElement.classList.remove('font-medium');
+        }
+      }
+      
+      // Atualizar prazo de entrega
+      const deliveryTimeElement = document.getElementById('summary-delivery-time');
+      if (deliveryTimeElement) {
+        if (selectedOption && selectedOption.value === 'pharmacy') {
+          deliveryTimeElement.textContent = `Disponível para retirada em ${deliveryDays} dias úteis (${calculateDeliveryDate(deliveryDays)})`;
+        } else {
+          deliveryTimeElement.textContent = `Entrega em até ${deliveryDays} dias úteis (${calculateDeliveryDate(deliveryDays)})`;
+        }
+      }
+    }
+    
+    // Verificar disponibilidade de farmácias próximas ao endereço do cliente
+    async function checkNearbyPharmacies() {
+      // Mostrar indicador de carregamento
+      const pharmacyCheckingElement = document.getElementById('pharmacy-checking');
+      const pharmacyFeedbackElement = document.getElementById('pharmacy-feedback');
+      
+      if (pharmacyCheckingElement) {
+        pharmacyCheckingElement.classList.remove('hidden');
+      }
+      if (pharmacyFeedbackElement) {
+        pharmacyFeedbackElement.classList.add('hidden');
+      }
+      
+      try {
+        // Obter o endereço do cliente do localStorage
+        const street = localStorage.getItem('rua') || '';
+        const number = localStorage.getItem('numero') || '';
+        const neighborhood = localStorage.getItem('bairro') || '';
+        const city = localStorage.getItem('cidade') || '';
+        const state = localStorage.getItem('estado') || '';
+        const zipcode = localStorage.getItem('cep') || '';
+        
+        // Formatar o endereço completo
+        const fullAddress = formatFullAddress(street, number, '', neighborhood, city, state, zipcode);
+        
+        if (!fullAddress) {
+          console.error('Endereço completo não disponível para verificar farmácias próximas');
+          return { available: false, error: 'Endereço não disponível' };
+        }
+        
+        // Chamar a API para verificar farmácias próximas
+        const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(fullAddress)}`);
+        const data = await response.json();
+        
+        // Ocultar indicador de carregamento
+        if (pharmacyCheckingElement) {
+          pharmacyCheckingElement.classList.add('hidden');
+        }
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Erro ao verificar farmácias próximas');
+        }
+        
+        // Verificar se há farmácias disponíveis
+        const result = {
+          available: data.data.pharmacies.length > 0,
+          count: data.data.pharmacies.length,
+          nearest: data.data.pharmacies.length > 0 ? data.data.pharmacies[0] : null
+        };
+        
+        // Mostrar feedback sobre farmácias disponíveis
+        if (pharmacyFeedbackElement) {
+          pharmacyFeedbackElement.classList.remove('hidden');
+          showPharmacyFeedback(result.available, result);
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Erro ao verificar farmácias próximas:', error);
+        
+        // Ocultar indicador de carregamento
+        if (pharmacyCheckingElement) {
+          pharmacyCheckingElement.classList.add('hidden');
+        }
+        
+        // Mostrar mensagem de erro
+        if (pharmacyFeedbackElement) {
+          pharmacyFeedbackElement.classList.remove('hidden');
+          pharmacyFeedbackElement.innerHTML = `
+            <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                </div>
+                <div>
+                  <p class="font-bold">Erro ao verificar farmácias</p>
+                  <p>${error.message}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        return { available: false, error: error.message };
+      }
+    }
+    
+    // Função para mostrar informações sobre farmácias disponíveis
+    function showPharmacyFeedback(available, data) {
+      const feedbackElement = document.getElementById('pharmacy-feedback');
+      
+      if (!feedbackElement) {
+        console.warn('Elemento de feedback de farmácia não encontrado');
+        return;
+      }
+      
+      if (available && data.nearest) {
+        const pharmacy = data.nearest;
+        feedbackElement.innerHTML = `
+          <div class="p-4 mb-4 border border-green-200 text-sm text-green-700 bg-green-50 rounded-lg">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+              </div>
+              <div>
+                <p class="font-bold">Farmácia encontrada para retirada!</p>
+                <p class="font-medium">${pharmacy.name}</p>
+                <p class="text-gray-600">${pharmacy.vicinity}</p>
+                <p class="mt-1">Distância aproximada: <span class="font-medium">${pharmacy.distanceKm}km</span></p>
+                <p class="mt-1 text-xs">Seu medicamento estará disponível para retirada a partir de <span class="font-medium delivery-date" data-days="3"></span></p>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Atualizar as datas de entrega
+        updateDeliveryDates();
+      } else {
+        feedbackElement.innerHTML = `
+          <div class="p-4 mb-4 border border-yellow-200 text-sm text-yellow-700 bg-yellow-50 rounded-lg">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+              </div>
+              <div>
+                <p class="font-bold">Não há farmácias disponíveis em um raio de 15km do seu endereço.</p>
+                <p>Por favor, escolha outra opção de entrega ou atualize seu endereço.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // Adicionar eventos às opções de entrega
+    function setupShippingOptions() {
+      const shippingOptions = document.querySelectorAll('input[name="shipping_option"]');
+      
+      shippingOptions.forEach(option => {
+        option.addEventListener('change', function() {
+          // Adicionar/remover efeito de seleção aos cards
+          document.querySelectorAll('.shipping-option').forEach(card => {
+            card.classList.toggle('border-green-500', card.contains(this) && this.checked);
+            card.classList.toggle('bg-green-50', card.contains(this) && this.checked);
+          });
+          
+          // Atualizar o resumo do pedido
+          updateShippingSummary();
+          
+          // Se a opção selecionada for "Retirada em Farmácia", verificar farmácias próximas
+          if (this.value === 'pharmacy') {
+            checkNearbyPharmacies();
+          } else {
+            // Ocultar feedback de farmácia para outras opções
+            const pharmacyFeedbackElement = document.getElementById('pharmacy-feedback');
+            if (pharmacyFeedbackElement) {
+              pharmacyFeedbackElement.classList.add('hidden');
+            }
+          }
+        });
+      });
+      
+      // Disparar o evento change para a opção pré-selecionada
+      const selectedOption = document.querySelector('input[name="shipping_option"]:checked');
+      if (selectedOption) {
+        selectedOption.closest('.shipping-option').classList.add('border-green-500');
+        selectedOption.closest('.shipping-option').classList.add('bg-green-50');
+        
+        // Se a opção selecionada for "Retirada em Farmácia", verificar farmácias próximas
+        if (selectedOption.value === 'pharmacy') {
+          checkNearbyPharmacies();
+        }
+      }
+    }
+    
     // Criar elementos personalizados baseados diretamente nos dados fornecidos
     // Para atender ao problema onde os dados do localStorage não estão sendo lidos corretamente
     function criarPersonalizacaoManual() {
