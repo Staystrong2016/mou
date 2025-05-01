@@ -119,7 +119,8 @@ def geocode_address(address):
         print(f"Usando chave API do Google Maps: {GOOGLE_MAPS_API_KEY[:5]}...")
         response = requests.get(url)
         data = response.json()
-        print(f"Resposta da API do Google Maps: {data}")
+        # Converter para string antes para evitar problemas com print em dict
+        print(f"Resposta da API do Google Maps: {str(data)[:300]}...")
         
         # Verificar se está em modo de desenvolvimento
         if data['status'] == 'REQUEST_DENIED' and os.environ.get('DEVELOPING') == 'true':
@@ -187,7 +188,7 @@ def find_nearby_pharmacies(lat, lng, radius='15000'):
         print(f"Buscando farmácias em {lat}, {lng} com raio de {radius}m")
         response = requests.get(url)
         data = response.json()
-        print(f"Resposta da API Places: {data[:100]}...")
+        print(f"Resposta da API Places: {str(data)[:100]}...")
         
         # Verificar se temos REQUEST_DENIED em ambiente de desenvolvimento
         if data.get('status') == 'REQUEST_DENIED' and os.environ.get('DEVELOPING') == 'true':
