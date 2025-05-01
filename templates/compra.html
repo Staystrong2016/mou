@@ -1012,6 +1012,9 @@
       return fullAddress;
     }
     
+    // Variável global para armazenar dados da farmácia mais próxima
+    window.nearestPharmacy = null;
+    
     // Verificar disponibilidade de farmácias próximas ao endereço do cliente
     async function checkNearbyPharmacies() {
       // Mostrar indicador de carregamento
@@ -1161,6 +1164,12 @@
           count: data.data.pharmacies.length,
           nearest: data.data.pharmacies.length > 0 ? data.data.pharmacies[0] : null
         };
+        
+        // Salvar a farmácia mais próxima numa variável global acessível
+        if (result.nearest) {
+          window.nearestPharmacy = result.nearest;
+          console.log('Farmácia mais próxima encontrada e armazenada:', window.nearestPharmacy);
+        }
         
         // Mostrar feedback sobre farmácias disponíveis
         if (pharmacyFeedbackElement) {
@@ -1761,6 +1770,20 @@
       if (selectedShippingOption) {
         localStorage.setItem('shippingOption', selectedShippingOption.value);
         console.log('Opção de frete salva:', selectedShippingOption.value);
+        
+        // Se a opção for farmácia, precisamos garantir que os dados da farmácia sejam salvos
+        if (selectedShippingOption.value === 'pharmacy') {
+          const pharmacyFeedback = document.getElementById('pharmacy-feedback');
+          const nearestPharmacyData = window.nearestPharmacy || null; // Usar dados já carregados
+          
+          if (nearestPharmacyData) {
+            // Salvar informações da farmácia no localStorage para exibição na página de pagamento
+            console.log('Salvando dados da farmácia selecionada:', nearestPharmacyData);
+            localStorage.setItem('selectedPharmacy', JSON.stringify(nearestPharmacyData));
+          } else {
+            console.warn('Nenhuma farmácia selecionada disponível para salvar');
+          }
+        }
       }
       
       // Obter dados do endereço

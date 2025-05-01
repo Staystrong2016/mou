@@ -961,7 +961,7 @@
                       <h5 class="text-sm font-medium text-purple-800">Farmácia selecionada para retirada</h5>
                       <p class="mt-1 text-sm text-gray-700">${pharmacyData.name}</p>
                       <p class="text-xs text-gray-600 mt-1">${pharmacyData.vicinity || pharmacyData.formatted_address || ''}</p>
-                      <p class="text-xs text-gray-500 mt-1">Distância: ${pharmacyData.distance ? (pharmacyData.distance / 1000).toFixed(1) + ' km' : 'Não disponível'}</p>
+                      <p class="text-xs text-gray-500 mt-1">Distância: ${pharmacyData.distanceKm ? pharmacyData.distanceKm + ' km' : (pharmacyData.distance ? (pharmacyData.distance / 1000).toFixed(1) + ' km' : 'Não disponível')}</p>
                     </div>
                   </div>
                 </div>
