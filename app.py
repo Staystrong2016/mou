@@ -2796,7 +2796,9 @@ def endereco():
         except Exception as utm_error:
             app.logger.error(f"[FACEBOOK] Erro ao processar parâmetros UTM: {str(utm_error)}")
             
-        return render_template('endereco.html')
+        # Passar a chave da API do Google Maps para o template
+        google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY', '')
+        return render_template('endereco.html', google_maps_api_key=google_maps_api_key)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de cadastro de endereço: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500

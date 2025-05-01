@@ -40,6 +40,11 @@ print("Middleware de análise de requisições registrado com sucesso!")
 register_facebook_conversion_events(app)
 print("Eventos de conversão do Facebook registrados com sucesso!")
 
+# Inicializar rotas da API de farmácias
+from pharmacy_api import init_pharmacy_routes
+init_pharmacy_routes(app)
+print("API de farmácias inicializada com sucesso!")
+
 # Log para debug
 app.logger.info("Aplicação inicializada com middleware de Request Analyzer e Eventos de Conversão Facebook")
 
