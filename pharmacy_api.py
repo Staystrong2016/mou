@@ -181,45 +181,7 @@ def find_nearby_pharmacies(lat, lng, radius='15000'):
         }
     
     try:
-        # Verificar se está em modo de desenvolvimento
-        if os.environ.get('DEVELOPING') == 'true':
-            print("Usando dados simulados para farmácias em ambiente de desenvolvimento")
-            
-            # Criar dados simulados de farmácias
-            pharmacies = [
-                {
-                    'place_id': 'place_1',
-                    'name': 'Farmácia Popular Central',
-                    'vicinity': 'Av. Paulista, 123 - Centro',
-                    'distanceKm': 1.2,
-                    'location': {'lat': lat + 0.01, 'lng': lng + 0.01},
-                    'rating': 4.5
-                },
-                {
-                    'place_id': 'place_2',
-                    'name': 'Drogaria São Paulo',
-                    'vicinity': 'Rua Augusta, 456 - Jardins',
-                    'distanceKm': 2.5,
-                    'location': {'lat': lat - 0.01, 'lng': lng - 0.01},
-                    'rating': 4.2
-                },
-                {
-                    'place_id': 'place_3',
-                    'name': 'Drogasil',
-                    'vicinity': 'Rua Oscar Freire, 789 - Jardins',
-                    'distanceKm': 3.1,
-                    'location': {'lat': lat + 0.02, 'lng': lng - 0.02},
-                    'rating': 4.0
-                }
-            ]
-            
-            return {
-                'success': True,
-                'data': {
-                    'pharmacies': pharmacies
-                }
-            }
-        
+
         # Usar a API Places Nearby Search para encontrar farmácias
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type=pharmacy&key={GOOGLE_MAPS_API_KEY}"
         print(f"Buscando farmácias em {lat}, {lng} com raio de {radius}m")
