@@ -877,6 +877,7 @@
       const shippingDate = document.getElementById('shipping-date');
       const shippingIcon = document.getElementById('shipping-icon');
       const shippingIconContainer = document.getElementById('shipping-icon-container');
+      const totalAmount = document.getElementById('totalAmount');
       
       // Atualizar também os campos do resumo do pedido
       const summaryShippingCost = document.getElementById('summary-shipping-cost');
@@ -884,11 +885,14 @@
       const summaryShippingMethod = document.getElementById('summary-shipping-method');
       
       let days, costText, methodText, detailsText, iconClass, containerClass;
+      // Valor de frete em número para cálculos
+      let shippingCostValue = 0;
       
       // Configurar baseado na opção selecionada
       switch(shippingOption) {
         case 'express':
           days = 7;
+          shippingCostValue = 27.90;
           costText = "<span class=\"font-medium\">R$ 27,90</span>";
           methodText = "Correios Entrega Expressa";
           detailsText = "Entrega em até 7 dias úteis";
@@ -898,6 +902,7 @@
           
         case 'pharmacy':
           days = 3;
+          shippingCostValue = 47.90;
           costText = "<span class=\"font-medium\">R$ 47,90</span>";
           methodText = "Retirada em Farmácia";
           detailsText = "Retire em até 3 dias úteis na farmácia mais próxima";
@@ -907,11 +912,26 @@
           
         default: // normal
           days = 9;
+          shippingCostValue = 0;
           costText = "<span class=\"text-green-600 font-medium\">Grátis</span>";
           methodText = "Correios Entrega Normal";
           detailsText = "Entrega em até 9 dias úteis";
           iconClass = "fas fa-truck text-blue-600";
           containerClass = "bg-blue-100";
+      }
+      
+      // Calcular o valor total com frete
+      if (totalAmount) {
+        // Obter o valor base do produto dos dados do PIX
+        const pixData = getPixData();
+        const baseAmount = pixData && pixData.amount ? parseFloat(pixData.amount) : 197.90;
+        
+        // Calcular o total (produto + frete)
+        const total = baseAmount + shippingCostValue;
+        
+        // Atualizar no elemento HTML
+        totalAmount.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        console.log(`Valor atualizado: Produto R$ ${baseAmount.toFixed(2)} + Frete R$ ${shippingCostValue.toFixed(2)} = R$ ${total.toFixed(2)}`);
       }
       
       // Atualizar a interface
