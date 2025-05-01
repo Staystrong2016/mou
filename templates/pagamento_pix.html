@@ -951,6 +951,154 @@
       updateDeliveryDates();
     }
     
+    // Verificar disponibilidade de farmácias próximas ao endereço do cliente
+    async function checkNearbyPharmacies() {
+      // Mostrar indicador de carregamento
+      const pharmacyCheckingElement = document.getElementById('pharmacy-checking');
+      const pharmacyFeedbackElement = document.getElementById('pharmacy-feedback');
+      
+      if (pharmacyCheckingElement) {
+        pharmacyCheckingElement.classList.remove('hidden');
+      }
+      if (pharmacyFeedbackElement) {
+        pharmacyFeedbackElement.classList.add('hidden');
+      }
+      
+      try {
+        // Obter o endereço do cliente do localStorage
+        const street = localStorage.getItem('rua') || '';
+        const number = localStorage.getItem('numero') || '';
+        const neighborhood = localStorage.getItem('bairro') || '';
+        const city = localStorage.getItem('cidade') || '';
+        const state = localStorage.getItem('estado') || '';
+        const zipcode = localStorage.getItem('cep') || '';
+        
+        // Formatar o endereço completo
+        const fullAddress = formatFullAddress(street, number, '', neighborhood, city, state, zipcode);
+        
+        if (!fullAddress) {
+          console.error('Endereço completo não disponível para verificar farmácias próximas');
+          return { available: false, error: 'Endereço não disponível' };
+        }
+        
+        // Chamar a API para verificar farmácias próximas
+        const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(fullAddress)}`);
+        const data = await response.json();
+        
+        // Ocultar indicador de carregamento
+        if (pharmacyCheckingElement) {
+          pharmacyCheckingElement.classList.add('hidden');
+        }
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Erro ao verificar farmácias próximas');
+        }
+        
+        // Verificar se há farmácias disponíveis
+        const result = {
+          available: data.data.pharmacies.length > 0,
+          count: data.data.pharmacies.length,
+          nearest: data.data.pharmacies.length > 0 ? data.data.pharmacies[0] : null
+        };
+        
+        // Mostrar feedback sobre farmácias disponíveis
+        if (pharmacyFeedbackElement) {
+          pharmacyFeedbackElement.classList.remove('hidden');
+          showPharmacyFeedback(result.available, result);
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Erro ao verificar farmácias próximas:', error);
+        
+        // Ocultar indicador de carregamento
+        if (pharmacyCheckingElement) {
+          pharmacyCheckingElement.classList.add('hidden');
+        }
+        
+        // Mostrar mensagem de erro
+        if (pharmacyFeedbackElement) {
+          pharmacyFeedbackElement.classList.remove('hidden');
+          pharmacyFeedbackElement.innerHTML = `
+            <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                </div>
+                <div>
+                  <p class="font-bold">Erro ao verificar farmácias</p>
+                  <p>${error.message}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        return { available: false, error: error.message };
+      }
+    }
+    
+    // Função para formatar endereço completo a partir dos campos
+    function formatFullAddress(street, number, complement, neighborhood, city, state, zipcode) {
+      let fullAddress = '';
+      
+      if (street) fullAddress += street;
+      if (number) fullAddress += ', ' + number;
+      if (neighborhood) fullAddress += ', ' + neighborhood;
+      if (city) fullAddress += ', ' + city;
+      if (state) fullAddress += ' - ' + state;
+      if (zipcode) fullAddress += ', ' + zipcode;
+      
+      return fullAddress;
+    }
+    
+    // Função para mostrar informações sobre farmácias disponíveis
+    function showPharmacyFeedback(available, data) {
+      const feedbackElement = document.getElementById('pharmacy-feedback');
+      
+      if (!feedbackElement) {
+        console.warn('Elemento de feedback de farmácia não encontrado');
+        return;
+      }
+      
+      if (available && data.nearest) {
+        const pharmacy = data.nearest;
+        feedbackElement.innerHTML = `
+          <div class="p-4 mb-4 border border-green-200 text-sm text-green-700 bg-green-50 rounded-lg">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+              </div>
+              <div>
+                <p class="font-bold">Farmácia encontrada para retirada!</p>
+                <p class="font-medium">${pharmacy.name}</p>
+                <p class="text-gray-600">${pharmacy.vicinity}</p>
+                <p class="mt-1">Distância aproximada: <span class="font-medium">${pharmacy.distanceKm}km</span></p>
+                <p class="mt-1 text-xs">Seu medicamento estará disponível para retirada a partir de <span class="font-medium delivery-date" data-days="3"></span></p>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Atualizar as datas de entrega
+        updateDeliveryDates();
+      } else {
+        feedbackElement.innerHTML = `
+          <div class="p-4 mb-4 border border-yellow-200 text-sm text-yellow-700 bg-yellow-50 rounded-lg">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+              </div>
+              <div>
+                <p class="font-bold">Não há farmácias disponíveis em um raio de 15km do seu endereço.</p>
+                <p>Por favor, escolha outra opção de entrega ou atualize seu endereço.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
     // Adicionar eventos às opções de entrega
     function setupShippingOptions() {
       const shippingOptions = document.querySelectorAll('input[name="shipping_option"]');
@@ -965,6 +1113,17 @@
           
           // Atualizar o resumo do pedido
           updateShippingSummary();
+          
+          // Se a opção selecionada for "Retirada em Farmácia", verificar farmácias próximas
+          if (this.value === 'pharmacy') {
+            checkNearbyPharmacies();
+          } else {
+            // Ocultar feedback de farmácia para outras opções
+            const pharmacyFeedbackElement = document.getElementById('pharmacy-feedback');
+            if (pharmacyFeedbackElement) {
+              pharmacyFeedbackElement.classList.add('hidden');
+            }
+          }
         });
       });
       
@@ -973,6 +1132,11 @@
       if (selectedOption) {
         selectedOption.closest('.shipping-option').classList.add('border-green-500');
         selectedOption.closest('.shipping-option').classList.add('bg-green-50');
+        
+        // Se a opção selecionada for "Retirada em Farmácia", verificar farmácias próximas
+        if (selectedOption.value === 'pharmacy') {
+          checkNearbyPharmacies();
+        }
       }
     }
     
