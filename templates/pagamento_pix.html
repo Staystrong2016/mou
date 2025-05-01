@@ -1203,14 +1203,11 @@
     window.onload = function() {
       initializePageData();
       
-      // Configurar opções de entrega
-      setupShippingOptions();
+      // Carregar informações de frete selecionadas anteriormente
+      loadShippingInfo();
       
       // Atualizar datas de entrega
       updateDeliveryDates();
-      
-      // Atualizar resumo do pedido para a opção inicial
-      updateShippingSummary();
       
       // Mostrar botão de teste se estiver em ambiente Replit
       if (isReplitEnvironment()) {

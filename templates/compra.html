@@ -1756,6 +1756,13 @@
       // Mostrar modal de processamento
       document.getElementById('processingModal').classList.remove('hidden');
       
+      // Salvar a opção de frete selecionada no localStorage
+      const selectedShippingOption = document.querySelector('input[name="shipping_option"]:checked');
+      if (selectedShippingOption) {
+        localStorage.setItem('shippingOption', selectedShippingOption.value);
+        console.log('Opção de frete salva:', selectedShippingOption.value);
+      }
+      
       // Obter dados do endereço
       const addressDataStr = localStorage.getItem('addressData');
       if (!addressDataStr) {
