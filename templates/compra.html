@@ -1780,6 +1780,15 @@
       // Tentar carregar dados do endereço
       loadAddressData();
       
+      // Configurar opções de entrega
+      setupShippingOptions();
+      
+      // Atualizar as datas de entrega
+      updateDeliveryDates();
+      
+      // Atualizar o resumo do pedido para a opção inicial
+      updateShippingSummary();
+      
       // Primeiro tentar carregar os dados do questionário
       // Se falhar, vai usar os dados diretos de personalização
       try {
