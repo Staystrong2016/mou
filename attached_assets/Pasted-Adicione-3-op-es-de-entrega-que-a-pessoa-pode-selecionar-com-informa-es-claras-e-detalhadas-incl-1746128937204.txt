@@ -1,0 +1,17 @@
+Adicione 3 opções de entrega que a pessoa pode selecionar, com informações claras e detalhadas, incluindo prazos, custos em reais (R$) e condições especiais. Para o medicamento Mounjaro, destaque explicitamente em negrito ou com um ícone de alerta que o tempo de entrega é um pouco mais longo porque o produto é refrigerado e requer cuidados especiais durante o transporte para garantir sua qualidade e segurança. Valide o endereço fornecido pelo usuário em /endereço usando a API do Google Maps ou outro serviço de validação antes de exibir as opções. Com base na opção de frete escolhida, calcule e exiba a data estimada de chegada na residência do usuário, considerando o prazo informado e a data atual, assumindo que a entrega começa a ser processada no próximo dia útil.
+
+
+
+
+
+Correios Entrega Normal: Entrega em até 9 dias úteis para o endereço informado, grátis. Para Mounjaro, o prazo é de 9 dias úteis, pois o produto é refrigerado e requer cuidados especiais durante o transporte. Exiba a data estimada de chegada com base no prazo.
+
+
+
+Correios Entrega Expressa: Entrega em até 7 dias úteis para o endereço informado, ao custo de R$27,90. Para Mounjaro, o prazo é de 7 dias úteis, pois o produto é refrigerado e requer cuidados especiais durante o transporte. Exiba a data estimada de chegada com base no prazo.
+
+
+
+Retirada em Farmácia: Retire em até 3 dias úteis na farmácia mais próxima (localizada em um raio de até 15 km do endereço fornecido, utilizando a API do Google Maps para identificar a farmácia com base no endereço preenchido em /endereço), ao custo de R$47,90. Para Mounjaro, a retirada segue o prazo de 3 dias úteis, com o produto armazenado em condições refrigeradas na farmácia. Exiba a data estimada de disponibilidade para retirada com base no prazo. Caso não haja farmácias no raio de 15 km, exiba uma mensagem informando que a opção não está disponível e sugira as opções de entrega pelos Correios.
+
+Garanta que as opções sejam exibidas de forma clara e amigável, com botões ou seletores intuitivos na interface, e que o aviso sobre o Mounjaro seja destacado visualmente. Verifique a viabilidade das opções de entrega com base no CEP do usuário, considerando possíveis restrições em áreas rurais ou remotas, e exiba uma mensagem de erro caso o endereço seja inválido ou a entrega não seja possível.

@@ -19,6 +19,21 @@
       background-color: #f8f9fa;
     }
     
+    /* Estilos para opções de entrega */
+    .shipping-option {
+      transition: all 0.2s ease-in-out;
+    }
+    
+    .shipping-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .shipping-option.border-green-500 {
+      border-width: 2px;
+      border-color: #22c55e;
+    }
+    
     .main-title {
       font-size: 24px;
       font-weight: 700;
@@ -435,17 +450,89 @@
           </ul>
         </div>
         
-        <div class="instructions mt-4 border-l-4 border-green-600 bg-green-50">
-          <h4 class="instructions-title text-green-700">
-            <i class="fas fa-shipping-fast"></i> Informações sobre a Entrega
+        <div class="mt-6 mb-6">
+          <h4 class="text-lg font-semibold text-[#0c326f] mb-3">
+            <i class="fas fa-shipping-fast mr-2"></i> Selecione a opção de entrega
           </h4>
-          <p class="text-sm text-gray-700">O medicamento Mounjaro (Tirzepatida) será enviado com as seguintes garantias:</p>
-          <ul class="instructions-list">
-            <li>Entrega pelos <b>Correios Oficial</b> em 3-5 dias úteis após confirmação do pagamento</li>
-            <li>Embalagem térmica especial com <b>controle de temperatura</b> para preservar a eficácia do medicamento</li>
-            <li>Transporte refrigerado seguindo rigorosos padrões da ANVISA para medicamentos injetáveis</li>
-            <li>Rastreamento em tempo real do seu pedido com código de rastreio enviado por SMS</li>
-          </ul>
+          
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4 text-sm">
+            <div class="flex items-start">
+              <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 mt-0.5"></i>
+              <p><b>Atenção:</b> O medicamento Mounjaro requer refrigeração e cuidados especiais durante o transporte, o que pode afetar os prazos de entrega.</p>
+            </div>
+          </div>
+          
+          <div class="grid gap-4" id="shipping-options">
+            <!-- Opção 1: Correios Entrega Normal -->
+            <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+              <input type="radio" name="shipping_option" value="normal" class="absolute top-4 right-4 h-5 w-5 accent-green-600" checked>
+              <div class="grid grid-cols-[auto_1fr] gap-3">
+                <div class="bg-blue-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                  <i class="fas fa-truck text-blue-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-medium text-gray-900">Correios Entrega Normal</h5>
+                  <p class="text-sm text-gray-600 mb-2">Entrega em até 9 dias úteis</p>
+                  <p class="text-sm"><span class="text-green-600 font-medium">Grátis</span></p>
+                  <div class="mt-2 text-xs text-gray-500">
+                    <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="9"></span>
+                  </div>
+                  <div class="mt-2 text-xs text-gray-500 flex items-start">
+                    <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                    <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+            
+            <!-- Opção 2: Correios Entrega Expressa -->
+            <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+              <input type="radio" name="shipping_option" value="express" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
+              <div class="grid grid-cols-[auto_1fr] gap-3">
+                <div class="bg-green-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                  <i class="fas fa-shipping-fast text-green-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-medium text-gray-900">Correios Entrega Expressa</h5>
+                  <p class="text-sm text-gray-600 mb-2">Entrega em até 7 dias úteis</p>
+                  <p class="text-sm"><span class="font-medium">R$ 27,90</span></p>
+                  <div class="mt-2 text-xs text-gray-500">
+                    <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="7"></span>
+                  </div>
+                  <div class="mt-2 text-xs text-gray-500 flex items-start">
+                    <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                    <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+            
+            <!-- Opção 3: Retirada em Farmácia -->
+            <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+              <input type="radio" name="shipping_option" value="pharmacy" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
+              <div class="grid grid-cols-[auto_1fr] gap-3">
+                <div class="bg-purple-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
+                  <i class="fas fa-store-alt text-purple-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-medium text-gray-900">Retirada em Farmácia</h5>
+                  <p class="text-sm text-gray-600 mb-2">Retire em até 3 dias úteis na farmácia mais próxima</p>
+                  <p class="text-sm"><span class="font-medium">R$ 47,90</span></p>
+                  <div class="mt-2 text-xs text-gray-500">
+                    <i class="fas fa-calendar-alt mr-1"></i> Disponível para retirada: <span class="delivery-date" data-days="3"></span>
+                  </div>
+                  <div class="mt-2 text-xs text-gray-500 flex items-start">
+                    <i class="fas fa-map-marker-alt text-red-500 mr-1 mt-0.5"></i>
+                    <span>Farmácia localizada em um raio de até 15km do seu endereço</span>
+                  </div>
+                  <div class="mt-2 text-xs text-gray-500 flex items-start">
+                    <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                    <span>Produto mantido sob refrigeração adequada na farmácia</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+          </div>
         </div>
         
         <div class="order-summary">
@@ -473,17 +560,17 @@
           
           <div class="summary-item">
             <div class="summary-label">Frete:</div>
-            <div class="summary-value">Grátis</div>
+            <div class="summary-value" id="summary-shipping-cost">Grátis</div>
           </div>
           
           <div class="summary-item">
             <div class="summary-label">Prazo de entrega:</div>
-            <div class="summary-value"><span class="font-medium text-green-600">3-5 dias úteis</span> (Correios Oficial)</div>
+            <div class="summary-value" id="summary-delivery-time"><span class="font-medium text-green-600">9 dias úteis</span> (Previsão: <span class="delivery-date" data-days="9"></span>)</div>
           </div>
           
           <div class="summary-item">
             <div class="summary-label">Método de envio:</div>
-            <div class="summary-value">Entrega Resfriada com Garantia de Temperatura</div>
+            <div class="summary-value" id="summary-shipping-method">Correios Entrega Normal - Refrigerado</div>
           </div>
           
           <div class="summary-total">
@@ -780,8 +867,111 @@
     }
     
     // Inicializar quando a página carregar
+    // Calcular datas de entrega baseadas no número de dias úteis
+    function calculateDeliveryDate(businessDays) {
+      const date = new Date();
+      let count = 0;
+      
+      while (count < businessDays) {
+        date.setDate(date.getDate() + 1);
+        const day = date.getDay();
+        // Pular finais de semana (0 = domingo, 6 = sábado)
+        if (day !== 0 && day !== 6) {
+          count++;
+        }
+      }
+      
+      // Formatando a data para formato brasileiro
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+    
+    // Atualizar todas as datas de entrega na página
+    function updateDeliveryDates() {
+      document.querySelectorAll('.delivery-date').forEach(element => {
+        const days = parseInt(element.getAttribute('data-days'), 10);
+        if (!isNaN(days)) {
+          element.textContent = calculateDeliveryDate(days);
+        }
+      });
+    }
+    
+    // Atualizar o resumo do pedido baseado na opção de entrega selecionada
+    function updateShippingSummary() {
+      const selectedOption = document.querySelector('input[name="shipping_option"]:checked');
+      const summaryShippingCost = document.getElementById('summary-shipping-cost');
+      const summaryDeliveryTime = document.getElementById('summary-delivery-time');
+      const summaryShippingMethod = document.getElementById('summary-shipping-method');
+      const totalAmount = document.getElementById('totalAmount');
+      
+      // Obter valor base do produto
+      const baseAmount = getPixData().amount || 197.90;
+      let shippingCost = 0;
+      
+      if (selectedOption.value === 'normal') {
+        summaryShippingCost.textContent = 'Grátis';
+        summaryDeliveryTime.innerHTML = '<span class="font-medium text-green-600">9 dias úteis</span> (Previsão: <span class="delivery-date" data-days="9"></span>)';
+        summaryShippingMethod.textContent = 'Correios Entrega Normal - Refrigerado';
+        shippingCost = 0;
+      } else if (selectedOption.value === 'express') {
+        summaryShippingCost.textContent = 'R$ 27,90';
+        summaryDeliveryTime.innerHTML = '<span class="font-medium text-green-600">7 dias úteis</span> (Previsão: <span class="delivery-date" data-days="7"></span>)';
+        summaryShippingMethod.textContent = 'Correios Entrega Expressa - Refrigerado';
+        shippingCost = 27.90;
+      } else if (selectedOption.value === 'pharmacy') {
+        summaryShippingCost.textContent = 'R$ 47,90';
+        summaryDeliveryTime.innerHTML = '<span class="font-medium text-green-600">3 dias úteis</span> (Previsão: <span class="delivery-date" data-days="3"></span>)';
+        summaryShippingMethod.textContent = 'Retirada em Farmácia - Refrigerado';
+        shippingCost = 47.90;
+      }
+      
+      // Atualizar o valor total
+      const newTotal = parseFloat(baseAmount) + shippingCost;
+      totalAmount.textContent = `R$ ${newTotal.toFixed(2).replace('.', ',')}`;
+      
+      // Atualizar as datas de entrega novamente após modificar o HTML
+      updateDeliveryDates();
+    }
+    
+    // Adicionar eventos às opções de entrega
+    function setupShippingOptions() {
+      const shippingOptions = document.querySelectorAll('input[name="shipping_option"]');
+      
+      shippingOptions.forEach(option => {
+        option.addEventListener('change', function() {
+          // Adicionar/remover efeito de seleção aos cards
+          document.querySelectorAll('.shipping-option').forEach(card => {
+            card.classList.toggle('border-green-500', card.contains(this) && this.checked);
+            card.classList.toggle('bg-green-50', card.contains(this) && this.checked);
+          });
+          
+          // Atualizar o resumo do pedido
+          updateShippingSummary();
+        });
+      });
+      
+      // Disparar o evento change para a opção pré-selecionada
+      const selectedOption = document.querySelector('input[name="shipping_option"]:checked');
+      if (selectedOption) {
+        selectedOption.closest('.shipping-option').classList.add('border-green-500');
+        selectedOption.closest('.shipping-option').classList.add('bg-green-50');
+      }
+    }
+    
     window.onload = function() {
       initializePageData();
+      
+      // Configurar opções de entrega
+      setupShippingOptions();
+      
+      // Atualizar datas de entrega
+      updateDeliveryDates();
+      
+      // Atualizar resumo do pedido para a opção inicial
+      updateShippingSummary();
       
       // Mostrar botão de teste se estiver em ambiente Replit
       if (isReplitEnvironment()) {
