@@ -749,23 +749,28 @@
                 <i class="fas fa-shipping-fast"></i> Opções de Entrega
               </h4>
               
-              <div class="grid gap-4" id="shipping-options">
+              <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1" id="shipping-options">
                 <!-- Opção 1: Correios Entrega Normal -->
-                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 shipping-option transform hover:scale-[1.02] hover:shadow-md">
                   <input type="radio" name="shipping_option" value="normal" class="absolute top-4 right-4 h-5 w-5 accent-green-600" checked>
-                  <div class="grid grid-cols-[auto_1fr] gap-3">
-                    <div class="bg-blue-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
-                      <i class="fas fa-truck text-blue-600"></i>
+                  <div class="flex flex-col h-full">
+                    <div class="flex items-center mb-3">
+                      <div class="bg-blue-50 rounded-full p-2 h-10 w-10 flex items-center justify-center mr-3">
+                        <i class="fas fa-truck text-blue-600"></i>
+                      </div>
+                      <h5 class="font-medium text-gray-900 text-lg">Correios Entrega Normal</h5>
                     </div>
-                    <div>
-                      <h5 class="font-medium text-gray-900">Correios Entrega Normal</h5>
-                      <p class="text-sm text-gray-600 mb-2">Entrega em até 9 dias úteis</p>
-                      <p class="text-sm"><span class="text-green-600 font-medium">Grátis</span></p>
-                      <div class="mt-2 text-xs text-gray-500">
-                        <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="9"></span>
+                    <div class="flex-grow">
+                      <div class="bg-blue-50 rounded-lg p-3 mb-3">
+                        <p class="text-sm text-gray-600 font-medium">Entrega em até 9 dias úteis</p>
+                        <p class="text-lg mt-1"><span class="text-green-600 font-bold">Grátis</span></p>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2 text-blue-500"></i> 
+                        <span>Previsão de entrega: <span class="delivery-date font-medium" data-days="9"></span></span>
                       </div>
                       <div class="mt-2 text-xs text-gray-500 flex items-start">
-                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <i class="fas fa-snowflake text-blue-500 mr-2 mt-0.5"></i>
                         <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
                       </div>
                     </div>
@@ -773,21 +778,26 @@
                 </label>
                 
                 <!-- Opção 2: Correios Entrega Expressa -->
-                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 shipping-option transform hover:scale-[1.02] hover:shadow-md">
                   <input type="radio" name="shipping_option" value="express" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
-                  <div class="grid grid-cols-[auto_1fr] gap-3">
-                    <div class="bg-green-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
-                      <i class="fas fa-shipping-fast text-green-600"></i>
+                  <div class="flex flex-col h-full">
+                    <div class="flex items-center mb-3">
+                      <div class="bg-green-50 rounded-full p-2 h-10 w-10 flex items-center justify-center mr-3">
+                        <i class="fas fa-shipping-fast text-green-600"></i>
+                      </div>
+                      <h5 class="font-medium text-gray-900 text-lg">Entrega Expressa</h5>
                     </div>
-                    <div>
-                      <h5 class="font-medium text-gray-900">Correios Entrega Expressa</h5>
-                      <p class="text-sm text-gray-600 mb-2">Entrega em até 7 dias úteis</p>
-                      <p class="text-sm"><span class="font-medium">R$ 27,90</span></p>
-                      <div class="mt-2 text-xs text-gray-500">
-                        <i class="fas fa-calendar-alt mr-1"></i> Previsão de entrega: <span class="delivery-date" data-days="7"></span>
+                    <div class="flex-grow">
+                      <div class="bg-green-50 rounded-lg p-3 mb-3">
+                        <p class="text-sm text-gray-600 font-medium">Entrega em até 7 dias úteis</p>
+                        <p class="text-lg mt-1"><span class="text-green-600 font-bold">R$ 27,90</span></p>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2 text-green-500"></i>
+                        <span>Previsão de entrega: <span class="delivery-date font-medium" data-days="7"></span></span>
                       </div>
                       <div class="mt-2 text-xs text-gray-500 flex items-start">
-                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <i class="fas fa-snowflake text-blue-500 mr-2 mt-0.5"></i>
                         <span>Produto refrigerado com <b>controle de temperatura</b> para preservar a eficácia</span>
                       </div>
                     </div>
@@ -795,25 +805,30 @@
                 </label>
                 
                 <!-- Opção 3: Retirada em Farmácia -->
-                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors shipping-option">
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-all duration-200 shipping-option transform hover:scale-[1.02] hover:shadow-md">
                   <input type="radio" name="shipping_option" value="pharmacy" class="absolute top-4 right-4 h-5 w-5 accent-green-600">
-                  <div class="grid grid-cols-[auto_1fr] gap-3">
-                    <div class="bg-purple-50 rounded-full p-2 h-10 w-10 flex items-center justify-center">
-                      <i class="fas fa-store-alt text-purple-600"></i>
+                  <div class="flex flex-col h-full">
+                    <div class="flex items-center mb-3">
+                      <div class="bg-purple-50 rounded-full p-2 h-10 w-10 flex items-center justify-center mr-3">
+                        <i class="fas fa-store-alt text-purple-600"></i>
+                      </div>
+                      <h5 class="font-medium text-gray-900 text-lg">Retirada em Farmácia</h5>
                     </div>
-                    <div>
-                      <h5 class="font-medium text-gray-900">Retirada em Farmácia</h5>
-                      <p class="text-sm text-gray-600 mb-2">Retire em até 3 dias úteis na farmácia mais próxima</p>
-                      <p class="text-sm"><span class="font-medium">R$ 47,90</span></p>
-                      <div class="mt-2 text-xs text-gray-500">
-                        <i class="fas fa-calendar-alt mr-1"></i> Disponível para retirada: <span class="delivery-date" data-days="3"></span>
+                    <div class="flex-grow">
+                      <div class="bg-purple-50 rounded-lg p-3 mb-3">
+                        <p class="text-sm text-gray-600 font-medium">Retire em até 3 dias úteis</p>
+                        <p class="text-lg mt-1"><span class="text-purple-600 font-bold">R$ 47,90</span></p>
+                      </div>
+                      <div class="mt-2 text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                        <span>Disponível para retirada: <span class="delivery-date font-medium" data-days="3"></span></span>
                       </div>
                       <div class="mt-2 text-xs text-gray-500 flex items-start">
-                        <i class="fas fa-map-marker-alt text-red-500 mr-1 mt-0.5"></i>
+                        <i class="fas fa-map-marker-alt text-red-500 mr-2 mt-0.5"></i>
                         <span>Farmácia localizada em um raio de até 15km do seu endereço</span>
                       </div>
                       <div class="mt-2 text-xs text-gray-500 flex items-start">
-                        <i class="fas fa-snowflake text-blue-500 mr-1 mt-0.5"></i>
+                        <i class="fas fa-snowflake text-blue-500 mr-2 mt-0.5"></i>
                         <span>Produto mantido sob refrigeração adequada na farmácia</span>
                       </div>
                     </div>
