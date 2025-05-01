@@ -998,6 +998,20 @@
       }
     }
     
+    // Função para formatar endereço completo a partir dos campos
+    function formatFullAddress(street, number, complement, neighborhood, city, state, zipcode) {
+      let fullAddress = '';
+      
+      if (street) fullAddress += street;
+      if (number) fullAddress += ', ' + number;
+      if (neighborhood) fullAddress += ', ' + neighborhood;
+      if (city) fullAddress += ', ' + city;
+      if (state) fullAddress += ' - ' + state;
+      if (zipcode) fullAddress += ', ' + zipcode;
+      
+      return fullAddress;
+    }
+    
     // Verificar disponibilidade de farmácias próximas ao endereço do cliente
     async function checkNearbyPharmacies() {
       // Mostrar indicador de carregamento
@@ -1020,13 +1034,86 @@
         const state = localStorage.getItem('estado') || '';
         const zipcode = localStorage.getItem('cep') || '';
         
+        // Verificar se há dados de endereço básicos disponíveis
+        if (!city && !street) {
+          // Usar um endereço de exemplo com localização em Brasília para teste em ambiente de desenvolvimento
+          console.warn('Dados de endereço não disponíveis, usando endereço de exemplo para demonstração');
+          // Se estamos em ambiente de desenvolvimento (replit), usamos um endereço de exemplo para teste
+          if (window.location.hostname.includes('replit')) {
+            const sampleAddress = "Esplanada dos Ministérios, Brasília - DF, Brasil";
+            const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(sampleAddress)}`);
+            const data = await response.json();
+            
+            // Ocultar indicador de carregamento
+            if (pharmacyCheckingElement) {
+              pharmacyCheckingElement.classList.add('hidden');
+            }
+            
+            if (!data.success) {
+              throw new Error(data.error || 'Erro ao verificar farmácias próximas');
+            }
+            
+            // Mostrar aviso especial de demonstração
+            if (pharmacyFeedbackElement) {
+              pharmacyFeedbackElement.classList.remove('hidden');
+              pharmacyFeedbackElement.innerHTML = `
+                <div class="p-4 mb-4 border border-blue-200 text-sm text-blue-700 bg-blue-50 rounded-lg">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-info-circle text-blue-500 mt-1 mr-2"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold">Modo de demonstração</p>
+                      <p>Usando localização de exemplo em Brasília para demonstração. Por favor, preencha seu endereço real para verificar farmácias próximas a você.</p>
+                      <p class="mt-1">Farmácias encontradas: <span class="font-medium">${data.data.pharmacies.length}</span></p>
+                      <p class="mt-1 text-xs">Demonstração disponível a partir de <span class="font-medium delivery-date" data-days="3"></span></p>
+                      <p class="mt-2"><a href="/endereco" class="text-blue-600 hover:underline">Atualizar meu endereço</a></p>
+                    </div>
+                  </div>
+                </div>
+              `;
+              
+              // Atualizar as datas de entrega
+              updateDeliveryDates();
+            }
+            
+            return {
+              available: true, 
+              count: data.data.pharmacies.length,
+              nearest: data.data.pharmacies.length > 0 ? data.data.pharmacies[0] : null,
+              demo: true
+            };
+          } else {
+            // Em produção mostrar mensagem de erro com link para atualizar endereço
+            if (pharmacyCheckingElement) {
+              pharmacyCheckingElement.classList.add('hidden');
+            }
+            
+            if (pharmacyFeedbackElement) {
+              pharmacyFeedbackElement.classList.remove('hidden');
+              pharmacyFeedbackElement.innerHTML = `
+                <div class="p-4 mb-4 border border-yellow-200 text-sm text-yellow-700 bg-yellow-50 rounded-lg">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+                    </div>
+                    <div>
+                      <p class="font-bold">Endereço não disponível</p>
+                      <p>Não foi possível verificar farmácias próximas porque seu endereço não está completo.</p>
+                      <p class="mt-2"><a href="/endereco" class="text-yellow-600 hover:underline">Atualizar meu endereço</a></p>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+            
+            return { available: false, error: 'Endereço não disponível' };
+          }
+        }
+        
         // Formatar o endereço completo
         const fullAddress = formatFullAddress(street, number, '', neighborhood, city, state, zipcode);
-        
-        if (!fullAddress) {
-          console.error('Endereço completo não disponível para verificar farmácias próximas');
-          return { available: false, error: 'Endereço não disponível' };
-        }
+        console.log('Buscando farmácias para endereço:', fullAddress);
         
         // Chamar a API para verificar farmácias próximas
         const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(fullAddress)}`);
@@ -1075,6 +1162,7 @@
                 <div>
                   <p class="font-bold">Erro ao verificar farmácias</p>
                   <p>${error.message}</p>
+                  <p class="mt-2"><a href="/endereco" class="text-red-600 hover:underline">Atualizar meu endereço</a></p>
                 </div>
               </div>
             </div>

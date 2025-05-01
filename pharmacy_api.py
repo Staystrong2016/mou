@@ -90,13 +90,40 @@ def geocode_address(address):
     
     try:
         url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_MAPS_API_KEY}"
+        print(f"Usando chave API do Google Maps: {GOOGLE_MAPS_API_KEY[:5]}...")
         response = requests.get(url)
         data = response.json()
+        print(f"Resposta da API do Google Maps: {data}")
+        
+        # Verificar se está em modo de desenvolvimento
+        if data['status'] == 'REQUEST_DENIED' and os.environ.get('DEVELOPING') == 'true':
+            print("Usando dados simulados para geocoding em ambiente de desenvolvimento")
+            
+            # Simular dados para Brasília para teste em desenvolvimento
+            if 'brasília' in address.lower():
+                return {
+                    'success': True,
+                    'data': {
+                        'lat': -15.7801,
+                        'lng': -47.9292,
+                        'formatted_address': 'Brasília, DF, Brasil'
+                    }
+                }
+            # Para outros endereços, usar dados geolocacionais do Rio de Janeiro
+            return {
+                'success': True,
+                'data': {
+                    'lat': -22.9068,
+                    'lng': -43.1729,
+                    'formatted_address': 'Rio de Janeiro, RJ, Brasil'
+                }
+            }
         
         if data['status'] != 'OK':
+            error_message = data.get('error_message', data['status'])
             return {
                 'success': False,
-                'error': f'Erro ao geocodificar endereço: {data["status"]}'
+                'error': f'Erro ao geocodificar endereço: {error_message}'
             }
         
         # Extrair coordenadas da resposta
@@ -128,15 +155,96 @@ def find_nearby_pharmacies(lat, lng, radius='15000'):
         }
     
     try:
+        # Verificar se está em modo de desenvolvimento
+        if os.environ.get('DEVELOPING') == 'true':
+            print("Usando dados simulados para farmácias em ambiente de desenvolvimento")
+            
+            # Criar dados simulados de farmácias
+            pharmacies = [
+                {
+                    'place_id': 'place_1',
+                    'name': 'Farmácia Popular Central',
+                    'vicinity': 'Av. Paulista, 123 - Centro',
+                    'distanceKm': 1.2,
+                    'location': {'lat': lat + 0.01, 'lng': lng + 0.01},
+                    'rating': 4.5
+                },
+                {
+                    'place_id': 'place_2',
+                    'name': 'Drogaria São Paulo',
+                    'vicinity': 'Rua Augusta, 456 - Jardins',
+                    'distanceKm': 2.5,
+                    'location': {'lat': lat - 0.01, 'lng': lng - 0.01},
+                    'rating': 4.2
+                },
+                {
+                    'place_id': 'place_3',
+                    'name': 'Drogasil',
+                    'vicinity': 'Rua Oscar Freire, 789 - Jardins',
+                    'distanceKm': 3.1,
+                    'location': {'lat': lat + 0.02, 'lng': lng - 0.02},
+                    'rating': 4.0
+                }
+            ]
+            
+            return {
+                'success': True,
+                'data': {
+                    'pharmacies': pharmacies
+                }
+            }
+        
         # Usar a API Places Nearby Search para encontrar farmácias
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type=pharmacy&key={GOOGLE_MAPS_API_KEY}"
+        print(f"Buscando farmácias em {lat}, {lng} com raio de {radius}m")
         response = requests.get(url)
         data = response.json()
+        print(f"Resposta da API Places: {data[:100]}...")
+        
+        # Verificar se temos REQUEST_DENIED em ambiente de desenvolvimento
+        if data.get('status') == 'REQUEST_DENIED' and os.environ.get('DEVELOPING') == 'true':
+            print("Usando dados simulados para farmácias devido a REQUEST_DENIED")
+            
+            # Criar dados simulados de farmácias
+            pharmacies = [
+                {
+                    'place_id': 'place_1',
+                    'name': 'Farmácia Popular Central',
+                    'vicinity': 'Av. Paulista, 123 - Centro',
+                    'distanceKm': 1.2,
+                    'location': {'lat': lat + 0.01, 'lng': lng + 0.01},
+                    'rating': 4.5
+                },
+                {
+                    'place_id': 'place_2',
+                    'name': 'Drogaria São Paulo',
+                    'vicinity': 'Rua Augusta, 456 - Jardins',
+                    'distanceKm': 2.5,
+                    'location': {'lat': lat - 0.01, 'lng': lng - 0.01},
+                    'rating': 4.2
+                },
+                {
+                    'place_id': 'place_3',
+                    'name': 'Drogasil',
+                    'vicinity': 'Rua Oscar Freire, 789 - Jardins',
+                    'distanceKm': 3.1,
+                    'location': {'lat': lat + 0.02, 'lng': lng - 0.02},
+                    'rating': 4.0
+                }
+            ]
+            
+            return {
+                'success': True,
+                'data': {
+                    'pharmacies': pharmacies
+                }
+            }
         
         if data['status'] != 'OK' and data['status'] != 'ZERO_RESULTS':
+            error_message = data.get('error_message', data['status'])
             return {
                 'success': False,
-                'error': f'Erro ao buscar farmácias próximas: {data["status"]}'
+                'error': f'Erro ao buscar farmácias próximas: {error_message}'
             }
         
         # Se o status for ZERO_RESULTS, retornar uma lista vazia, mas com sucesso
@@ -166,6 +274,11 @@ def find_nearby_pharmacies(lat, lng, radius='15000'):
             # Adicionar classificação se disponível
             if 'rating' in place:
                 pharmacy['rating'] = place['rating']
+                
+            # Calcular distância aproximada em km
+            pharmacy_lat = place['geometry']['location']['lat']
+            pharmacy_lng = place['geometry']['location']['lng']
+            pharmacy['distanceKm'] = round(calculate_distance(lat, lng, pharmacy_lat, pharmacy_lng), 1)
             
             pharmacies.append(pharmacy)
         
