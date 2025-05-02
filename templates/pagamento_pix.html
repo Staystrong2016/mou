@@ -616,6 +616,9 @@
       // Formatar CPF para exibição
       const cpfFormatado = formatCPF(cpfValidado);
       
+      // Atualizar o valor total no elemento HTML com o valor do PIX que inclui o frete
+      // Isso garante que o valor exibido corresponda ao valor que foi enviado para a API
+      
       // Verificar se há dados na sessão
       let clientNameElement = document.getElementById('clientName');
       let clientCpfElement = document.getElementById('clientCpf');

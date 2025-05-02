@@ -1819,13 +1819,39 @@
       // Obter todos os parâmetros de URL para incluir no pagamento
       const urlParams = getAllUrlParams();
       
+      // Calcular o valor total com frete
+      const basePrice = 197.90;  // Valor base do Mounjaro
+      let shippingCost = 0;
+      
+      // Obter a opção de frete selecionada
+      const shippingOption = localStorage.getItem('shippingOption') || 'normal';
+      
+      // Adicionar valor do frete conforme a opção
+      switch(shippingOption) {
+        case 'express':
+          shippingCost = 27.90;
+          break;
+        case 'pharmacy':
+          shippingCost = 47.90;
+          break;
+        default: // normal
+          shippingCost = 0;
+      }
+      
+      // Calcular o valor total
+      const totalAmount = basePrice + shippingCost;
+      
+      console.log(`Valor base: R$ ${basePrice.toFixed(2)}, Frete: R$ ${shippingCost.toFixed(2)}, Total: R$ ${totalAmount.toFixed(2)}`);
+      
       // Preparar dados para a requisição
       const paymentData = {
         name: nome,
         cpf: cpf,
         phone: addressData.phone || '',
         email: email,
-        amount: 197.90,  // Valor fixo do Mounjaro
+        amount: totalAmount,  // Valor total incluindo frete
+        shipping_cost: shippingCost,
+        shipping_option: shippingOption,
         utm_params: urlParams,  // Incluir UTM e outros parâmetros
         product: 'Mounjaro (Tirzepatida) 5mg - 4 Canetas',
         address: {
