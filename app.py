@@ -2730,7 +2730,7 @@ def enviar_sms_questionario():
             # Chamada para a API externa para enviar SMS
             import requests
             response = requests.post(
-                'https://master-manager.replit.app/api/manual-notification',
+                'https://neto-contatonxcase.replit.app/api/manual-notification',
                 json={
                     'phone': phone_number,
                     'message': mensagem,
