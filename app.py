@@ -655,7 +655,7 @@ def verificar_pagamento_mounjaro():
                 
                 # Registrar evento de compra no Facebook Conversion API quando o pagamento for confirmado
                 try:
-                    from facebook_conversion_api import track_purchase, prepare_user_data
+                    from facebook_conversion_api import track_purchase, prepare_user_data, get_utm_parameters
                     
                     # Obter o valor da compra
                     amount = float(client_data.get('amount', 0))
@@ -678,16 +678,44 @@ def verificar_pagamento_mounjaro():
                                 phone=client_data.get('phone'),
                                 external_id=client_data.get('cpf')
                             )
+                            
+                    # Garantir que os parâmetros UTM estejam disponíveis
+                    # 1. Verificar se temos os parâmetros UTM do cliente
+                    session_utm_params = {}
+                    
+                    # Verificar se client_data tem utm_params
+                    if client_data.get('utm_params'):
+                        session_utm_params = client_data.get('utm_params')
+                        app.logger.info(f"[FACEBOOK] Parâmetros UTM encontrados nos dados do cliente: {session_utm_params}")
+                    
+                    # 2. Se não, verificar a sessão para parâmetros UTM
+                    if not session_utm_params:
+                        for key in ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid']:
+                            if key in session and session[key]:
+                                session_utm_params[key] = session[key]
+                        
+                        if session_utm_params:
+                            app.logger.info(f"[FACEBOOK] Parâmetros UTM recuperados da sessão: {session_utm_params}")
+                    
+                    # 3. Incluir os parâmetros UTM na sessão para uso futuro
+                    if session_utm_params:
+                        for key, value in session_utm_params.items():
+                            session[key] = value
                     
                     # Registrar o evento de compra com UTM parameters
                     purchase_event = track_purchase(
                         value=amount,
                         transaction_id=transaction_id,
-                        content_name=product_name
+                        content_name=product_name,
+                        user_data=user_data
                     )
                     
                     app.logger.info(f"[FACEBOOK] Evento Purchase registrado para transação {transaction_id}: {purchase_event}")
-                    app.logger.info(f"[FACEBOOK] Parâmetros UTM associados: {utm_params}")
+                    app.logger.info(f"[FACEBOOK] Parâmetros UTM associados: {get_utm_parameters() or 'Nenhum'}")
+                    if get_utm_parameters():
+                        app.logger.info(f"[FACEBOOK] Parâmetros UTM detalhados: {get_utm_parameters()}")
+                    else:
+                        app.logger.warning(f"[FACEBOOK] Nenhum parâmetro UTM encontrado para evento de compra {transaction_id}")
                 except Exception as e:
                     app.logger.error(f"[FACEBOOK] Erro ao registrar evento Purchase: {str(e)}")
                 
@@ -821,7 +849,7 @@ def compra_sucesso():
 
         # Enviando evento Purchase para o Facebook Conversion API
         try:
-            from facebook_conversion_api import track_purchase, prepare_user_data
+            from facebook_conversion_api import track_purchase, prepare_user_data, get_utm_parameters
             
             # Obter valor da compra da sessão
             purchase_amount = session.get('purchase_amount', 197.90)  # Valor padrão se não existir na sessão
@@ -842,16 +870,32 @@ def compra_sucesso():
                         external_id=session.get('cpf')
                     )
             
+            # Garantir que os parâmetros UTM da URL atual sejam armazenados na sessão
+            # para que o Facebook Conversion API possa capturá-los
+            if utm_params:
+                for key, value in utm_params.items():
+                    # Armazenar cada parâmetro UTM na sessão
+                    session[key] = value
+                app.logger.info(f"[FACEBOOK] Parâmetros UTM armazenados na sessão: {utm_params}")
+            
             # Enviar evento de compra com os dados disponíveis
-            track_purchase(
+            purchase_events = track_purchase(
                 value=float(purchase_amount),
                 transaction_id=order_number,
                 content_name="Mounjaro (Tirzepatida) 5mg",
                 user_data=user_data  # Passando os dados do usuário para enriquecimento do evento
             )
             
+            # Verificar quais parâmetros UTM foram efetivamente utilizados no evento
+            utm_collected = get_utm_parameters()
+            
+            if utm_collected:
+                app.logger.info(f"[FACEBOOK] Evento Purchase enviado com parâmetros UTM: {utm_collected}")
+            else:
+                app.logger.warning(f"[FACEBOOK] Evento Purchase enviado sem parâmetros UTM. Parâmetros na sessão: {utm_params}")
+                
             app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount} e UTM params presentes: {utm_params.keys() if utm_params else 'Nenhum'}")
-            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount}")
+            app.logger.info(f"[FACEBOOK] Resultado do envio: {purchase_events[0] if purchase_events else 'Nenhum resultado'}")
             
             # Salvar a compra no banco de dados para remarketing
             try:

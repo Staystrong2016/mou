@@ -89,6 +89,7 @@ def get_utm_parameters() -> Dict[str, str]:
         for key in utm_keys:
             if key in session_utm_params and session_utm_params[key]:
                 utm_params[key] = session_utm_params[key]
+                logger.debug(f"UTM param {key} obtido do objeto utm_params na sessão: {utm_params[key]}")
     
     # 2. Estratégia: verificar parâmetros UTM armazenados individualmente na sessão
     for key in utm_keys:
@@ -98,7 +99,7 @@ def get_utm_parameters() -> Dict[str, str]:
             
         if key in session and session[key]:
             utm_params[key] = session[key]
-            logger.debug(f"UTM param {key} encontrado na sessão: {utm_params[key]}")
+            logger.debug(f"UTM param {key} encontrado individualmente na sessão: {utm_params[key]}")
     
     # 3. Estratégia: verificar na URL atual
     if request.args:
@@ -109,13 +110,38 @@ def get_utm_parameters() -> Dict[str, str]:
                 
             if key in request.args and request.args.get(key):
                 utm_params[key] = request.args.get(key)
-                logger.debug(f"UTM param {key} encontrado na URL: {utm_params[key]}")
+                # Importante: salvar na sessão para uso futuro em outros eventos
+                session[key] = request.args.get(key)
+                logger.debug(f"UTM param {key} encontrado na URL e salvo na sessão: {utm_params[key]}")
     
-    # Log detalhado para depuração
+    # 4. Estratégia: verificar no referer se disponível
+    referer = request.headers.get('Referer')
+    if referer and not utm_params:  # Só verificar referer se ainda não temos UTMs
+        try:
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(referer)
+            query_params = parse_qs(parsed_url.query)
+            
+            for key in utm_keys:
+                # Se já temos o valor das estratégias anteriores, pular
+                if key in utm_params and utm_params[key]:
+                    continue
+                    
+                if key in query_params and query_params[key][0]:
+                    utm_params[key] = query_params[key][0]
+                    # Salvar na sessão para uso futuro
+                    session[key] = utm_params[key]
+                    logger.debug(f"UTM param {key} encontrado no referer URL e salvo na sessão: {utm_params[key]}")
+        except Exception as e:
+            logger.warning(f"Erro ao processar referer URL para UTMs: {str(e)}")
+    
+    # Log final para depuração
     if utm_params:
-        logger.debug(f"Parâmetros UTM completos capturados: {utm_params}")
+        logger.info(f"Parâmetros UTM capturados para evento: {utm_params}")
+        # Salvar todo o conjunto de parâmetros na sessão para eventos futuros
+        session['utm_params'] = utm_params
     else:
-        logger.debug("Nenhum parâmetro UTM encontrado em sessão ou URL")
+        logger.warning("Nenhum parâmetro UTM encontrado em sessão, URL ou referer")
     
     return utm_params
 
@@ -567,6 +593,9 @@ def track_purchase(
         content_name: Nome do produto/conteúdo
         user_data: Dados do usuário para enriquecimento do evento
     """
+    # Log inicial do evento Purchase
+    logger.info(f"[FACEBOOK] Iniciando rastreamento de evento Purchase: valor={value}, ID={transaction_id}")
+    
     # Construir dados da compra
     custom_data = {
         'value': value,
@@ -579,28 +608,69 @@ def track_purchase(
     if content_name:
         custom_data['content_name'] = content_name
     
-    # Extrair parâmetros UTM de todas as fontes possíveis
-    utm_params = get_utm_parameters()
-    
-    # Registrar no log detalhes sobre os parâmetros UTM encontrados
-    if utm_params:
-        utm_keys = [k for k in utm_params.keys() if k.startswith('utm_') or k.endswith('clid')]
-        logger.info(f"✅ [UTM] Parâmetros UTM incluídos no evento Purchase: {utm_keys}")
+    # Garantir que temos todos os parâmetros UTM possíveis - Verifica sessão, URL e referrer
+    try:
+        # Extrair parâmetros UTM de todas as fontes possíveis
+        utm_params = get_utm_parameters()
         
-        # Incluir os parâmetros UTM nos custom_data (eles serão automaticamente mesclados na função send_event)
-        for key, value in utm_params.items():
-            # Garantir que não sobrescrevemos campos essenciais com valores incompatíveis
-            if key not in ['value', 'currency', 'transaction_id']:
-                custom_data[key] = value
-    else:
-        logger.warning("⚠️ [UTM] Nenhum parâmetro UTM encontrado para o evento Purchase")
+        # Verificar request.args diretamente aqui para capturar parâmetros UTM da URL atual
+        # que podem não ter sido capturados anteriormente
+        if hasattr(request, 'args') and request.args:
+            utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid']
+            
+            for key in utm_keys:
+                if key in request.args and request.args.get(key):
+                    utm_value = request.args.get(key)
+                    
+                    # Atualizar utm_params e a sessão
+                    if not utm_params:
+                        utm_params = {}
+                    utm_params[key] = utm_value
+                    
+                    # Armazenar na sessão para uso futuro
+                    session[key] = utm_value
+                    logger.debug(f"[FACEBOOK-PURCHASE] UTM param capturado diretamente da URL atual: {key}={utm_value}")
+            
+            # Se capturamos novos parâmetros UTM, atualizar a sessão
+            if utm_params:
+                session['utm_params'] = utm_params
+                logger.info(f"[FACEBOOK-PURCHASE] Parâmetros UTM atualizados na sessão: {utm_params}")
+        
+        # Registrar no log detalhes sobre os parâmetros UTM encontrados
+        if utm_params:
+            utm_keys = [k for k in utm_params.keys() if k.startswith('utm_') or k.endswith('clid')]
+            logger.info(f"✅ [UTM] Parâmetros UTM incluídos no evento Purchase: {utm_keys}")
+            
+            # Incluir os parâmetros UTM nos custom_data (eles serão automaticamente mesclados na função send_event)
+            for key, value in utm_params.items():
+                # Garantir que não sobrescrevemos campos essenciais com valores incompatíveis
+                if key not in ['value', 'currency', 'transaction_id']:
+                    custom_data[key] = value
+        else:
+            logger.warning("⚠️ [UTM] Nenhum parâmetro UTM encontrado para o evento Purchase")
+    except Exception as e:
+        logger.error(f"[FACEBOOK] Erro ao processar parâmetros UTM para evento Purchase: {str(e)}")
+    
+    # Verificar referência direta para debug
+    try:
+        referer = request.headers.get('Referer', 'Não disponível')
+        url_atual = request.url if hasattr(request, 'url') else 'Não disponível'
+        logger.info(f"[FACEBOOK-DEBUG] Referer: {referer}")
+        logger.info(f"[FACEBOOK-DEBUG] URL atual: {url_atual}")
+        if hasattr(request, 'args') and request.args:
+            logger.info(f"[FACEBOOK-DEBUG] Query params: {dict(request.args)}")
+    except Exception as e:
+        logger.error(f"[FACEBOOK] Erro ao extrair informações de debug: {str(e)}")
     
     # Enviar o evento para todos os pixels configurados
-    return send_event_to_all_pixels(
+    result = send_event_to_all_pixels(
         event_name='Purchase',
         custom_data=custom_data,
         user_data=user_data
     )
+    
+    logger.info(f"[FACEBOOK] Evento Purchase enviado com sucesso. Resultado: {result[0] if result else 'Sem resultado'}")
+    return result
 
 # Middleware e função para registrar eventos automaticamente em rotas específicas
 def route_event_handler(event_type: Optional[str] = None):
