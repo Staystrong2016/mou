@@ -849,9 +849,24 @@
                   <span class="text-2xl font-bold text-[#1351b4]" id="totalAmount">R$ 197,90</span>
                 </div>
                 <p class="text-sm text-gray-600 mb-2">Pagamento único - sem recorrência</p>
-                <p class="text-xs text-gray-600 flex items-center" id="frete-info">
-                  <i class="fas fa-truck mr-1"></i> <span id="summary-shipping-cost">Frete grátis</span> - <span id="summary-delivery-time">Entrega em até 9 dias úteis</span>
-                </p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-3 p-2 bg-green-50 rounded-lg border border-green-100" id="frete-info">
+                  <div class="flex items-center mb-1 sm:mb-0">
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-2 flex-shrink-0">
+                      <i class="fas fa-truck"></i>
+                    </div>
+                    <div>
+                      <span id="summary-shipping-cost" class="text-green-600 font-medium text-sm">Frete grátis</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center ml-10 sm:ml-0">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-2 flex-shrink-0">
+                      <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                      <span id="summary-delivery-time" class="text-gray-700 font-medium text-sm">Entrega em até 9 dias úteis (15/05/2025)</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div class="flex flex-wrap gap-4">
@@ -969,10 +984,25 @@
           shippingCostElement.textContent = 'Frete grátis';
           shippingCostElement.classList.add('text-green-600');
           shippingCostElement.classList.add('font-medium');
+          
+          // Atualizar o background do container de frete
+          const freteInfoContainer = document.getElementById('frete-info');
+          if (freteInfoContainer) {
+            freteInfoContainer.classList.remove('bg-blue-50', 'border-blue-100');
+            freteInfoContainer.classList.add('bg-green-50', 'border-green-100');
+          }
         } else {
           shippingCostElement.textContent = `R$ ${shippingCost.toFixed(2).replace('.', ',')}`;
           shippingCostElement.classList.remove('text-green-600');
-          shippingCostElement.classList.remove('font-medium');
+          shippingCostElement.classList.add('text-blue-600');
+          shippingCostElement.classList.add('font-medium');
+          
+          // Atualizar o background do container para azul quando há custo de frete
+          const freteInfoContainer = document.getElementById('frete-info');
+          if (freteInfoContainer) {
+            freteInfoContainer.classList.remove('bg-green-50', 'border-green-100');
+            freteInfoContainer.classList.add('bg-blue-50', 'border-blue-100');
+          }
         }
       }
       
