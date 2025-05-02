@@ -204,9 +204,11 @@
     <div class="text-center text-gray-600 text-sm mb-4">
       <p id="publicationDate"></p>
       <script>
-        const now = new Date();
+        const publishedDate = new Date();
+        publishedDate.setDate(publishedDate.getDate() - 1);
+        publishedDate.setHours(publishedDate.getHours() - 4);
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-        document.getElementById('publicationDate').textContent = `Publicado em ${now.toLocaleString('pt-BR', options)}`;
+        document.getElementById('publicationDate').textContent = `Publicado em ${publishedDate.toLocaleString('pt-BR', options)}`;
       </script>
       <p>Colaboradores: Assessoria de Comunicação da ANVISA</p>
     </div>
@@ -232,7 +234,7 @@
         
         <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
           <p class="text-[16px] font-medium text-gray-700 mb-3">
-            3 passos simples para verificar sua elegibilidade:
+            4 passos simples para verificar sua elegibilidade:
           </p>
           <ul class="space-y-3">
             <li class="flex items-start">
@@ -245,11 +247,17 @@
               <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2 mt-0.5">
                 <span class="text-sm font-medium text-blue-700">2</span>
               </div>
-              <p class="text-[15px] text-gray-700">Complete um breve questionário de saúde</p>
+              <p class="text-[15px] text-gray-700"><span class="font-medium">Informe seu CPF</span> para confirmar que você é maior de idade</p>
             </li>
             <li class="flex items-start">
               <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2 mt-0.5">
                 <span class="text-sm font-medium text-blue-700">3</span>
+              </div>
+              <p class="text-[15px] text-gray-700">Complete um breve questionário de saúde</p>
+            </li>
+            <li class="flex items-start">
+              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-2 mt-0.5">
+                <span class="text-sm font-medium text-blue-700">4</span>
               </div>
               <p class="text-[15px] text-gray-700">Receba sua análise personalizada de elegibilidade</p>
             </li>
