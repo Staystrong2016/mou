@@ -4588,7 +4588,24 @@ def remarketing(transaction_id):
             if database_url:
                 try:
                     from models import PixPayment
+                    # Garantir que transaction_id seja tratado como string
+                    transaction_id = str(transaction_id)
+                    app.logger.info(f"[REMARKETING] Buscando pagamento no banco com transaction_id: {transaction_id}")
+                    
+                    # Fazer uma consulta SQL direta para depurar
+                    with db.engine.connect() as conn:
+                        result = conn.execute(db.text(f"SELECT * FROM pix_payment WHERE transaction_id = '{transaction_id}'"))
+                        row = result.fetchone()
+                        if row:
+                            app.logger.info(f"[REMARKETING] Encontrado via SQL direta: {dict(row)}")
+                        else:
+                            app.logger.warning(f"[REMARKETING] Não encontrado via SQL direta para ID: {transaction_id}")
+                    
                     stored_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+                    if stored_payment:
+                        app.logger.info(f"[REMARKETING] Pagamento encontrado via ORM para ID: {transaction_id}")
+                    else:
+                        app.logger.warning(f"[REMARKETING] Pagamento NÃO encontrado via ORM para ID: {transaction_id}")
                     
                     if stored_payment:
                         print(f"[REMARKETING] Dados do pagamento encontrados no banco de dados: {transaction_id}")
@@ -4633,6 +4650,8 @@ def remarketing(transaction_id):
             print(f"[REMARKETING] Usando gateway configurado para buscar dados da transação: {transaction_id}")
             
             # Verificar status do pagamento
+            # Garantir que transaction_id seja string para API também
+            transaction_id = str(transaction_id)
             payment_data = api.check_payment_status(transaction_id)
             print(f"[REMARKETING] Dados do pagamento obtidos da API: {payment_data}")
             
