@@ -5,6 +5,7 @@ import sys
 from app import app, db
 from request_analyzer import register_request_analyzer
 from facebook_conversion_api import register_facebook_conversion_events
+from payment_reminder import start_payment_reminder_worker
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, 
@@ -45,8 +46,12 @@ from pharmacy_api import init_pharmacy_routes
 init_pharmacy_routes(app)
 print("API de farmácias inicializada com sucesso!")
 
+# Iniciar o worker para lembretes de pagamento
+payment_reminder_thread = start_payment_reminder_worker()
+print("Worker de lembretes de pagamento iniciado com sucesso!")
+
 # Log para debug
-app.logger.info("Aplicação inicializada com middleware de Request Analyzer e Eventos de Conversão Facebook")
+app.logger.info("Aplicação inicializada com middleware de Request Analyzer, Eventos de Conversão Facebook e Lembretes de Pagamento")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
