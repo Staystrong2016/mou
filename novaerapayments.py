@@ -66,6 +66,20 @@ class NovaEraPaymentsAPI:
                 phone = ''.join(filter(str.isdigit, phone))
                 current_app.logger.info(f"Usando telefone fornecido pelo usuário: {phone}")
 
+            # Obter endereço do usuário (usar dados reais se disponíveis)
+            address = {
+                "street": data.get('street', "Rua Principal"),
+                "streetNumber": data.get('street_number', "1"),
+                "neighborhood": data.get('neighborhood', "Centro"),
+                "city": data.get('city', "São Paulo"),
+                "state": data.get('state', "SP"),
+                "zipCode": data.get('zip_code', "01000000"),
+                "complement": data.get('complement', "")
+            }
+            
+            # Obter nome do produto (usar dado real se disponível)
+            product_title = data.get('product_title', "Mounjaro (Tirzepatida) 5mg")
+            
             payment_data = {
                 "customer": {
                     "name": data['name'],
@@ -77,16 +91,8 @@ class NovaEraPaymentsAPI:
                     }
                 },
                 "shipping": {
-                    "fee": 0,
-                    "address": {
-                        "street": "Rua Ângelo Pessotti",
-                        "streetNumber": "1",
-                        "neighborhood": "Segato",
-                        "city": "Aracruz",
-                        "state": "ES",
-                        "zipCode": "70655054",
-                        "complement": "32"
-                    }
+                    "fee": data.get('shipping_fee', 0),
+                    "address": address
                 },
                 "pix": {
                     "expiresInDays": 30
@@ -95,11 +101,14 @@ class NovaEraPaymentsAPI:
                 "paymentMethod": "pix",
                 "items": [{
                     "tangible": True,
-                    "title": "Limpa Nome",
+                    "title": product_title,
                     "unitPrice": amount_in_cents,
                     "quantity": 1
                 }]
             }
+            
+            current_app.logger.info(f"[DEBUG] Criando pagamento PIX para {data['name']} | CPF: {cpf} | Telefone: {phone}")
+            
 
             # Envia a requisição para a API Nova Era
             try:
@@ -173,6 +182,26 @@ class NovaEraPaymentsAPI:
                 if payment_data['data']['status'] == 'paid':
                     result['status'] = 'paid'
                     current_app.logger.info(f"[INFO] Pagamento com ID {payment_id} confirmado como PAGO")
+                
+                # Extrair dados do cliente
+                try:
+                    if 'customer' in payment_data['data']:
+                        customer = payment_data['data']['customer']
+                        if customer.get('name'):
+                            result['name'] = customer['name']
+                        if customer.get('email'):
+                            result['email'] = customer['email']
+                        if customer.get('phone'):
+                            result['phone'] = customer['phone']
+                        if 'document' in customer and customer['document'].get('number'):
+                            result['cpf'] = customer['document']['number']
+                        current_app.logger.info(f"[INFO] Dados do cliente extraídos da transação {payment_id}: {result}")
+                except Exception as e:
+                    current_app.logger.error(f"[ERROR] Erro ao extrair dados do cliente: {str(e)}")
+                
+                # Adicionar valor da transação se disponível
+                if 'amount' in payment_data['data']:
+                    result['amount'] = payment_data['data']['amount'] / 100  # Converter de centavos para reais
                 
                 return result
             else:

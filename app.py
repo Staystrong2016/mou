@@ -356,8 +356,24 @@ def processar_pagamento_mounjaro():
             'email': email,
             'cpf': cpf,
             'phone': phone,
-            'amount': float(payment_data['amount'])
+            'amount': float(payment_data['amount']),
+            'product_title': 'Mounjaro (Tirzepatida) 5mg - 4 Canetas',
+            'shipping_fee': float(payment_data.get('shipping_fee', 0))
         }
+        
+        # Adicionar opções de frete se disponíveis
+        shipping_option = payment_data.get('shipping_option')
+        if shipping_option:
+            pix_data['shipping_option'] = shipping_option
+            
+            # Se escolheu entrega em farmácia, incluir detalhes da farmácia
+            if shipping_option == 'pharmacy' and payment_data.get('pharmacy_data'):
+                pharmacy_data = payment_data.get('pharmacy_data')
+                pix_data['city'] = pharmacy_data.get('city', 'São Paulo')
+                pix_data['neighborhood'] = pharmacy_data.get('neighborhood', 'Centro')
+                
+        app.logger.info(f"[PROD] Dados completos para pagamento: {pix_data}")
+        
 
         # Criar o pagamento PIX
         try:
