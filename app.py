@@ -781,29 +781,77 @@ def verificar_pagamento_mounjaro():
                 
                 return jsonify(response_data)
             elif status in ['pending', 'waiting', 'processing']:
+                # Extrair os dados de PIX da resposta API
+                pix_code = None
+                qr_code = None
+                
+                # Verificar diferentes formatos de resposta para pix_code
+                if payment_status.get('pixCode'):
+                    pix_code = payment_status.get('pixCode')
+                elif payment_status.get('pix_code'):
+                    pix_code = payment_status.get('pix_code')
+                    
+                # Verificar diferentes formatos de resposta para qr_code
+                if payment_status.get('pixQrCode'):
+                    qr_code = payment_status.get('pixQrCode')
+                elif payment_status.get('pix_qr_code'):
+                    qr_code = payment_status.get('pix_qr_code')
+                elif payment_status.get('qr_code'):
+                    qr_code = payment_status.get('qr_code')
+                    
+                # Se QR code ou PIX code estão faltando, buscar no banco de dados
+                if not pix_code or not qr_code:
+                    try:
+                        app.logger.info(f"[PROD] Dados de PIX incompletos na API. Buscando no banco de dados para transaction_id: {transaction_id}")
+                        from models import PixPayment
+                        
+                        # Garantir que transaction_id seja string para busca no banco
+                        transaction_id_str = str(transaction_id)
+                        db_payment = PixPayment.query.filter_by(transaction_id=transaction_id_str).first()
+                        
+                        if db_payment:
+                            app.logger.info(f"[PROD] Pagamento encontrado no banco de dados. ID: {db_payment.id}")
+                            
+                            # Usar QR code do banco de dados se não disponível na API
+                            if not qr_code and db_payment.qr_code_image:
+                                qr_code = db_payment.qr_code_image
+                                app.logger.info(f"[PROD] Usando QR code do banco de dados")
+                                
+                            # Usar PIX code do banco de dados se não disponível na API
+                            if not pix_code and db_payment.pix_copy_paste:
+                                pix_code = db_payment.pix_copy_paste
+                                app.logger.info(f"[PROD] Usando PIX copia e cola do banco de dados")
+                                
+                            # Atualizar dados do cliente se estiverem faltando
+                            if db_payment.customer_name and not client_data.get('name'):
+                                client_data['name'] = db_payment.customer_name
+                            if db_payment.customer_cpf and not client_data.get('cpf'):
+                                client_data['cpf'] = db_payment.customer_cpf
+                            if db_payment.customer_phone and not client_data.get('phone'):
+                                client_data['phone'] = db_payment.customer_phone
+                            if db_payment.customer_email and not client_data.get('email'):
+                                client_data['email'] = db_payment.customer_email
+                                
+                            # Usar valor do banco de dados se disponível
+                            if db_payment.amount and not payment_status.get('amount'):
+                                payment_status['amount'] = db_payment.amount
+                        else:
+                            app.logger.warning(f"[PROD] Pagamento não encontrado no banco de dados para transaction_id: {transaction_id}")
+                    except Exception as db_error:
+                        app.logger.error(f"[PROD] Erro ao buscar dados no banco de dados: {str(db_error)}")
+                
+                # Criar a resposta com os dados disponíveis
                 response_data = {
                     'success': True, 
                     'status': 'pending', 
                     'message': 'Aguardando pagamento',
-                    'qr_code': payment_status.get('pixQrCode'),
-                    'pix_code': payment_status.get('pixCode'),
+                    'qr_code': qr_code,
+                    'pix_code': pix_code,
                 }
                 
                 # Incluir dados do cliente na resposta
                 if client_data:
                     response_data.update(client_data)
-                
-                # Incluir dados de PIX na resposta, se disponíveis
-                if payment_status.get('pixCode'):
-                    response_data['pix_code'] = payment_status.get('pixCode')
-                elif payment_status.get('pix_code'):
-                    response_data['pix_code'] = payment_status.get('pix_code')
-                
-                # Incluir QR code na resposta, se disponível
-                if payment_status.get('pixQrCode'):
-                    response_data['pix_qr_code'] = payment_status.get('pixQrCode')
-                elif payment_status.get('pix_qr_code'):
-                    response_data['pix_qr_code'] = payment_status.get('pix_qr_code')
                 
                 # Incluir valor do pagamento, se disponível
                 if payment_status.get('amount'):
