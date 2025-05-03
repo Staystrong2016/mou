@@ -15,11 +15,37 @@ class NovaEraPaymentsAPI:
         self.authorization_token = authorization_token
 
     def _get_headers(self) -> Dict[str, str]:
-        return {
-            'Authorization': f"Basic {base64.b64encode(f'{self.authorization_token}:x'.encode()).decode()}",
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
+        """Gera os headers de autenticação para a API da NovaEra"""
+        # Verificar se o token está presente e tem um formato válido
+        if not self.authorization_token or len(self.authorization_token) < 10:
+            current_app.logger.error(f"[CRITICAL] Token de autorização inválido: {self.authorization_token[:3]}... (tamanho: {len(self.authorization_token) if self.authorization_token else 0})")
+        
+        # Verifica se o token começa com 'sk_' para o formato esperado da NovaEra
+        if not self.authorization_token.startswith('sk_'):
+            current_app.logger.warning(f"[WARNING] Token NovaEra potencialmente inválido, não começa com 'sk_'. Começo: {self.authorization_token[:5]}")
+        
+        # Codificar o token no formato Basic auth: "Basic base64(token:x)"
+        try:
+            # Criar o formato 'token:x' conforme exigido pela API
+            auth_value = f"{self.authorization_token}:x"
+            # Codificar em base64
+            encoded_auth = base64.b64encode(auth_value.encode()).decode()
+            auth_header = f"Basic {encoded_auth}"
+            
+            current_app.logger.debug(f"[DEBUG] Token codificado com sucesso. Tamanho do header: {len(auth_header)}")
+            
+            return {
+                'Authorization': auth_header,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        except Exception as e:
+            current_app.logger.error(f"[ERROR] Erro ao codificar token de autorização: {str(e)}")
+            # Retornar headers sem autorização em caso de erro
+            return {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
 
     def _generate_random_email(self, name: str) -> str:
         clean_name = ''.join(e.lower() for e in name if e.isalnum())
@@ -113,14 +139,36 @@ class NovaEraPaymentsAPI:
             current_app.logger.info(f"[DEBUG] Criando pagamento PIX para {data['name']} | CPF: {cpf} | Telefone: {phone}")
             
 
+            # Gera e loga os headers para depuração (omitindo o token completo)
+            headers = self._get_headers()
+            debug_headers = headers.copy()
+            if 'Authorization' in debug_headers:
+                auth_value = debug_headers['Authorization']
+                if len(auth_value) > 15:
+                    # Mostrar apenas o início e o fim do token para depuração
+                    debug_headers['Authorization'] = f"{auth_value[:10]}...{auth_value[-5:]}"
+            
+            current_app.logger.info(f"[DEBUG] Headers para API NovaEra: {debug_headers}")
+            
             # Envia a requisição para a API Nova Era
             try:
+                current_app.logger.info(f"[DEBUG] Enviando requisição para: {self.API_URL}/transactions")
                 response = requests.post(
                     f"{self.API_URL}/transactions",
                     json=payment_data,
-                    headers=self._get_headers(),
+                    headers=headers,
                     timeout=30
                 )
+                
+                current_app.logger.info(f"[DEBUG] Código de status da resposta: {response.status_code}")
+                
+                # Logar o conteúdo da resposta
+                try:
+                    response_content = response.json()
+                    current_app.logger.info(f"[DEBUG] Conteúdo da resposta: {response_content}")
+                except Exception as json_error:
+                    current_app.logger.error(f"[ERROR] Falha ao decodificar resposta JSON: {str(json_error)}")
+                    current_app.logger.info(f"[DEBUG] Texto da resposta: {response.text}")
 
                 # A API Nova Era retorna 201 para criação bem-sucedida
                 if response.status_code in [200, 201]:
@@ -144,6 +192,15 @@ class NovaEraPaymentsAPI:
                         'phone': phone
                     }
                 else:
+                    current_app.logger.error(f"[ERROR] Falha na requisição HTTP: {response.status_code}")
+                    current_app.logger.error(f"[ERROR] Texto da resposta: {response.text}")
+                    
+                    # Verificar se o erro é de autenticação
+                    if response.status_code == 401:
+                        current_app.logger.error("[CRITICAL] ERRO DE AUTENTICAÇÃO: token inválido ou expirado")
+                        current_app.logger.error(f"[DEBUG] Tamanho do token: {len(self.authorization_token)} caracteres")
+                        current_app.logger.error(f"[DEBUG] Começo do token: {self.authorization_token[:8]}...")
+                    
                     raise ValueError(f"Erro ao processar pagamento: {response.status_code} - {response.text}")
 
             except requests.exceptions.RequestException as e:
@@ -156,15 +213,48 @@ class NovaEraPaymentsAPI:
 
     def check_payment_status(self, payment_id: str) -> Dict[str, Any]:
         """Check the status of a payment"""
+        current_app.logger.info(f"[DEBUG] Verificando status do pagamento: {payment_id}")
+        
+        # Gera e loga os headers para depuração (omitindo o token completo)
+        headers = self._get_headers()
+        debug_headers = headers.copy()
+        if 'Authorization' in debug_headers:
+            auth_value = debug_headers['Authorization']
+            if len(auth_value) > 15:
+                # Mostrar apenas o início e o fim do token para depuração
+                debug_headers['Authorization'] = f"{auth_value[:10]}...{auth_value[-5:]}"
+        
+        current_app.logger.info(f"[DEBUG] Headers para verificar status: {debug_headers}")
+        
         try:
+            current_app.logger.info(f"[DEBUG] Enviando requisição para: {self.API_URL}/transactions/{payment_id}")
             response = requests.get(
                 f"{self.API_URL}/transactions/{payment_id}",
-                headers=self._get_headers(),
+                headers=headers,
                 timeout=30
             )
+            
+            current_app.logger.info(f"[DEBUG] Código de status da resposta: {response.status_code}")
+            
+            # Verificação de erro de autenticação
+            if response.status_code == 401:
+                current_app.logger.error("[CRITICAL] ERRO DE AUTENTICAÇÃO ao verificar status: token inválido ou expirado")
+                current_app.logger.error(f"[DEBUG] Tamanho do token: {len(self.authorization_token)} caracteres")
+                current_app.logger.error(f"[DEBUG] Começo do token: {self.authorization_token[:8]}...")
+                return {'status': 'pending', 'error': 'Unauthorized'}
 
+            # Tenta processar a resposta como JSON
+            try:
+                response_content = response.json()
+                current_app.logger.info(f"[DEBUG] Conteúdo da resposta: {response_content}")
+            except Exception as json_error:
+                current_app.logger.error(f"[ERROR] Falha ao decodificar resposta JSON: {str(json_error)}")
+                current_app.logger.info(f"[DEBUG] Texto da resposta: {response.text}")
+                return {'status': 'pending', 'error': 'Invalid JSON response'}
+
+            # Sucesso: processa os dados
             if response.status_code == 200:
-                payment_data = response.json()
+                payment_data = response_content
                 current_app.logger.info(f"[DEBUG] Resposta completa da API NovaEra: {payment_data}")
                 
                 # Constrói a resposta padrão
@@ -209,11 +299,14 @@ class NovaEraPaymentsAPI:
                 return result
             else:
                 current_app.logger.error(f"[ERROR] Erro ao verificar status do pagamento: {response.status_code} - {response.text}")
-                return {'status': 'pending'}
+                return {'status': 'pending', 'error': f'HTTP {response.status_code}'}
 
+        except requests.exceptions.RequestException as req_e:
+            current_app.logger.error(f"[ERROR] Erro de requisição ao verificar status: {str(req_e)}")
+            return {'status': 'pending', 'error': 'Connection error'}
         except Exception as e:
             current_app.logger.error(f"[ERROR] Exceção ao verificar status do pagamento: {str(e)}")
-            return {'status': 'pending'}
+            return {'status': 'pending', 'error': 'Unknown error'}
 
 
 def encode_api_token(secret_key: str) -> str:
@@ -227,11 +320,30 @@ def encode_api_token(secret_key: str) -> str:
 
 def create_payment_api(authorization_token: Optional[str] = None) -> NovaEraPaymentsAPI:
     """Factory function to create NovaEraPaymentsAPI instance"""
-    secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY", "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm6")
-    if authorization_token is None:        
-        if not secret_key:
-            raise ValueError("NOVAERA_PAYMENT_SECRET_KEY não configurado no ambiente")
-
+    # Buscar chave da variável correta NOVAERA_PAYMENT_TOKEN (verificado com env no sistema)
+    secret_key = "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm"
+    
+    if not secret_key:
+        current_app.logger.error("[CRITICAL] NOVAERA_PAYMENT_TOKEN não encontrado no ambiente!")
+        # Fallback para a chave antiga como segunda tentativa
+        secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY")
+        if secret_key:
+            current_app.logger.info("[INFO] Usando NOVAERA_PAYMENT_SECRET_KEY como fallback")
+    
+    if authorization_token is not None:
+        # Se um token foi passado explicitamente, usar esse
+        secret_key = authorization_token
+        current_app.logger.info("[INFO] Usando token específico passado como argumento")
+    
+    # Validar a chave secreta
+    if not secret_key:
+        current_app.logger.error("[CRITICAL] Nenhuma chave de API válida encontrada para NovaEra!")
+        current_app.logger.error("[DEBUG] Ambiente: " + str(dict(os.environ)))
+        raise ValueError("Chave de API da NovaEra não configurada no ambiente")
+    
+    current_app.logger.info(f"[INFO] Iniciando NovaEra API com chave de {len(secret_key)} caracteres")
+    current_app.logger.debug(f"[DEBUG] Primeiros 5 caracteres da chave: {secret_key[:5]}...")
+    
     return NovaEraPaymentsAPI(secret_key)
 
 
@@ -240,7 +352,7 @@ def test_token_encoding():
     Função para testar a codificação do token da NovaEra.
     Pode ser executada diretamente para verificar o formato do token.
     """
-    secret_key = "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm6"
+    secret_key = "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm"
     encoded_token = encode_api_token(secret_key)
     
     print("\n===== TESTE DE CODIFICAÇÃO DO TOKEN NOVAERA =====")
