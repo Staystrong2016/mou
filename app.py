@@ -3815,7 +3815,7 @@ def pagar_ttps():
             payment_response = api.create_pix_payment(payment_data)
             
             # Log completo da resposta para depuração
-            app.logger.info(f"[PROD] Resposta completa da For4: {payment_response}")
+            app.logger.info(f"[PROD] Resposta completa do gateway de pagamento: {payment_response}")
             
             # Verificar se a API retornou dados, mesmo com 'success' como False
             if payment_response.get('data'):
@@ -3827,13 +3827,13 @@ def pagar_ttps():
                 payment_info = {}
                 
             # Log detalhado dos dados retornados para debugging
-            app.logger.info(f"[PROD] Dados do pagamento extraídos da For4: {payment_info}")
+            app.logger.info(f"[PROD] Dados do pagamento extraídos do gateway: {payment_info}")
             
             # Tente obter os dados de diversas formas possíveis considerando as diferentes estruturas retornadas pela API
             
             # Tenta obter o código PIX (copia e cola) diretamente da resposta ou dentro do data
             pix_code = (
-                # Formato específico da For4 encontrado nos logs
+                # Formatos encontrados nos logs dos gateways de pagamento
                 payment_response.get('pixCode') or
                 payment_info.get('pixCode') or
                 # Outras variações possíveis
@@ -3873,7 +3873,7 @@ def pagar_ttps():
             
             # Tenta obter a URL ou dados da imagem do QR code - mesmo processo
             qr_code_url = (
-                # Formato específico da For4 encontrado nos logs
+                # Formatos encontrados nos logs dos gateways de pagamento
                 payment_response.get('pixQrCode') or
                 payment_info.get('pixQrCode') or
                 # Outras variações possíveis
@@ -3956,7 +3956,7 @@ def pagar_ttps():
                 # Armazenar o ID da transação na sessão para verificação posterior
                 session['ttps_transaction_id'] = transaction_id
                 
-                app.logger.info(f"[PROD] Pagamento For4 processado com sucesso: ID {transaction_id}")
+                app.logger.info(f"[PROD] Pagamento processado com sucesso: ID {transaction_id}")
             else:
                 app.logger.error(f"[PROD] Não foi possível extrair os dados de PIX da resposta")
                 
