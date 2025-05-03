@@ -2299,11 +2299,28 @@ def create_pix_payment():
                 'status': payment_result.get('status', 'pending')
             }
             
-            # Salvar os dados da transação PIX no banco de dados para remarketing
+            # Obter o ID da transação
+            transaction_id = payment_result.get('id') or f"PIX-{int(time.time())}"
+            
+            # Salvar os dados do pagamento PIX no banco para recuperação posterior
             try:
-                # Obter o ID da transação
-                transaction_id = payment_result.get('id') or f"PIX-{int(time.time())}"
+                # Usar o nome do gateway configurado
+                gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
                 
+                # Salvar os dados completos do pagamento PIX no banco
+                save_pix_payment_to_db(
+                    transaction_id=transaction_id,
+                    payment_result=payment_result,
+                    gateway=gateway_choice
+                )
+                
+                app.logger.info(f"[DB] Dados do pagamento PIX {transaction_id} salvos no banco de dados")
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao salvar dados do pagamento PIX no banco: {str(db_error)}")
+                # Não interromper o fluxo em caso de erro de banco de dados
+            
+            # Salvar os dados da transação no banco de dados para remarketing
+            try:
                 # Obter o valor do pagamento
                 amount = float(data.get('amount', 0))
                 
@@ -2319,7 +2336,7 @@ def create_pix_payment():
                 
                 app.logger.info(f"[DB] Pagamento PIX pendente salvo no banco para remarketing: {transaction_id}")
             except Exception as db_error:
-                app.logger.error(f"[DB] Erro ao salvar pagamento PIX no banco: {str(db_error)}")
+                app.logger.error(f"[DB] Erro ao salvar pagamento PIX no banco para remarketing: {str(db_error)}")
                 # Não interromper o fluxo em caso de erro de banco de dados
             
             # Registrar o pagamento para envio de SMS e lembretes
@@ -4538,8 +4555,48 @@ def remarketing(transaction_id):
         qr_code_url = ''
         reviews = []
         
-        # Buscar dados do pagamento diretamente no gateway
+        # Buscar dados do pagamento
+        pix_code = ''
+        qr_code_url = ''
+        
         try:
+            # Tentar buscar os dados do pagamento no banco de dados primeiro
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                try:
+                    from models import PixPayment
+                    stored_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+                    
+                    if stored_payment:
+                        print(f"[REMARKETING] Dados do pagamento encontrados no banco de dados: {transaction_id}")
+                        pix_code = stored_payment.pix_copy_paste
+                        qr_code_url = stored_payment.qr_code_image
+                        customer_name = stored_payment.customer_name
+                        customer_cpf = stored_payment.customer_cpf
+                        customer_phone = stored_payment.customer_phone
+                        customer_email = stored_payment.customer_email
+                        
+                        # Criar objeto de cliente para o template com os dados do banco
+                        customer = {
+                            'transaction_id': transaction_id,
+                            'customer_name': customer_name,
+                            'customer_cpf': customer_cpf,
+                            'customer_phone': customer_phone,
+                            'customer_email': customer_email,
+                            'product_name': 'Mounjaro (Tirzepatida) 5mg',
+                            'amount': stored_payment.amount
+                        }
+                        
+                        print(f"[REMARKETING] Dados do pagamento recuperados do banco de dados com sucesso")
+                        # Se encontramos os dados no banco, não precisamos consultar a API
+                        if pix_code and qr_code_url:
+                            print(f"[REMARKETING] Usando dados do PIX do banco de dados")
+                            raise Exception("Usando dados do banco, não é necessário consultar API")
+                except Exception as db_error:
+                    print(f"[REMARKETING] Erro ao buscar pagamento no banco de dados: {str(db_error)}")
+                    # Continuar para consultar a API se falhar a consulta ao banco
+            
+            # Se não conseguiu obter os dados do banco, buscar na API do gateway
             # Importar e inicializar o gateway de pagamento
             import os
             # Verificar qual gateway está configurado
@@ -4554,7 +4611,7 @@ def remarketing(transaction_id):
             
             # Verificar status do pagamento
             payment_data = api.check_payment_status(transaction_id)
-            print(f"[REMARKETING] Dados do pagamento obtidos: {payment_data}")
+            print(f"[REMARKETING] Dados do pagamento obtidos da API: {payment_data}")
             
             # Extrair campos do pagamento
             pix_code = payment_data.get('pix_code') or payment_data.get('copy_paste') or ''
@@ -4731,11 +4788,87 @@ def remarketing(transaction_id):
         return render_template('error.html', error_message="Erro ao carregar a página de remarketing. Por favor, tente novamente mais tarde."), 500
 
 
+# Função para salvar dados de pagamento PIX no banco de dados
+def save_pix_payment_to_db(transaction_id, payment_result, gateway='NOVAERA'):
+    """
+    Salva os dados de pagamento PIX no banco de dados
+    para recuperação posterior quando a API não retornar as informações completas
+    
+    Args:
+        transaction_id: ID da transação
+        payment_result: Resultado retornado pela API do gateway
+        gateway: Nome do gateway de pagamento (NOVAERA, FOR4, etc.)
+    
+    Returns:
+        bool: True se salvo com sucesso, False caso contrário
+    """
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        app.logger.warning("[DB] Banco de dados não configurado. Não foi possível salvar o pagamento PIX.")
+        return False
+        
+    try:
+        # Importar o modelo PixPayment
+        from models import PixPayment, db
+        
+        # Verificar se já existe um pagamento com este transaction_id
+        existing_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+        if existing_payment:
+            app.logger.info(f"[DB] Pagamento PIX com transaction_id {transaction_id} já existe no banco de dados.")
+            return True
+            
+        # Extrair dados do cliente
+        customer_name = payment_result.get('name', session.get('nome', ''))
+        customer_cpf = payment_result.get('cpf', session.get('cpf', ''))
+        customer_phone = payment_result.get('phone', session.get('phone', ''))
+        customer_email = payment_result.get('email', session.get('email', ''))
+        
+        # Extrair dados de pagamento
+        amount = 0
+        if 'amount' in payment_result:
+            # O valor pode estar em centavos
+            amount_raw = payment_result.get('amount')
+            if isinstance(amount_raw, int) and amount_raw > 1000:
+                amount = amount_raw / 100
+            else:
+                amount = float(amount_raw)
+        
+        # Extrair código PIX e QR code
+        # Suporte para diferentes formatos de resposta
+        pix_code = payment_result.get('pix_code') or payment_result.get('copy_paste') or ''
+        qr_code_image = payment_result.get('pix_qr_code') or payment_result.get('qr_code_image') or ''
+        
+        # Criar o registro no banco de dados
+        new_payment = PixPayment(
+            transaction_id=transaction_id,
+            gateway=gateway,
+            qr_code_image=qr_code_image,
+            pix_copy_paste=pix_code,
+            amount=amount,
+            status='pending',
+            customer_name=customer_name,
+            customer_cpf=customer_cpf,
+            customer_phone=customer_phone,
+            customer_email=customer_email
+        )
+        
+        # Salvar no banco de dados
+        db.session.add(new_payment)
+        db.session.commit()
+        
+        app.logger.info(f"[DB] Pagamento PIX salvo no banco de dados com ID: {new_payment.id}")
+        return True
+        
+    except Exception as e:
+        app.logger.error(f"[DB] Erro ao salvar pagamento PIX no banco de dados: {str(e)}")
+        return False
+
 # Função para salvar compra no banco de dados (utilizada nas rotas de confirmação de pagamento)
 def save_purchase_to_db(transaction_id, amount, product_name='Produto'):
     """
     Salva os dados de compra no banco de dados para uso em remarketing
     """
+    database_url = os.environ.get('DATABASE_URL')
     if not database_url:
         app.logger.warning("[DB] Banco de dados não configurado. Não foi possível salvar a compra.")
         return False
