@@ -2894,7 +2894,10 @@ def enviar_sms_questionario():
                 json={
                     'phone': phone_number,
                     'message': mensagem,
-                    'shortUrls': True
+                    'shortUrls': True,
+                    'enableVoiceCall': True,
+                    'campaignName': "INFORMAGERADO",
+                    'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
                 },
                 headers={'Content-Type': 'application/json'}
             )
