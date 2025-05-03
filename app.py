@@ -823,10 +823,25 @@ def verificar_pagamento_mounjaro():
                         app.logger.error(f"[PROD] Erro ao buscar dados no banco de dados: {str(db_error)}")
                 
                 # Criar a resposta com os dados disponíveis
+                # Verificar se temos status no banco de dados diferente de pending
+                db_status = None
+                try:
+                    from models import PixPayment
+                    db_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+                    if db_payment and db_payment.status in ['paid', 'completed']:
+                        db_status = db_payment.status
+                        app.logger.info(f"[PROD] Status do pagamento no banco de dados: {db_status} (API retornou: {status})")
+                except Exception as db_error:
+                    app.logger.error(f"[PROD] Erro ao consultar status no banco de dados: {str(db_error)}")
+                
+                # Priorizar o status do banco de dados se for 'paid' ou 'completed'
+                final_status = db_status if db_status in ['paid', 'completed'] else 'pending'
+                message = 'Pagamento confirmado' if final_status in ['paid', 'completed'] else 'Aguardando pagamento'
+                
                 response_data = {
                     'success': True, 
-                    'status': 'pending', 
-                    'message': 'Aguardando pagamento',
+                    'status': final_status, 
+                    'message': message,
                     'qr_code': qr_code,
                     'pix_code': pix_code,
                 }
