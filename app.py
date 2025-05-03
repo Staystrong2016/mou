@@ -388,6 +388,26 @@ def processar_pagamento_mounjaro():
             # Armazenar o ID da transação na sessão para verificação posterior
             session['mounjaro_transaction_id'] = payment_result['id']
             
+            # Salvar dados do pagamento no banco de dados para uso em remarketing
+            try:
+                transaction_id = payment_result['id']
+                app.logger.info(f"[PROD] Salvando dados do pagamento {transaction_id} no banco para /remarketing")
+                
+                # Salvar dados no banco usando a função save_pix_payment_to_db
+                pix_save_result = save_pix_payment_to_db(
+                    transaction_id=transaction_id,
+                    payment_result=payment_result,
+                    gateway=gateway_choice
+                )
+                
+                if pix_save_result:
+                    app.logger.info(f"[DB] Dados do pagamento {transaction_id} salvos com sucesso no banco para /remarketing")
+                else:
+                    app.logger.warning(f"[DB] Falha ao salvar dados do pagamento {transaction_id} no banco para /remarketing")
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao salvar dados do pagamento no banco: {str(db_error)}")
+                # Não interromper o fluxo em caso de falha no banco
+            
             # Registrar o pagamento para envio de SMS e lembretes
             try:
                 from payment_reminder import register_payment
@@ -437,17 +457,8 @@ def processar_pagamento_mounjaro():
             
             app.logger.info(f"[PROD] Dados de pagamento obtidos - ID: {transaction_id}, PIX Code: {'Obtido' if pix_code else 'Não encontrado'}, QR Code: {'Obtido' if pix_qrcode else 'Não encontrado'}")
             
-            # Armazenar os dados de pagamento no banco de dados para uso em /remarketing
-            try:
-                app.logger.info(f"[PROD] Salvando dados do pagamento {transaction_id} no banco de dados para uso em /remarketing")
-                save_payment_result = save_pix_payment_to_db(transaction_id, payment_result, gateway=gateway_choice)
-                if save_payment_result:
-                    app.logger.info(f"[DB] Dados de pagamento PIX salvos com sucesso no banco de dados para a transação {transaction_id}")
-                else:
-                    app.logger.warning(f"[DB] Não foi possível salvar dados do pagamento PIX no banco de dados para a transação {transaction_id}")
-            except Exception as db_error:
-                app.logger.error(f"[DB] Erro ao salvar dados de pagamento PIX no banco de dados: {str(db_error)}")
-                # Não interrompemos o fluxo se falhar o armazenamento no banco
+            # Os dados já foram salvos no banco de dados anteriormente
+            app.logger.info(f"[PROD] Dados do pagamento {transaction_id} já foram salvos no banco anteriormente")
             
             # Extrair e armazenar parâmetros UTM e outros na sessão para acompanhamento durante o funil
             utm_params = payment_data.get('utm_params', {})
