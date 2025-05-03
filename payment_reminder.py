@@ -185,10 +185,12 @@ def send_reminder_sms(transaction_id, customer_data):
         if response.status_code == 200:
             response_data = response.json()
             logger.info(f"[PAYMENT_TRACKER] Reminder SMS sent successfully for {transaction_id}. Response: {response_data}")
-            # Mark reminder as sent
+            
+            # Mark that we've sent a reminder for this payment
             if transaction_id in pending_payments:
                 pending_payments[transaction_id]['sent_reminder'] = True
                 logger.info(f"[PAYMENT_TRACKER] Marked transaction {transaction_id} as having received reminder")
+                
             return True
         else:
             logger.error(f"[PAYMENT_TRACKER] Failed to send reminder SMS for {transaction_id}. Status: {response.status_code}, Response: {response.text}")
