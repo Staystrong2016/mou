@@ -4935,5 +4935,109 @@ def save_purchase_to_db(transaction_id, amount, product_name='Produto'):
         return False
 
 
+@app.route('/test-pix-notification', methods=['POST'])
+def test_pix_notification():
+    """Endpoint para testar o sistema de notificação de pagamentos PIX"""
+    try:
+        request_data = request.json
+        
+        if not request_data:
+            return jsonify({"status": "error", "message": "Dados de requisição ausentes"}), 400
+            
+        transaction_id = request_data.get('transaction_id')
+        customer_data = request_data.get('customer_data')
+        
+        if not transaction_id or not customer_data:
+            return jsonify({"status": "error", "message": "ID da transação e dados do cliente são obrigatórios"}), 400
+            
+        # Verificar dados mínimos do cliente
+        if 'phone' not in customer_data or not customer_data['phone']:
+            return jsonify({"status": "error", "message": "Telefone do cliente é obrigatório"}), 400
+            
+        # Registrar o pagamento para teste
+        from payment_reminder import register_payment
+        register_payment(transaction_id, customer_data)
+        
+        app.logger.info(f"[TEST] Pagamento {transaction_id} registrado para testes de notificação")
+        
+        return jsonify({
+            "status": "success", 
+            "message": f"Pagamento {transaction_id} registrado com sucesso para teste de notificação",
+            "details": "SMS inicial enviado. Aguarde 10 minutos para o lembrete."
+        })
+        
+    except Exception as e:
+        app.logger.error(f"[TEST] Erro ao testar notificação PIX: {str(e)}")
+        return jsonify({"status": "error", "message": f"Erro ao testar notificação: {str(e)}"}), 500
+
+@app.route('/test-pix-storage', methods=['POST'])
+def test_pix_storage():
+    """Endpoint para testar o armazenamento e recuperação de dados de pagamento PIX"""
+    try:
+        request_data = request.json
+        
+        if not request_data:
+            return jsonify({"status": "error", "message": "Dados de requisição ausentes"}), 400
+            
+        # Gerar um ID de transação de teste único
+        import time
+        transaction_id = f"TEST-{int(time.time())}"
+        
+        # Dados para teste
+        test_payment = {
+            "id": transaction_id,
+            "pix_code": "00020126580014br.gov.bcb.pix0136a1f86398-7ee9-4048-9cab-3979ddaf21670222PIX de teste automatizado52040000530398654040.005802BR5925Cliente Teste6009Sao Paulo62070503***63048F50",
+            "pix_qr_code": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACVklEQVRoge2ZQY7CMAyGE8iBOPETOAqX4iisiJPwBFQcgFHbpM3CtirYfehhJKT/y9c6dgfirxkKsDRY6G8BAGA0GABY17Xvz9AYAAAsl8cGQMvV9ocMGQAAtGG2AwFyAgDY7A62EQgA0PcDNEqRGgAAjOPYKEZ2AADA+85KkRWAK7CfqApvJwIArPu+kSIYgLYfprVYIQJXcEzUBaEDGQEA2O8jIAgeYHjMjVacDATAAZz3gW3M6MhAAMBzBWxdkAJXoHykKshAAPaLMEqRGQCAejsCKUQA3MHxs0wQgwcA2B9TZgUIwPJIUa0qpCB8gJeqVMAlKCVwBZQ2YQVnYPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4D8AcOAEAJf1i10EvsBJ9ZkUoACrg7jPEACAPbzlDnQDMN0Br/5kBUIHcYBrBzTgU4DXD1pRQgmIwLUPBb8NAAAA5O+RigScgXZsqZEVcA3q3g0IIgBuHdzXKSl4PgBMTw1aYCUYgPpeKE/AqcD4ZMgJAGBcQfoACgA45n4BpAcAQF0CG+D+AQAwrsAIQE4AAFYEsgD4HwAAAACMCigBACgpYMPgBYCpCuIDKAgAoK6AE+D/BQBg1Q9SAvKADwCvF/0AALjtAGwHAOB4HwxuBwCgZGApAgAAEfCuoKRAv0cJeGdACU4VUAAlyEcgKZiKUOpA+YAWCEDYS+eeBYUOlDUdEbh8wK1AuRYJwO0DdglUQAFyBzTgbcLzAbUPogBvE6IDeQUuV1CBnAZcgPIWAQB5BbwS1LcIAEgZUAICkE8AAf4AeGP/UlrNphsAAAAASUVORK5CYII=",
+            "name": "Cliente Teste",
+            "cpf": "12345678900",
+            "phone": "5511999999999",
+            "email": "teste@exemplo.com",
+            "amount": 143.10
+        }
+        
+        # Salvar os dados no banco de dados
+        result = save_pix_payment_to_db(
+            transaction_id=transaction_id,
+            payment_result=test_payment,
+            gateway="TEST"
+        )
+        
+        if not result:
+            return jsonify({"status": "error", "message": "Falha ao salvar dados no banco de dados"}), 500
+            
+        # Buscar os dados do banco de dados para verificar se foram salvos corretamente
+        try:
+            from models import PixPayment
+            stored_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+            
+            if not stored_payment:
+                return jsonify({"status": "error", "message": "Dados não encontrados no banco após salvar"}), 500
+                
+            # Criar resposta com os dados recuperados para verificação
+            response_data = {
+                "status": "success",
+                "message": "Dados de pagamento PIX salvos e recuperados com sucesso",
+                "transaction_id": transaction_id,
+                "stored_data": {
+                    "pix_code": stored_payment.pix_copy_paste[:50] + "...",  # Truncado para legibilidade
+                    "has_qr_code": bool(stored_payment.qr_code_image),
+                    "customer_name": stored_payment.customer_name,
+                    "customer_phone": stored_payment.customer_phone,
+                    "amount": stored_payment.amount,
+                    "created_at": stored_payment.created_at.isoformat() if stored_payment.created_at else None
+                }
+            }
+            
+            return jsonify(response_data)
+            
+        except Exception as db_error:
+            app.logger.error(f"[TEST] Erro ao recuperar dados do banco: {str(db_error)}")
+            return jsonify({"status": "error", "message": f"Erro ao recuperar dados: {str(db_error)}"}), 500
+        
+    except Exception as e:
+        app.logger.error(f"[TEST] Erro ao testar armazenamento PIX: {str(e)}")
+        return jsonify({"status": "error", "message": f"Erro no teste: {str(e)}"}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
