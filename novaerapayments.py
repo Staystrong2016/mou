@@ -16,7 +16,7 @@ class NovaEraPaymentsAPI:
 
     def _get_headers(self) -> Dict[str, str]:
         return {
-            'Authorization': f'Basic {self.authorization_token}',
+            'Authorization': f"Basic {base64.b64encode(f'{self.authorization_token}:x'.encode()).decode()}",
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
