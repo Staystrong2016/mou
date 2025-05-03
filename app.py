@@ -5170,5 +5170,199 @@ def test_pix_storage():
         return jsonify({"status": "error", "message": f"Erro no teste: {str(e)}"}), 500
 
 
+@app.route('/novaera/webhook', methods=['POST'])
+def novaera_webhook():
+    """
+    Webhook para receber notificações de pagamento da NovaEra
+    
+    Formato esperado: 
+    {
+        "id": webhook_id,
+        "url": webhook_url,
+        "data": {
+            "id": transaction_id,
+            "status": "paid"|"pending"|"cancelled",
+            "pix": {
+                "qrcode": "qrcode_data"
+            },
+            "amount": 5000,
+            "paidAt": "timestamp",
+            "customer": {
+                "name": "Cliente Nome",
+                "email": "cliente@email.com",
+                "phone": "telefone",
+                "document": {
+                    "type": "cpf",
+                    "number": "12345678900"
+                }
+            }
+        },
+        "type": "transaction"
+    }
+    """
+    try:
+        # Obter dados da requisição JSON
+        webhook_data = request.get_json()
+        
+        if not webhook_data:
+            app.logger.error("[WEBHOOK] Nenhum dado JSON recebido no webhook")
+            return jsonify({"success": False, "message": "Nenhum dado recebido"}), 400
+        
+        app.logger.info(f"[WEBHOOK] Dados recebidos no webhook: {webhook_data}")
+        
+        # Verificar se é uma notificação de transação
+        if webhook_data.get('type') != 'transaction':
+            app.logger.warning(f"[WEBHOOK] Tipo de notificação não suportado: {webhook_data.get('type')}")
+            return jsonify({"success": True, "message": "Tipo de notificação não processado"}), 200
+        
+        # Extrair dados da transação
+        transaction_data = webhook_data.get('data', {})
+        transaction_id = str(transaction_data.get('id'))
+        status = transaction_data.get('status', '').lower()
+        
+        if not transaction_id:
+            app.logger.error("[WEBHOOK] ID da transação não encontrado nos dados do webhook")
+            return jsonify({"success": False, "message": "ID da transação não encontrado"}), 400
+            
+        app.logger.info(f"[WEBHOOK] Processando notificação para transação {transaction_id}, status: {status}")
+        
+        # Extrair dados de PIX se disponíveis
+        pix_data = transaction_data.get('pix', {})
+        qr_code = pix_data.get('qrcode', None)
+        
+        # Extrair dados do cliente
+        customer_data = transaction_data.get('customer', {})
+        customer_name = customer_data.get('name', '')
+        customer_email = customer_data.get('email', '')
+        customer_phone = customer_data.get('phone', '')
+        
+        # Extrair CPF do cliente
+        document = customer_data.get('document', {})
+        customer_cpf = document.get('number', '') if document.get('type') == 'cpf' else ''
+        
+        # Extrair valor da transação (converter de centavos para reais se necessário)
+        amount_raw = transaction_data.get('amount', 0)
+        amount = float(amount_raw) / 100 if amount_raw > 1000 else float(amount_raw)
+        
+        # Importar modelo do banco de dados
+        from models import PixPayment, db
+        
+        # Buscar pagamento existente ou criar novo
+        pix_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+        
+        if pix_payment:
+            app.logger.info(f"[WEBHOOK] Atualizando pagamento existente para transação {transaction_id}")
+            # Atualizar status do pagamento existente
+            pix_payment.status = status
+            
+            # Atualizar QR code se disponível e ainda não estiver armazenado
+            if qr_code and not pix_payment.qr_code_image:
+                pix_payment.qr_code_image = qr_code
+                
+            # Atualizar dados do cliente se estiverem disponíveis e ainda não armazenados
+            if customer_name and not pix_payment.customer_name:
+                pix_payment.customer_name = customer_name
+            if customer_email and not pix_payment.customer_email:
+                pix_payment.customer_email = customer_email
+            if customer_phone and not pix_payment.customer_phone:
+                pix_payment.customer_phone = customer_phone
+            if customer_cpf and not pix_payment.customer_cpf:
+                pix_payment.customer_cpf = customer_cpf
+        else:
+            app.logger.info(f"[WEBHOOK] Criando novo registro de pagamento para transação {transaction_id}")
+            # Criar novo registro de pagamento
+            pix_payment = PixPayment(
+                transaction_id=transaction_id,
+                gateway='NOVAERA',
+                qr_code_image=qr_code,
+                pix_copy_paste=None,  # Não disponível na notificação webhook
+                amount=amount,
+                status=status,
+                customer_name=customer_name,
+                customer_cpf=customer_cpf,
+                customer_phone=customer_phone,
+                customer_email=customer_email
+            )
+            db.session.add(pix_payment)
+        
+        # Salvar alterações no banco de dados
+        db.session.commit()
+        
+        # Se o pagamento foi confirmado, marcar como concluído no sistema de lembretes
+        if status == 'paid':
+            try:
+                from payment_reminder import mark_payment_completed
+                mark_payment_completed(transaction_id)
+                app.logger.info(f"[WEBHOOK] Pagamento {transaction_id} marcado como completo no sistema de lembretes")
+                
+                # Enviar SMS de confirmação se o telefone estiver disponível
+                if customer_phone:
+                    thank_you_url = request.url_root.rstrip('/') + f"/remarketing/{transaction_id}"
+                    sms_sent = send_payment_confirmation_sms(
+                        phone_number=customer_phone,
+                        nome=customer_name,
+                        cpf=customer_cpf,
+                        thank_you_url=thank_you_url
+                    )
+                    
+                    if sms_sent:
+                        app.logger.info(f"[WEBHOOK] SMS de confirmação enviado para {customer_phone}")
+                    else:
+                        app.logger.warning(f"[WEBHOOK] Falha ao enviar SMS de confirmação para {customer_phone}")
+            except Exception as sms_error:
+                app.logger.error(f"[WEBHOOK] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
+        
+        # Retornar resposta de sucesso
+        return jsonify({
+            "success": True, 
+            "message": f"Notificação processada com sucesso para transação {transaction_id}",
+            "transaction_id": transaction_id,
+            "status": status
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f"[WEBHOOK] Erro ao processar notificação webhook: {str(e)}")
+        return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
+
+@app.route('/test_webhook_sms')
+def test_webhook_sms():
+    """
+    Rota para testar a funcionalidade de SMS do webhook da NovaEra
+    Simula um pagamento sendo notificado pelo webhook e tenta enviar um SMS
+    """
+    try:
+        transaction_id = request.args.get('id', '123456')
+        customer_name = request.args.get('name', 'Cliente Teste')
+        customer_cpf = request.args.get('cpf', '123.456.789-00')
+        customer_phone = request.args.get('phone', '+5511999998888')
+        
+        # Criar URL de agradecimento
+        thank_you_url = request.url_root.rstrip('/') + f"/remarketing/{transaction_id}"
+        
+        # Tentar enviar o SMS
+        app.logger.info(f"[TEST] Enviando SMS para {customer_phone}")
+        sms_sent = send_payment_confirmation_sms(
+            phone_number=customer_phone,
+            nome=customer_name,
+            cpf=customer_cpf,
+            thank_you_url=thank_you_url
+        )
+        
+        if sms_sent:
+            return jsonify({
+                "success": True,
+                "message": f"SMS enviado com sucesso para {customer_phone}",
+                "thank_you_url": thank_you_url
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": f"Falha ao enviar SMS para {customer_phone}",
+                "thank_you_url": thank_you_url
+            }), 500
+    except Exception as e:
+        app.logger.error(f"[TEST] Erro ao testar SMS do webhook: {str(e)}")
+        return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
