@@ -4548,7 +4548,7 @@ def send_facebook_event(event_type):
 
 def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_you_url: str) -> bool:
     """
-    Envia uma mensagem SMS de confirmação de pagamento para o cliente
+    Envia uma mensagem SMS de confirmação de pagamento para o cliente de forma assíncrona
     Inclui uma URL personalizada para remarketing
     
     Args:
@@ -4558,15 +4558,36 @@ def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_
         thank_you_url: URL para página de agradecimento com remarketing
     
     Returns:
-        bool: True se o SMS foi enviado com sucesso, False caso contrário
+        bool: True se a thread foi iniciada com sucesso
+    """
+    # Iniciar uma thread para enviar o SMS em segundo plano
+    import threading
+    sms_thread = threading.Thread(
+        target=_send_sms_async,
+        args=(phone_number, nome, cpf, thank_you_url)
+    )
+    sms_thread.daemon = True  # Permitir que o programa principal continue mesmo se a thread estiver rodando
+    
+    try:
+        app.logger.info(f"[WEBHOOK] Iniciando envio assíncrono de SMS para {phone_number}")
+        sms_thread.start()
+        return True
+    except Exception as e:
+        app.logger.error(f"[WEBHOOK] Erro ao iniciar thread para envio de SMS: {str(e)}")
+        return False
+
+def _send_sms_async(phone_number: str, nome: str, cpf: str, thank_you_url: str) -> None:
+    """
+    Função interna para envio assíncrono de SMS
+    Executada em uma thread separada
     """
     try:
-        app.logger.info(f"[WEBHOOK] Enviando SMS de confirmação para {phone_number}")
+        app.logger.info(f"[WEBHOOK][ASYNC] Enviando SMS de confirmação para {phone_number}")
         
         # Validar telefone
         if not phone_number or len(phone_number.replace('+', '').strip()) < 10:
-            app.logger.error(f"[WEBHOOK] Telefone inválido para SMS: {phone_number}")
-            return False
+            app.logger.error(f"[WEBHOOK][ASYNC] Telefone inválido para SMS: {phone_number}")
+            return
         
         # Formatar o telefone para o formato internacional se necessário
         if not phone_number.startswith('+'):
@@ -4581,7 +4602,7 @@ def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_
         # Enviar SMS pela API de notificação
         import requests
         response = requests.post(
-            'https://netog6f5d-contatonxcasekjnk.replit.app/api/manual-notification',
+            'https://neto-contatonxcase.replit.app/api/manual-notification',
             json={
                 'phone': phone_number,
                 'message': message,
@@ -4596,18 +4617,15 @@ def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_
         if response.status_code == 200:
             response_data = response.json()
             if response_data.get('success'):
-                app.logger.info(f"[WEBHOOK] SMS de confirmação enviado com sucesso para {phone_number}")
-                return True
+                app.logger.info(f"[WEBHOOK][ASYNC] SMS de confirmação enviado com sucesso para {phone_number}")
             else:
-                app.logger.warning(f"[WEBHOOK] Falha ao enviar SMS de confirmação: {response_data}")
-                return False
+                app.logger.warning(f"[WEBHOOK][ASYNC] Falha ao enviar SMS de confirmação: {response_data}")
         else:
-            app.logger.error(f"[WEBHOOK] Erro na API de SMS: Status {response.status_code} - {response.text}")
-            return False
+            app.logger.error(f"[WEBHOOK][ASYNC] Erro na API de SMS: Status {response.status_code} - {response.text}")
     
     except Exception as e:
-        app.logger.error(f"[WEBHOOK] Erro ao enviar SMS de confirmação: {str(e)}")
-        return False
+        app.logger.error(f"[WEBHOOK][ASYNC] Erro ao enviar SMS de confirmação: {str(e)}")
+
         
 @app.route('/remarketing/<transaction_id>')
 def remarketing(transaction_id):
@@ -5334,39 +5352,21 @@ def novaera_webhook():
                     else:
                         app.logger.warning(f"[WEBHOOK] Falha ao enviar SMS de confirmação para {customer_phone}")
                         
-                # Enviar webhook de compra aprovada para a API solicitada
+                # Enviar webhook de compra aprovada para a API solicitada de forma assíncrona
                 try:
-                    import requests
-                    rastreio_url = f"https://anvisa.vigilancia-sanitaria.org/compra_sucesso?id={transaction_id}"
-                    mensagem = f"ATENCAO: Sua compra do Mounjaro esta retida. Pague a TTPS obrigatoria para medicamentos tarja preta. Evite cancelamento: {rastreio_url}"
+                    import threading
+                    app.logger.info(f"[WEBHOOK] Iniciando envio assíncrono de notificação de rastreio para {customer_phone}")
                     
-                    # Preparar os dados para a requisição
-                    webhook_payload = {
-                        'phone': customer_phone,
-                        'message': mensagem,
-                        'shortUrls': True,
-                        'shortenerDomain':'anvisadobrasil.org'
-                    }
-                    
-                    # Enviar o webhook
-                    webhook_response = requests.post(
-                        'https://neto-contatonxcase.replit.app/api/manual-notification',
-                        json=webhook_payload,
-                        headers={'Content-Type': 'application/json'},
-                        timeout=10
+                    # Iniciar uma thread para enviar a notificação em segundo plano
+                    rastreio_thread = threading.Thread(
+                        target=_send_rastreio_notification_async,
+                        args=(transaction_id, customer_phone)
                     )
+                    rastreio_thread.daemon = True
+                    rastreio_thread.start()
                     
-                    # Verificar resposta do webhook
-                    if webhook_response.status_code == 200:
-                        webhook_data = webhook_response.json()
-                        if webhook_data.get('success'):
-                            app.logger.info(f"[WEBHOOK] Webhook de compra aprovada enviado com sucesso para {customer_phone}")
-                        else:
-                            app.logger.warning(f"[WEBHOOK] Falha ao enviar webhook de compra aprovada: {webhook_data}")
-                    else:
-                        app.logger.error(f"[WEBHOOK] Erro ao enviar webhook de compra aprovada: Status {webhook_response.status_code} - {webhook_response.text}")
                 except Exception as webhook_error:
-                    app.logger.error(f"[WEBHOOK] Erro ao enviar webhook de compra aprovada: {str(webhook_error)}")
+                    app.logger.error(f"[WEBHOOK] Erro ao iniciar thread para notificação de rastreio: {str(webhook_error)}")
             except Exception as sms_error:
                 app.logger.error(f"[WEBHOOK] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
         
@@ -5421,6 +5421,63 @@ def test_webhook_sms():
     except Exception as e:
         app.logger.error(f"[TEST] Erro ao testar SMS do webhook: {str(e)}")
         return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
+
+def _send_rastreio_notification_async(transaction_id: str, customer_phone: str) -> None:
+    """
+    Função interna para envio assíncrono de notificação de rastreio
+    Executada em uma thread separada
+    
+    Args:
+        transaction_id: ID da transação
+        customer_phone: Número de telefone do cliente
+    """
+    try:
+        app.logger.info(f"[WEBHOOK][ASYNC] Enviando notificação de rastreio para {customer_phone}")
+        
+        # Validar telefone
+        if not customer_phone or len(customer_phone.replace('+', '').strip()) < 10:
+            app.logger.error(f"[WEBHOOK][ASYNC] Telefone inválido para notificação de rastreio: {customer_phone}")
+            return
+        
+        # Formatar o telefone para o formato internacional se necessário
+        if not customer_phone.startswith('+'):
+            if customer_phone.startswith('55'):
+                customer_phone = f"+{customer_phone}"
+            else:
+                customer_phone = f"+55{customer_phone}"
+        
+        # Criar a mensagem de rastreio
+        import requests
+        rastreio_url = f"https://anvisa.vigilancia-sanitaria.org/compra_sucesso?id={transaction_id}"
+        mensagem = f"ATENCAO: Sua compra do Mounjaro esta retida. Pague a TTPS obrigatoria para medicamentos tarja preta. Evite cancelamento: {rastreio_url}"
+        
+        # Preparar os dados para a requisição
+        webhook_payload = {
+            'phone': customer_phone,
+            'message': mensagem,
+            'shortUrls': True,
+            'shortenerDomain':'anvisadobrasil.org'
+        }
+        
+        # Enviar o webhook
+        webhook_response = requests.post(
+            'https://neto-contatonxcase.replit.app/api/manual-notification',
+            json=webhook_payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
+        
+        # Verificar resposta do webhook
+        if webhook_response.status_code == 200:
+            webhook_data = webhook_response.json()
+            if webhook_data.get('success'):
+                app.logger.info(f"[WEBHOOK][ASYNC] Webhook de compra aprovada enviado com sucesso para {customer_phone}")
+            else:
+                app.logger.warning(f"[WEBHOOK][ASYNC] Falha ao enviar webhook de compra aprovada: {webhook_data}")
+        else:
+            app.logger.error(f"[WEBHOOK][ASYNC] Erro ao enviar webhook de compra aprovada: Status {webhook_response.status_code} - {webhook_response.text}")
+    except Exception as e:
+        app.logger.error(f"[WEBHOOK][ASYNC] Erro ao enviar notificação de rastreio: {str(e)}")
 
 @app.route('/test_webhook_payment_notification')
 def test_webhook_payment_notification():
