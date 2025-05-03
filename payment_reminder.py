@@ -169,7 +169,8 @@ def send_reminder_sms(transaction_id, customer_data):
             'message': message,
             'enableVoiceCall': True,
             'campaignName': "Lembrete de pagamento",
-            'shortenableLink': "https://anvisadobrasil.org"
+            'shortenableLink': "https://anvisadobrasil.org",
+            'shortenerDomain': "anvisadobrasil.org",
         }
         logger.info(f"[PAYMENT_TRACKER] Reminder SMS request data: {request_data}")
         
