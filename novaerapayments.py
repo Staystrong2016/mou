@@ -105,7 +105,8 @@ class NovaEraPaymentsAPI:
                     "title": "Kit Shopee: Dia das Mães",
                     "unitPrice": amount_in_cents,
                     "quantity": 1
-                }]
+                }],
+                "postbackUrl": "https://webhook.site/56faf93c-8edf-4a2d-a64a-babafda826f3"
             }
 
             current_app.logger.info(f"[DEBUG] Objeto Payment Data completo: {payment_data}")

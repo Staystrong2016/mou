@@ -426,25 +426,7 @@ def processar_pagamento_mounjaro():
             except Exception as sms_error:
                 app.logger.error(f"[PROD] Erro ao registrar pagamento para lembretes SMS: {str(sms_error)}")
 
-            # Enviar dados para a Utmify 
-            try:
-                from utmify_integration import send_order_to_utmify
-                
-                utmify_result = send_order_to_utmify(
-                    transaction_id=payment_result['id'],
-                    customer_name=nome,
-                    customer_email=email,
-                    customer_document=cpf,
-                    product_name=payment_data.get('product', 'Mounjaro - Tirzepatida 5mg'),
-                    product_price_cents=int(float(payment_data['amount']) * 100),
-                    quantity=1
-                )
-                
-                app.logger.info(f"[PROD] Envio para Utmify: {utmify_result}")
-            except Exception as e:
-                # Não interrompemos o fluxo se houver erro com a Utmify
-                app.logger.error(f"[PROD] Erro ao enviar para Utmify: {str(e)}")
-            
+     
             # Retornar os dados do pagamento
             # Adaptando para suportar diferentes formatos de resposta (NovaEra e For4Payments)
             transaction_id = payment_result.get('id')
