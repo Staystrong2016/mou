@@ -4993,6 +4993,41 @@ def test_pix_notification():
         app.logger.error(f"[TEST] Erro ao testar notificação PIX: {str(e)}")
         return jsonify({"status": "error", "message": f"Erro ao testar notificação: {str(e)}"}), 500
 
+@app.route('/test-pix-notification-simple')
+def test_pix_notification_simple():
+    """Endpoint simples para testar o sistema de notificação de pagamentos PIX"""
+    try:
+        # Importar função de registro de pagamento
+        from payment_reminder import register_payment
+        import time
+        
+        # Gerar um ID de transação único baseado no timestamp atual
+        transaction_id = f"test_{int(time.time())}"
+        
+        # Dados de teste do cliente
+        customer_data = {
+            'name': 'Cliente Teste',
+            'phone': '11987654321',  # Substitua por um número válido para teste
+            'email': 'teste@exemplo.com',
+            'cpf': '12345678900'
+        }
+        
+        # Registrar o pagamento para envio de SMS inicial e posterior lembrete
+        register_payment(transaction_id, customer_data)
+        
+        # Logar a ação para acompanhamento
+        app.logger.info(f"[TEST] SMS inicial enviado para o pagamento de teste {transaction_id}")
+        
+        return jsonify({
+            "status": "success", 
+            "message": f"Pagamento {transaction_id} registrado para teste",
+            "transaction_id": transaction_id,
+            "details": "SMS inicial enviado. Um lembrete será enviado em aproximadamente 10 minutos se o pagamento não for completado."
+        })
+    except Exception as e:
+        app.logger.error(f"[TEST] Erro no teste simplificado: {str(e)}")
+        return jsonify({"status": "error", "message": f"Erro: {str(e)}"}), 500
+
 @app.route('/test-pix-storage', methods=['POST'])
 def test_pix_storage():
     """Endpoint para testar o armazenamento e recuperação de dados de pagamento PIX"""
