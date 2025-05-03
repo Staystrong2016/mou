@@ -51,7 +51,7 @@ else:
     print("AVISO: Variável DATABASE_URL não encontrada. Funcionalidades de banco de dados não estarão disponíveis.")
 
 # Importações após a inicialização da app e do db
-from for4payments import create_payment_api
+from payment_gateway import get_payment_gateway
 from api_security import create_jwt_token, verify_jwt_token, generate_csrf_token, secure_api, verify_referer
 from request_analyzer import confirm_genuity
 from utmify_integration import process_payment_webhook
@@ -214,7 +214,6 @@ from io import BytesIO
 import requests
 
 from payment_gateway import get_payment_gateway
-from for4payments import create_payment_api
 from pagamentocomdesconto import create_payment_with_discount_api
 
 # Domínio autorizado - Permitindo todos os domínios
@@ -2896,8 +2895,8 @@ def pagar_frete():
         }
         
         # Criar a transação PIX
-        from for4pagamentos import create_payment_api
-        api = create_payment_api()
+        from payment_gateway import get_payment_gateway
+        api = get_payment_gateway()
         result = api.create_pix_payment(payment_data)
         
         return jsonify({
@@ -2925,8 +2924,8 @@ def verificar_pagamento_frete():
             return jsonify({'success': False, 'error': 'ID da transação não fornecido'}), 400
             
         # Verificar status do pagamento
-        from for4pagamentos import create_payment_api
-        api = create_payment_api()
+        from payment_gateway import get_payment_gateway
+        api = get_payment_gateway()
         status_data = api.check_payment_status(transaction_id)
         
         app.logger.info(f"[PROD] Verificando status do pagamento {transaction_id}")
@@ -3791,15 +3790,15 @@ def pagar_ttps():
         ttps_value = 67.90
         transaction_id = ""
         
-        # Gerar pagamento na For4Payments
+        # Gerar pagamento na API de pagamento configurada
         try:
-            app.logger.info(f"[PROD] Gerando pagamento For4 para TTPS no valor de R$ {ttps_value}")
+            app.logger.info(f"[PROD] Gerando pagamento para TTPS no valor de R$ {ttps_value}")
             
-            # Importar API da For4Payments
-            from for4pagamentos import create_payment_api
+            # Importar API de pagamento
+            from payment_gateway import get_payment_gateway
             
             # Criar instância da API
-            api = create_payment_api()
+            api = get_payment_gateway()
             
             # Preparar dados para o pagamento
             payment_data = {
