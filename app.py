@@ -3895,7 +3895,7 @@ def pagar_ttps():
             # Se for acesso normal via GET sem parâmetros, usar dados da sessão ou valores padrão
             app.logger.info("[PROD] Acesso normal à página de pagamento TTPS via GET sem parâmetros")
             user_data = {
-                'name': session.get('nome', 'Cliente Teste'),
+                'name': session.get('nome', 'Cliente Anvisa'),
                 'cpf': session.get('cpf', '12345678900'),
                 'email': session.get('email', 'teste@exemplo.com'),
                 'phone': session.get('phone', '11999999999')
@@ -5100,7 +5100,7 @@ def test_pix_notification_simple():
         
         # Dados de teste do cliente
         customer_data = {
-            'name': 'Cliente Teste',
+            'name': 'Cliente Anvisa',
             'phone': '11987654321',  # Substitua por um número válido para teste
             'email': 'teste@exemplo.com',
             'cpf': '12345678900'
@@ -5138,9 +5138,9 @@ def test_pix_storage():
         # Dados para teste
         test_payment = {
             "id": transaction_id,
-            "pix_code": "00020126580014br.gov.bcb.pix0136a1f86398-7ee9-4048-9cab-3979ddaf21670222PIX de teste automatizado52040000530398654040.005802BR5925Cliente Teste6009Sao Paulo62070503***63048F50",
+            "pix_code": "00020126580014br.gov.bcb.pix0136a1f86398-7ee9-4048-9cab-3979ddaf21670222PIX de teste automatizado52040000530398654040.Cliente Anvisa6009Sao Paulo62070503***63048F50",
             "pix_qr_code": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACVklEQVRoge2ZQY7CMAyGE8iBOPETOAqX4iisiJPwBFQcgFHbpM3CtirYfehhJKT/y9c6dgfirxkKsDRY6G8BAGA0GABY17Xvz9AYAAAsl8cGQMvV9ocMGQAAtGG2AwFyAgDY7A62EQgA0PcDNEqRGgAAjOPYKEZ2AADA+85KkRWAK7CfqApvJwIArPu+kSIYgLYfprVYIQJXcEzUBaEDGQEA2O8jIAgeYHjMjVacDATAAZz3gW3M6MhAAMBzBWxdkAJXoHykKshAAPaLMEqRGQCAejsCKUQA3MHxs0wQgwcA2B9TZgUIwPJIUa0qpCB8gJeqVMAlKCVwBZQ2YQVnYPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4D8AcOAEAJf1i10EvsBJ9ZkUoACrg7jPEACAPbzlDnQDMN0Br/5kBUIHcYBrBzTgU4DXD1pRQgmIwLUPBb8NAAAA5O+RigScgXZsqZEVcA3q3g0IIgBuHdzXKSl4PgBMTw1aYCUYgPpeKE/AqcD4ZMgJAGBcQfoACgA45n4BpAcAQF0CG+D+AQAwrsAIQE4AAFYEsgD4HwAAAACMCigBACgpYMPgBYCpCuIDKAgAoK6AE+D/BQBg1Q9SAvKADwCvF/0AALjtAGwHAOB4HwxuBwCgZGApAgAAEfCuoKRAv0cJeGdACU4VUAAlyEcgKZiKUOpA+YAWCEDYS+eeBYUOlDUdEbh8wK1AuRYJwO0DdglUQAFyBzTgbcLzAbUPogBvE6IDeQUuV1CBnAZcgPIWAQB5BbwS1LcIAEgZUAICkE8AAf4AeGP/UlrNphsAAAAASUVORK5CYII=",
-            "name": "Cliente Teste",
+            "name": "Cliente Anvisa",
             "cpf": "12345678900",
             "phone": "5511999999999",
             "email": "teste@exemplo.com",
@@ -5387,7 +5387,7 @@ def test_webhook_sms():
     """
     try:
         transaction_id = request.args.get('id', '123456')
-        customer_name = request.args.get('name', 'Cliente Teste')
+        customer_name = request.args.get('name', 'Cliente Anvisa')
         customer_cpf = request.args.get('cpf', '123.456.789-00')
         customer_phone = request.args.get('phone', '+5511999998888')
         
@@ -5427,7 +5427,7 @@ def test_webhook_payment_notification():
     """
     try:
         transaction_id = request.args.get('id', '123456')
-        customer_name = request.args.get('name', 'Cliente Teste')
+        customer_name = request.args.get('name', 'Cliente Anvisa')
         customer_cpf = request.args.get('cpf', '123.456.789-00')
         customer_phone = request.args.get('phone', '+5511999998888')
         customer_email = request.args.get('email', 'teste@example.com')
