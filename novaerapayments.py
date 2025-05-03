@@ -116,6 +116,7 @@ class NovaEraPaymentsAPI:
                     current_app.logger.info(f"[DEBUG] Resposta completa da API NovaEra (criar pagamento): {response_data}")
                     
                     # Montar resposta no formato esperado pela aplicação
+                    # Incluir também os dados do cliente para garantir que estejam disponíveis posteriormente
                     return {
                         'id': response_data['data']['id'],
                         'status': response_data['data']['status'],
@@ -123,7 +124,12 @@ class NovaEraPaymentsAPI:
                         'pix_qr_code': f"https://api.qrserver.com/v1/create-qr-code/?data={response_data['data']['pix']['qrcode']}&size=300x300",
                         'pix_code': response_data['data']['pix']['qrcode'],
                         'expires_at': response_data['data']['pix']['expirationDate'],
-                        'secure_url': response_data['data']['secureUrl']
+                        'secure_url': response_data['data']['secureUrl'],
+                        # Adicionar os dados do cliente para uso posterior
+                        'name': data['name'],
+                        'email': email,
+                        'cpf': cpf,
+                        'phone': phone
                     }
                 else:
                     raise ValueError(f"Erro ao processar pagamento: {response.status_code} - {response.text}")
@@ -189,19 +195,12 @@ def encode_api_token(secret_key: str) -> str:
 
 def create_payment_api(authorization_token: Optional[str] = None) -> NovaEraPaymentsAPI:
     """Factory function to create NovaEraPaymentsAPI instance"""
-    if authorization_token is None:
-        # Usar a secret key fornecida
-        secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY", "sk_Sx3bFdlK7X08MCeeedBsDYdVmGwDkv-1mUQZ1SQ45QVujEuQ")
-        
+    secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY", "sk_5phdh9CE2WiBbzoEp0aGiK4X-KNeWCDhqfiB-sP2GCuCc5p6")
+    if authorization_token is None:        
         if not secret_key:
             raise ValueError("NOVAERA_PAYMENT_SECRET_KEY não configurado no ambiente")
-        
-        # Codificar o token no formato Basic base64{secret key:x}
-        authorization_token = encode_api_token(secret_key)
-        
-        current_app.logger.info(f"[INFO] Token NovaEra gerado a partir da secret key (formato: base64)")
-    
-    return NovaEraPaymentsAPI(authorization_token)
+
+    return NovaEraPaymentsAPI(secret_key)
 
 
 def test_token_encoding():
@@ -209,7 +208,7 @@ def test_token_encoding():
     Função para testar a codificação do token da NovaEra.
     Pode ser executada diretamente para verificar o formato do token.
     """
-    secret_key = "sk_Sx3bFdlK7X08MCeeedBsDYdVmGwDkv-1mUQZ1SQ45QVujEuQ"
+    secret_key = "sk_5phdh9CE2WiBbzoEp0aGiK4X-KNeWCDhqfiB-sP2GCuCc5p6"
     encoded_token = encode_api_token(secret_key)
     
     print("\n===== TESTE DE CODIFICAÇÃO DO TOKEN NOVAERA =====")
