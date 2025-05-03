@@ -4834,6 +4834,9 @@ def save_pix_payment_to_db(transaction_id, payment_result, gateway='NOVAERA'):
         # Importar o modelo PixPayment
         from models import PixPayment, db
         
+        # Garantir que transaction_id seja sempre string
+        transaction_id = str(transaction_id)
+        
         # Verificar se já existe um pagamento com este transaction_id
         existing_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
         if existing_payment:
@@ -4899,6 +4902,9 @@ def save_purchase_to_db(transaction_id, amount, product_name='Produto'):
     try:
         # Importar o modelo Purchase
         from models import Purchase
+        
+        # Garantir que transaction_id seja sempre string
+        transaction_id = str(transaction_id)
         
         # Verificar se já existe uma compra com este transaction_id
         existing_purchase = Purchase.query.filter_by(transaction_id=transaction_id).first()
