@@ -465,20 +465,11 @@ def verificar_pagamento_mounjaro():
 
         # Criar instância da API de pagamento
         try:
-            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'FOR4')
-            
-            # Verificar qual gateway está configurado, mas dar preferência ao For4Payments
-            # para garantir que obtemos os dados do cliente
-            if gateway_choice == 'FOR4':
-                # Usar o For4Payments diretamente
-                from for4payments import create_payment_api
-                payment_api = create_payment_api()
-                app.logger.info(f"[PROD] Usando For4Payments API diretamente para consultar dados do cliente")
-            else:
-                # Usar o gateway padrão como fallback
-                from payment_gateway import get_payment_gateway
-                payment_api = get_payment_gateway()
-                app.logger.info(f"[PROD] Usando gateway de pagamento: {os.environ.get('GATEWAY_CHOICE')}")
+            # Usar o gateway de pagamento configurado
+            from payment_gateway import get_payment_gateway
+            payment_api = get_payment_gateway()
+            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
+            app.logger.info(f"[PROD] Usando gateway de pagamento configurado: {gateway_choice}")
         except Exception as e:
             app.logger.error(f"[PROD] Erro ao criar instância da API de pagamento: {str(e)}")
             return jsonify({'success': False, 'status': 'error', 'message': 'Erro de configuração do serviço de pagamento'}), 500
