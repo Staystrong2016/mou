@@ -4969,9 +4969,33 @@ def save_pix_payment_to_db(transaction_id, payment_result, gateway='NOVAERA'):
                 amount = float(amount_raw)
         
         # Extrair código PIX e QR code
-        # Suporte para diferentes formatos de resposta
-        pix_code = payment_result.get('pix_code') or payment_result.get('copy_paste') or ''
-        qr_code_image = payment_result.get('pix_qr_code') or payment_result.get('qr_code_image') or ''
+        # Suporte para diferentes formatos de resposta baseado no gateway
+        pix_code = ''
+        qr_code_image = ''
+        
+        # Gateway FOR4 usa nomes de campos diferentes
+        if gateway == 'FOR4':
+            app.logger.info(f"[DB] Processando resposta do gateway FOR4 com campos específicos")
+            pix_code = payment_result.get('pixCode') or payment_result.get('copy_paste') or ''
+            qr_code_image = payment_result.get('pixQrCode') or payment_result.get('qr_code_image') or ''
+            app.logger.info(f"[DB] FOR4 - PIX code encontrado: {bool(pix_code)}, QR code encontrado: {bool(qr_code_image)}")
+        else:
+            # Gateway padrão (NOVAERA)
+            pix_code = payment_result.get('pix_code') or payment_result.get('copy_paste') or ''
+            qr_code_image = payment_result.get('pix_qr_code') or payment_result.get('qr_code_image') or ''
+            app.logger.info(f"[DB] Gateway {gateway} - PIX code encontrado: {bool(pix_code)}, QR code encontrado: {bool(qr_code_image)}")
+        
+        # Log para acompanhar o salvamento
+        app.logger.info(f"[DB] Salvando pagamento com gateway {gateway}")
+        app.logger.info(f"[DB] Dados PIX: código presente: {bool(pix_code)}, QR code presente: {bool(qr_code_image)}")
+        
+        # Para gateways específicos, tente outros campos se os padrões não forem encontrados
+        if not pix_code or not qr_code_image:
+            app.logger.info(f"[DB] Buscando campos alternativos para gateway {gateway}")
+            if not pix_code:
+                pix_code = payment_result.get('code') or (payment_result.get('pix', {}) or {}).get('code') or ''
+            if not qr_code_image:
+                qr_code_image = payment_result.get('qr_code') or (payment_result.get('pix', {}) or {}).get('qrCode') or ''
         
         # Criar o registro no banco de dados
         new_payment = PixPayment(
