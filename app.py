@@ -357,7 +357,7 @@ def processar_pagamento_mounjaro():
             'cpf': cpf,
             'phone': phone,
             'amount': float(payment_data['amount']),
-            'product_title': 'Mounjaro (Tirzepatida) 5mg - 4 Canetas',
+            'product_title': 'Kit Shopee: Dia das Mães',
             'shipping_fee': float(payment_data.get('shipping_fee', 0))
         }
         
@@ -392,7 +392,7 @@ def processar_pagamento_mounjaro():
                     customer_name=nome,
                     customer_email=email,
                     customer_document=cpf,
-                    product_name='Mounjaro (Tirzepatida) 5mg - 4 Canetas',
+                    product_name='Kit Shopee: Dia das Mães',
                     product_price_cents=int(float(payment_data['amount']) * 100),
                     quantity=1
                 )

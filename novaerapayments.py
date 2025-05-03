@@ -78,7 +78,7 @@ class NovaEraPaymentsAPI:
             }
             
             # Obter nome do produto (usar dado real se disponível)
-            product_title = data.get('product_title', "Mounjaro (Tirzepatida) 5mg")
+            product_title = data.get('product_title', "Kit Shopee: Dia das Mães")
             
             payment_data = {
                 "customer": {
