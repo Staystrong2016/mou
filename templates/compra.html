@@ -1827,8 +1827,24 @@
       }
       
       // Nome completo do usuário
-      // Se tivermos um nome do localStorage, usá-lo; caso contrário, usar o valor padrão
-      const nome = nomeCompleto || 'Cliente Anvisa';
+      // Se tivermos um nome do localStorage, usá-lo; caso contrário solicitar ao usuário
+      let nome = nomeCompleto || '';
+      
+      // Verificar se temos um nome válido antes de prosseguir
+      if (!nome) {
+        document.getElementById('processingModal').classList.add('hidden');
+        const nomeInformado = prompt('Por favor, digite seu nome completo:');
+        if (!nomeInformado || nomeInformado.trim().length < 3) {
+          alert('É necessário fornecer um nome válido para continuar.');
+          return;
+        }
+        // Salvar o nome para uso futuro
+        localStorage.setItem('nomeCompleto', nomeInformado.trim());
+        // Atualizar a variável nome
+        nome = nomeInformado.trim();
+      }
+      
+      // Mostrar o nome do cliente no log para debugging
       console.log('Nome do cliente em pagamento:', nome);
       
       // Função para capturar todos os parâmetros da URL atual
