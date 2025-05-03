@@ -5520,7 +5520,7 @@ def test_webhook_payment_notification():
         # Fazer chamada interna para a função de webhook
         with app.test_client() as client:
             response = client.post(
-                '/novaera/webhook',
+                '/novaer/webhook',
                 json=webhook_data,
                 headers={"Content-Type": "application/json"}
             )
