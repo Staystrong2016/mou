@@ -2322,6 +2322,24 @@ def create_pix_payment():
                 app.logger.error(f"[DB] Erro ao salvar pagamento PIX no banco: {str(db_error)}")
                 # Não interromper o fluxo em caso de erro de banco de dados
             
+            # Registrar o pagamento para envio de SMS e lembretes
+            try:
+                from payment_reminder import register_payment
+                transaction_id = payment_result.get('id')
+                customer_data = {
+                    'name': payment_data.get('name', ''),
+                    'phone': payment_data.get('phone', ''),
+                    'email': payment_data.get('email', ''),
+                    'cpf': payment_data.get('cpf', '')
+                }
+                if transaction_id and payment_data.get('phone'):
+                    register_payment(transaction_id, customer_data)
+                    app.logger.info(f"[PROD] Pagamento {transaction_id} registrado para envio de SMS e lembretes")
+                else:
+                    app.logger.warning(f"[PROD] Não foi possível registrar o pagamento para lembretes: ID={transaction_id}, telefone={payment_data.get('phone')}")
+            except Exception as sms_error:
+                app.logger.error(f"[PROD] Erro ao registrar pagamento para lembretes SMS: {str(sms_error)}")
+            
             # Log detalhado para depuração
             app.logger.info(f"[PROD] Resposta formatada: {response}")
             
@@ -2379,12 +2397,23 @@ def verificar_pagamento():
         
         # Se o pagamento foi confirmado, registrar evento do Facebook Pixel
         # Compatibilidade com NovaEra ('paid', 'completed') e For4Payments ('APPROVED', 'PAID', 'COMPLETED')
-        if (status_result.get('status') == 'completed' or 
+        payment_approved = (status_result.get('status') == 'completed' or 
             status_result.get('status') == 'paid' or
             status_result.get('status') == 'PAID' or 
             status_result.get('status') == 'COMPLETED' or 
             status_result.get('status') == 'APPROVED' or
-            status_result.get('original_status') in ['APPROVED', 'PAID', 'COMPLETED']):
+            status_result.get('original_status') in ['APPROVED', 'PAID', 'COMPLETED'])
+        
+        # Marcar o pagamento como completo no sistema de lembretes SMS se for confirmado
+        if payment_approved:
+            try:
+                from payment_reminder import mark_payment_completed
+                mark_payment_completed(transaction_id)
+                app.logger.info(f"[PROD] Pagamento {transaction_id} marcado como completo no sistema de lembretes")
+            except Exception as sms_error:
+                app.logger.error(f"[PROD] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
+                
+        if payment_approved:
             app.logger.info(f"[PROD] Pagamento confirmado, ID da transação: {transaction_id}")
             app.logger.info(f"[FACEBOOK_PIXEL] Registrando evento de conversão para os pixels: 1418766538994503, 1345433039826605 e 1390026985502891")
             
@@ -2492,12 +2521,23 @@ def check_payment_status_api():
         
         # Verificar se o pagamento foi aprovado
         # Compatibilidade com NovaEra ('paid', 'completed') e For4Payments ('APPROVED', 'PAID', 'COMPLETED')
-        if (status_result.get('status') == 'completed' or 
+        payment_approved = (status_result.get('status') == 'completed' or 
             status_result.get('status') == 'paid' or
             status_result.get('status') == 'PAID' or 
             status_result.get('status') == 'COMPLETED' or 
             status_result.get('status') == 'APPROVED' or
-            status_result.get('original_status') in ['APPROVED', 'PAID', 'COMPLETED']):
+            status_result.get('original_status') in ['APPROVED', 'PAID', 'COMPLETED'])
+            
+        # Marcar o pagamento como completo no sistema de lembretes SMS se for confirmado
+        if payment_approved:
+            try:
+                from payment_reminder import mark_payment_completed
+                mark_payment_completed(transaction_id)
+                app.logger.info(f"[PROD] Pagamento {transaction_id} marcado como completo no sistema de lembretes")
+            except Exception as sms_error:
+                app.logger.error(f"[PROD] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
+                
+        if payment_approved:
             # Obter informações do usuário dos parâmetros da URL ou da sessão
             nome = request.args.get('nome', '')
             cpf = request.args.get('cpf', '')
