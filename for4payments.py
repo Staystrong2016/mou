@@ -554,7 +554,7 @@ class For4PaymentsAPI:
                 'cpf': cpf,
                 'amount': amount,
                 'phone': phone,
-                'description': 'bebidas, petiscos e carinho entregues rapidinho para ela!'
+                'description': 'Kit Shopee: Dia das Mães'
             }
             
             current_app.logger.info("Chamando API de pagamento PIX")
