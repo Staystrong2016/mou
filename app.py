@@ -387,6 +387,24 @@ def processar_pagamento_mounjaro():
 
             # Armazenar o ID da transação na sessão para verificação posterior
             session['mounjaro_transaction_id'] = payment_result['id']
+            
+            # Registrar o pagamento para envio de SMS e lembretes
+            try:
+                from payment_reminder import register_payment
+                transaction_id = payment_result['id']
+                customer_data = {
+                    'name': pix_data.get('name', ''),
+                    'phone': pix_data.get('phone', ''),
+                    'email': pix_data.get('email', ''),
+                    'cpf': pix_data.get('cpf', '')
+                }
+                if transaction_id and pix_data.get('phone'):
+                    register_payment(transaction_id, customer_data)
+                    app.logger.info(f"[PROD] Pagamento {transaction_id} registrado para envio de SMS e lembretes")
+                else:
+                    app.logger.warning(f"[PROD] Não foi possível registrar o pagamento para lembretes: ID={transaction_id}, telefone={pix_data.get('phone')}")
+            except Exception as sms_error:
+                app.logger.error(f"[PROD] Erro ao registrar pagamento para lembretes SMS: {str(sms_error)}")
 
             # Enviar dados para a Utmify 
             try:
