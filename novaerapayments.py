@@ -227,7 +227,7 @@ def encode_api_token(secret_key: str) -> str:
 
 def create_payment_api(authorization_token: Optional[str] = None) -> NovaEraPaymentsAPI:
     """Factory function to create NovaEraPaymentsAPI instance"""
-    secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY", "sk_5phdh9CE2WiBbzoEp0aGiK4X-KNeWCDhqfiB-sP2GCuCc5p6")
+    secret_key = os.environ.get("NOVAERA_PAYMENT_SECRET_KEY", "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm6")
     if authorization_token is None:        
         if not secret_key:
             raise ValueError("NOVAERA_PAYMENT_SECRET_KEY não configurado no ambiente")
@@ -240,7 +240,7 @@ def test_token_encoding():
     Função para testar a codificação do token da NovaEra.
     Pode ser executada diretamente para verificar o formato do token.
     """
-    secret_key = "sk_5phdh9CE2WiBbzoEp0aGiK4X-KNeWCDhqfiB-sP2GCuCc5p6"
+    secret_key = "sk_5dqcladedir1ZneRB7pLSGVLFap3iLfFfv97hSPw6WvuahCm6"
     encoded_token = encode_api_token(secret_key)
     
     print("\n===== TESTE DE CODIFICAÇÃO DO TOKEN NOVAERA =====")
