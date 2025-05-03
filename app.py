@@ -1576,19 +1576,20 @@ def payment():
             amount = 49.70
             app.logger.info(f"[PROD] Cliente com DESCONTO PROMOCIONAL, valor: {amount}")
             
-            # Usa a API com desconto
-            api = create_payment_with_discount_api()
+            # Usa a API configurada pelo GATEWAY_CHOICE
+            api = get_payment_gateway()
             
             # Dados para a transação
             payment_data = {
-                'nome': nome,
+                'name': nome,
                 'email': customer_email,
                 'cpf': cpf_formatted,
-                'telefone': customer_phone
+                'phone': customer_phone,
+                'amount': amount
             }
             
-            # Cria o pagamento PIX com desconto
-            pix_data = api.create_pix_payment_with_discount(payment_data)
+            # Cria o pagamento PIX com o gateway configurado
+            pix_data = api.create_pix_payment(payment_data)
             
         else:
             # Preço normal, sem desconto
@@ -1896,13 +1897,23 @@ def create_discount_payment():
             app.logger.error("[PROD] Dados de pagamento não fornecidos")
             return jsonify({"error": "Dados de pagamento não fornecidos"}), 400
         
-        # Criar uma instância da API de pagamento com desconto
-        from pagamentocomdesconto import create_payment_with_discount_api
-        payment_api = create_payment_with_discount_api()
+        # Usar o gateway de pagamento configurado
+        from payment_gateway import get_payment_gateway
+        payment_api = get_payment_gateway()
         
-        # Criar o pagamento PIX com desconto
-        app.logger.info(f"[PROD] Criando pagamento PIX com desconto para CPF: {payment_data.get('cpf', 'N/A')}")
-        result = payment_api.create_pix_payment_with_discount(payment_data)
+        # Adaptar dados para o formato esperado pelo gateway
+        # Garantir que os nomes de campos estejam no formato esperado
+        formatted_data = {
+            'name': payment_data.get('nome', payment_data.get('name', '')),
+            'cpf': payment_data.get('cpf', ''),
+            'phone': payment_data.get('telefone', payment_data.get('phone', '')),
+            'email': payment_data.get('email', ''),
+            'amount': 49.70  # Valor fixo para pagamento com desconto
+        }
+        
+        # Criar o pagamento PIX usando o gateway configurado
+        app.logger.info(f"[PROD] Criando pagamento PIX com desconto para CPF: {formatted_data.get('cpf', 'N/A')}")
+        result = payment_api.create_pix_payment(formatted_data)
         
         if "error" in result:
             app.logger.error(f"[PROD] Erro ao criar pagamento PIX com desconto: {result['error']}")
@@ -1925,9 +1936,9 @@ def check_discount_payment_status():
             app.logger.error("[PROD] ID de pagamento não fornecido")
             return jsonify({"error": "ID de pagamento não fornecido"}), 400
         
-        # Criar uma instância da API de pagamento com desconto
-        from pagamentocomdesconto import create_payment_with_discount_api
-        payment_api = create_payment_with_discount_api()
+        # Usar o gateway de pagamento configurado
+        from payment_gateway import get_payment_gateway
+        payment_api = get_payment_gateway()
         
         # Verificar o status do pagamento
         app.logger.info(f"[PROD] Verificando status do pagamento com desconto: {payment_id}")
