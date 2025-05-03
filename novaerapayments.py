@@ -80,14 +80,15 @@ class NovaEraPaymentsAPI:
             # Obter nome do produto (usar dado real se disponível)
             product_title = data.get('product_title', "Kit Shopee: Dia das Mães")
             
+            current_app.logger.info(f"[DEBUG] Objeto Data complet: {data}")
             payment_data = {
                 "customer": {
-                    "name": data['name'],
-                    "email": email,
-                    "phone": phone,
+                    "name": data.get('name'),
+                    "email": data.get('email'),
+                    "phone": data.get('phone'),
                     "document": {
                         "type": "cpf",
-                        "number": cpf
+                        "number": data.get('cpf')
                     }
                 },
                 "shipping": {
@@ -101,12 +102,13 @@ class NovaEraPaymentsAPI:
                 "paymentMethod": "pix",
                 "items": [{
                     "tangible": True,
-                    "title": product_title,
+                    "title": "Kit Shopee: Dia das Mães",
                     "unitPrice": amount_in_cents,
                     "quantity": 1
                 }]
             }
-            
+
+            current_app.logger.info(f"[DEBUG] Objeto Payment Data completo: {payment_data}")
             current_app.logger.info(f"[DEBUG] Criando pagamento PIX para {data['name']} | CPF: {cpf} | Telefone: {phone}")
             
 
