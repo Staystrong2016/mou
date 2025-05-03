@@ -482,7 +482,7 @@ def verificar_pagamento_mounjaro():
             app.logger.info(f"[PROD] Verificando método de pagamento: {payment_status.get('method')}")
             
             # TRATAMENTO ESPECIAL: Por questões de demonstração, tratar o ID específico com dados conhecidos
-            # Se estamos usando For4Payments e o método é PIX, consultar os detalhes completos
+            # Para determinados gateways, pode ser necessário buscar detalhes adicionais do pagamento PIX
             # para obter QR code e código PIX
             if gateway_choice == 'FOR4' and payment_status.get('method') == 'PIX':
                 try:
@@ -533,8 +533,8 @@ def verificar_pagamento_mounjaro():
                 except Exception as e:
                     app.logger.error(f"[PROD] Erro ao obter detalhes do pagamento: {str(e)}")
                  
-            # Nossa For4PaymentsAPI aprimorada agora retorna dados do cliente diretamente
-            # no mesmo objeto, então vamos utilizá-los
+            # Nossa implementação de gateway aprimorada retorna dados do cliente diretamente
+            # no mesmo objeto de resposta, então vamos utilizá-los
             client_data = {}
             
             # Extrair dados do cliente do objeto retornado pela API
@@ -552,7 +552,7 @@ def verificar_pagamento_mounjaro():
                         client_data[target_field] = payment_status[source_field]
                         break
             
-            app.logger.info(f"[PROD] Dados do cliente extraídos da API For4Payments: {client_data}")
+            app.logger.info(f"[PROD] Dados do cliente extraídos da API do gateway de pagamento: {client_data}")
             
             # Se o telefone não foi encontrado nos dados da resposta e temos um telefone no UTM content
             if not client_data.get('phone') and request.args.get('utm_content'):
@@ -2415,9 +2415,9 @@ def verificar_pagamento():
         app.logger.error(f"[PROD] Erro ao verificar status do pagamento: {str(e)}")
         return jsonify({'error': f'Erro ao verificar status: {str(e)}', 'status': 'error'}), 500
 
-@app.route('/check-for4payments-status', methods=['GET', 'POST'])
-@secure_api('check_for4payments_status')  # Usar o limite específico mais alto para verificação de For4Payments
-def check_for4payments_status():
+@app.route('/check-payment-status-api', methods=['GET', 'POST'])
+@secure_api('check_payment_status')  # Usar o limite específico mais alto para verificação de pagamento
+def check_payment_status_api():
     try:
         transaction_id = request.args.get('transaction_id')
         
