@@ -1180,7 +1180,14 @@ def send_sms_smsdev(phone_number: str, message: str) -> bool:
         
         # Format phone number (remove any non-digits and ensure it's in the correct format)
         formatted_phone = re.sub(r'\D', '', phone_number)
-        if len(formatted_phone) == 11:  # Include DDD
+        
+        # Aceita números com ou sem o prefixo internacional (+55)
+        if len(formatted_phone) == 13 and formatted_phone.startswith('55'):
+            # Se começa com 55, mantém apenas o número nacional (DDD + número)
+            formatted_phone = formatted_phone[2:]
+            app.logger.info(f"[PROD] Número formatado do formato internacional para nacional: {formatted_phone}")
+            
+        if len(formatted_phone) == 11:  # Verifica se tem o formato nacional correto (DDD + número)
             # Verificamos se há uma URL no texto para encurtar
             url_to_shorten = None
             if "http://" in message or "https://" in message:
@@ -1242,9 +1249,21 @@ def send_sms_owen(phone_number: str, message: str) -> bool:
 
         # Format phone number (remove any non-digits and add Brazil country code)
         formatted_phone = re.sub(r'\D', '', phone_number)
-        if len(formatted_phone) == 11:  # Include DDD
+        
+        # Aceita números com ou sem o prefixo internacional (+55)
+        if len(formatted_phone) == 13 and formatted_phone.startswith('55'):
+            # Já está no formato internacional
+            international_number = formatted_phone
+            app.logger.info(f"[PROD] Número já está no formato internacional: {international_number}")
+        elif len(formatted_phone) == 11:  # DDD + número
             # Format as international number with Brazil code
             international_number = f"55{formatted_phone}"
+            app.logger.info(f"[PROD] Número formatado para internacional: {international_number}")
+        else:
+            app.logger.error(f"[PROD] Formato inválido de número para Owen SMS: {phone_number} (após formatação: {formatted_phone})")
+            return False
+            
+        # Continua apenas se tiver um número internacional válido
 
             # Prepare and execute curl command
             import subprocess
@@ -1326,9 +1345,25 @@ def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_
         # Format phone number (remove any non-digits)
         formatted_phone = re.sub(r'\D', '', phone_number)
         
-        if len(formatted_phone) != 11:
-            app.logger.error(f"[PROD] Formato inválido de número de telefone: {phone_number}")
+        # Verifica se é um número brasileiro válido
+        # Aceita números com ou sem o prefixo internacional (+55)
+        # Formato BR: DDD + 9 dígitos (11 no total) ou +55 + DDD + 9 dígitos (13 no total)
+        if len(formatted_phone) == 13 and formatted_phone.startswith('55'):
+            # Se começa com 55, verifica se o restante tem 11 dígitos
+            if len(formatted_phone[2:]) != 11:
+                app.logger.error(f"[PROD] Formato inválido de número de telefone brasileiro com prefixo: {phone_number}")
+                return False
+            # Número está no formato internacional, mantém apenas o número brasileiro
+            formatted_phone = formatted_phone[2:]
+        elif len(formatted_phone) != 11:
+            app.logger.error(f"[PROD] Formato inválido de número de telefone: {phone_number} (após formatação: {formatted_phone})")
             return False
+            
+        app.logger.info(f"[PROD] Número de telefone formatado: {formatted_phone}")
+        
+        # Garantir que o número seja tratado como brasileiro para SMS
+        if not formatted_phone.startswith('55'):
+            formatted_phone = '55' + formatted_phone
             
         # Formata CPF para exibição (XXX.XXX.XXX-XX)
         cpf_formatado = format_cpf(cpf) if cpf else ""
