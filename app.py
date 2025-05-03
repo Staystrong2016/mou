@@ -4110,13 +4110,13 @@ def verificar_pagamento_ttps():
         
         app.logger.info(f"[PROD] Verificando status do pagamento TTPS: {transaction_id}")
         
-        # Verificar pagamento na For4Payments
+        # Verificar pagamento usando o gateway configurado
         try:
-            # Importar API da For4Payments
-            from for4pagamentos import create_payment_api
+            # Importar função de gateway
+            from payment_gateway import get_payment_gateway
             
-            # Criar instância da API
-            api = create_payment_api()
+            # Obter instância do gateway configurado
+            api = get_payment_gateway()
             
             # Verificar status do pagamento
             payment_status = api.check_payment_status(transaction_id)
@@ -4466,43 +4466,27 @@ def remarketing(transaction_id):
             # Importar e inicializar o gateway de pagamento
             import os
             # Verificar qual gateway está configurado
-            gateway_choice = os.environ.get('GATEWAY_CHOICE')
+            # Usar o gateway de pagamento configurado
+            from payment_gateway import get_payment_gateway
+            gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
             print(f"[REMARKETING] Gateway configurado: {gateway_choice}")
             
-            if gateway_choice == 'FOR4':
-                # Usar o For4Payments diretamente
-                from for4payments import create_payment_api
-                api = create_payment_api()
-                
-                print(f"[REMARKETING] Usando For4Payments para buscar dados da transação: {transaction_id}")
-                
-                # Verificar status do pagamento
-                payment_data = api.check_payment_status(transaction_id)
-                print(f"[REMARKETING] Dados do pagamento For4: {payment_data}")
-                
-                # Extrair campos específicos do For4Payments
-                if 'pix_code' in payment_data:
-                    pix_code = payment_data.get('pix_code', '')
-                if 'pix_qr_code' in payment_data:
-                    qr_code_url = payment_data.get('pix_qr_code', '')
-                
-            else:
-                # Usar o gateway padrão
-                from payment_gateway import get_payment_gateway
-                api = get_payment_gateway()
-                
-                # Verificar status do pagamento
-                payment_data = api.check_payment_status(transaction_id)
-                print(f"[REMARKETING] Dados do pagamento obtidos via gateway padrão: {payment_data}")
-                
-                # Obter PIX code e QR code (se disponíveis)
-                pix_code = payment_data.get('pix_code') or payment_data.get('copy_paste') or ''
-                qr_code_url = payment_data.get('pix_qr_code') or payment_data.get('qr_code_image') or ''
-                
-                # Verificar se temos os dados necessários do pagamento
-                if not pix_code and 'payment' in payment_data and isinstance(payment_data['payment'], dict):
-                    pix_code = payment_data['payment'].get('pix_code') or payment_data['payment'].get('copy_paste') or ''
-                    qr_code_url = payment_data['payment'].get('pix_qr_code') or payment_data['payment'].get('qr_code_image') or ''
+            # Obter instância do gateway configurado
+            api = get_payment_gateway()
+            print(f"[REMARKETING] Usando gateway configurado para buscar dados da transação: {transaction_id}")
+            
+            # Verificar status do pagamento
+            payment_data = api.check_payment_status(transaction_id)
+            print(f"[REMARKETING] Dados do pagamento obtidos: {payment_data}")
+            
+            # Extrair campos do pagamento
+            pix_code = payment_data.get('pix_code') or payment_data.get('copy_paste') or ''
+            qr_code_url = payment_data.get('pix_qr_code') or payment_data.get('qr_code_image') or ''
+            
+            # Verificar se temos os dados necessários do pagamento
+            if not pix_code and 'payment' in payment_data and isinstance(payment_data['payment'], dict):
+                pix_code = payment_data['payment'].get('pix_code') or payment_data['payment'].get('copy_paste') or ''
+                qr_code_url = payment_data['payment'].get('pix_qr_code') or payment_data['payment'].get('qr_code_image') or ''
             
             print(f"[REMARKETING] PIX code encontrado: {pix_code}")
             print(f"[REMARKETING] QR code URL encontrado: {qr_code_url}")
