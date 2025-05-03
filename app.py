@@ -4667,7 +4667,25 @@ def remarketing(transaction_id):
             print(f"[REMARKETING] PIX code encontrado: {pix_code}")
             print(f"[REMARKETING] QR code URL encontrado: {qr_code_url}")
             
-            # Se não temos os dados de pagamento, tentar gerar um novo pagamento
+            # Verificar se temos os dados no banco de dados antes de gerar novo pagamento
+            from models import PixPayment
+            
+            # Garantir que transaction_id seja tratado como string
+            transaction_id = str(transaction_id)
+            app.logger.info(f"[REMARKETING] Buscando pagamento no banco para fallback com transaction_id: {transaction_id}")
+            
+            # Buscar dados do pagamento no banco de dados
+            try:
+                stored_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
+                if stored_payment and stored_payment.pix_copy_paste and stored_payment.qr_code_image:
+                    app.logger.info(f"[REMARKETING] Usando dados do banco como fallback")
+                    pix_code = stored_payment.pix_copy_paste
+                    qr_code_url = stored_payment.qr_code_image
+                    app.logger.info(f"[REMARKETING] Dados recuperados do banco - PIX: {bool(pix_code)}, QR: {bool(qr_code_url)}")
+            except Exception as db_error:
+                app.logger.error(f"[REMARKETING] Erro ao buscar dados do banco para fallback: {db_error}")
+            
+            # Se ainda não temos os dados de pagamento, tentar gerar um novo pagamento
             if not pix_code or not qr_code_url:
                 print(f"[REMARKETING] Dados de PIX não encontrados, gerando novo pagamento...")
                 

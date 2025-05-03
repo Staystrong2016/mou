@@ -792,14 +792,24 @@
                 data.amount = savedPixData.amount;
               }
             } else if (!hasPixCode && !hasQrCode) {
-              // Se não temos dados de PIX e não estão no localStorage, gerar novos
-              console.log("Dados de PIX não encontrados, redirecionando para criar um novo pagamento");
+              // Se não temos dados de PIX e não estão no localStorage, verificar dados do backend
+              const backendPixCode = document.getElementById('backend-pix-code')?.value;
+              const backendQrCode = document.getElementById('backend-qr-code')?.value;
               
-              // Redirecionar para a página de pagamento para criar um novo PIX
-              // Isso só deve acontecer se realmente não temos os dados
-              if (confirm("Precisamos gerar um novo código PIX para esta compra. Deseja continuar?")) {
-                window.location.href = `/pagamento_pix?transaction_id=${transactionIdFromUrl}`;
-                return;
+              if (backendPixCode && backendQrCode) {
+                // Se temos dados no backend, usar esses valores
+                console.log("Usando dados de PIX do backend", backendPixCode.substring(0, 20) + "...");
+                data.pix_code = backendPixCode;
+                data.pix_qr_code = backendQrCode;
+              } else {
+                // Se não temos dados de nenhuma fonte, gerar novos
+                console.log("Dados de PIX não encontrados em nenhuma fonte, redirecionando para criar um novo pagamento");
+                
+                // Redirecionar para a página de pagamento para criar um novo PIX
+                if (confirm("Precisamos gerar um novo código PIX para esta compra. Deseja continuar?")) {
+                  window.location.href = `/pagamento_pix?transaction_id=${transactionIdFromUrl}`;
+                  return;
+                }
               }
             }
           }
