@@ -451,7 +451,7 @@ def processar_pagamento_mounjaro():
 def verificar_pagamento_mounjaro():
     """
     Verifica o status de um pagamento PIX para o produto Mounjaro
-    e retorna os dados do cliente obtidos da API For4Payments
+    e retorna os dados do cliente obtidos da API do gateway de pagamento
     """
     try:
         # Obter o ID da transação
@@ -3995,7 +3995,7 @@ def pagar_ttps():
                 session['ttps_transaction_id'] = transaction_id
         
         except Exception as payment_error:
-            app.logger.error(f"[PROD] Exceção ao gerar pagamento For4: {str(payment_error)}")
+            app.logger.error(f"[PROD] Exceção ao gerar pagamento: {str(payment_error)}")
             
             # Em caso de exceção, usar dados de exemplo para desenvolvimento
             pix_code = "00020101021226580014br.gov.bcb.pix01361234567890123456789012345678901020051505654041.005802BR5925Agencia Nacional Vigilancia6009SAO PAULO61080540900062070503***63048F74"
@@ -4116,7 +4116,7 @@ def verificar_pagamento_ttps():
                 status_data = payment_status.get('data', {})
                 
                 # Log detalhado dos dados de status retornados
-                app.logger.info(f"[PROD] Dados de status do pagamento retornados pela For4: {status_data}")
+                app.logger.info(f"[PROD] Dados de status do pagamento retornados pelo gateway: {status_data}")
                 
                 # Tenta extrair o status de diversas formas possíveis
                 status = (
@@ -4195,7 +4195,7 @@ def verificar_pagamento_ttps():
                 })
             else:
                 error_msg = payment_status.get('message', 'Erro desconhecido')
-                app.logger.error(f"[PROD] Erro ao verificar pagamento For4: {error_msg}")
+                app.logger.error(f"[PROD] Erro ao verificar pagamento: {error_msg}")
                 
                 # Em ambiente de desenvolvimento, permitir simular pagamento bem-sucedido
                 is_dev = os.environ.get('FLASK_ENV') == 'development' or app.debug
@@ -4215,7 +4215,7 @@ def verificar_pagamento_ttps():
                 }), 400
                 
         except Exception as check_error:
-            app.logger.error(f"[PROD] Exceção ao verificar pagamento For4: {str(check_error)}")
+            app.logger.error(f"[PROD] Exceção ao verificar pagamento: {str(check_error)}")
             
             # Em ambiente de desenvolvimento, permitir simular pagamento bem-sucedido
             is_dev = os.environ.get('FLASK_ENV') == 'development' or app.debug
