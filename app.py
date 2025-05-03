@@ -1264,49 +1264,46 @@ def send_sms_owen(phone_number: str, message: str) -> bool:
             return False
             
         # Continua apenas se tiver um número internacional válido
+        
+        # Prepare and execute curl command
+        import subprocess
 
-            # Prepare and execute curl command
-            import subprocess
+        curl_command = [
+            'curl',
+            '--location',
+            'https://api.apisms.me/v2/sms/send',
+            '--header', 'Content-Type: application/json',
+            '--header', f'Authorization: {sms_token}',
+            '--data',
+            json.dumps({
+                "operator": "claro",  # claro, vivo ou tim
+                "destination_number": f"{international_number}",  # Número do destinatário com código internacional
+                "message": message,  # Mensagem SMS com limite de 160 caracteres
+                "tag": "LoanApproval",  # Tag para identificação do SMS
+                "user_reply": False,  # Não receber resposta do destinatário
+                "webhook_url": ""  # Opcional para callbacks
+            })
+        ]
 
-            curl_command = [
-                'curl',
-                '--location',
-                'https://api.apisms.me/v2/sms/send',
-                '--header', 'Content-Type: application/json',
-                '--header', f'Authorization: {sms_token}',
-                '--data',
-                json.dumps({
-                    "operator": "claro",  # claro, vivo ou tim
-                    "destination_number": f"{international_number}",  # Número do destinatário com código internacional
-                    "message": message,  # Mensagem SMS com limite de 160 caracteres
-                    "tag": "LoanApproval",  # Tag para identificação do SMS
-                    "user_reply": False,  # Não receber resposta do destinatário
-                    "webhook_url": ""  # Opcional para callbacks
-                })
-            ]
+        # Execute curl command
+        app.logger.info(f"Enviando SMS para {international_number} usando curl")
+        payload = {
+            "operator": "claro",
+            "destination_number": international_number,
+            "message": message,
+            "tag": "LoanApproval",
+            "user_reply": False,
+            "webhook_url": ""
+        }
+        app.logger.info(f"JSON payload: {json.dumps(payload)}")
+        
+        process = subprocess.run(curl_command, capture_output=True, text=True)
 
-            # Execute curl command
-            app.logger.info(f"Enviando SMS para {international_number} usando curl")
-            payload = {
-                "operator": "claro",
-                "destination_number": international_number,
-                "message": message,
-                "tag": "LoanApproval",
-                "user_reply": False,
-                "webhook_url": ""
-            }
-            app.logger.info(f"JSON payload: {json.dumps(payload)}")
-            
-            process = subprocess.run(curl_command, capture_output=True, text=True)
+        # Log response
+        app.logger.info(f"OWEN SMS: Response for {international_number}: {process.stdout}")
+        app.logger.info(f"OWEN SMS: Error for {international_number}: {process.stderr}")
 
-            # Log response
-            app.logger.info(f"OWEN SMS: Response for {international_number}: {process.stdout}")
-            app.logger.info(f"OWEN SMS: Error for {international_number}: {process.stderr}")
-
-            return process.returncode == 0 and "error" not in process.stdout.lower()
-        else:
-            app.logger.error(f"Invalid phone number format: {phone_number}")
-            return False
+        return process.returncode == 0 and "error" not in process.stdout.lower()
     except Exception as e:
         app.logger.error(f"Error sending SMS via Owen SMS: {str(e)}")
         return False
