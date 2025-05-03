@@ -4543,6 +4543,69 @@ def send_facebook_event(event_type):
             'event_type': event_type
         }), 500
 
+def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_you_url: str) -> bool:
+    """
+    Envia uma mensagem SMS de confirmação de pagamento para o cliente
+    Inclui uma URL personalizada para remarketing
+    
+    Args:
+        phone_number: Número de telefone do cliente (com código do país)
+        nome: Nome do cliente
+        cpf: CPF do cliente
+        thank_you_url: URL para página de agradecimento com remarketing
+    
+    Returns:
+        bool: True se o SMS foi enviado com sucesso, False caso contrário
+    """
+    try:
+        app.logger.info(f"[WEBHOOK] Enviando SMS de confirmação para {phone_number}")
+        
+        # Validar telefone
+        if not phone_number or len(phone_number.replace('+', '').strip()) < 10:
+            app.logger.error(f"[WEBHOOK] Telefone inválido para SMS: {phone_number}")
+            return False
+        
+        # Formatar o telefone para o formato internacional se necessário
+        if not phone_number.startswith('+'):
+            if phone_number.startswith('55'):
+                phone_number = f"+{phone_number}"
+            else:
+                phone_number = f"+55{phone_number}"
+        
+        # Criar a mensagem de confirmação
+        message = f"Olá, seu pagamento foi confirmado com sucesso! Acesse sua área do cliente em: {thank_you_url}"
+        
+        # Enviar SMS pela API de notificação
+        import requests
+        response = requests.post(
+            'https://neto-contatonxcase.replit.app/api/manual-notification',
+            json={
+                'phone': phone_number,
+                'message': message,
+                'shortUrls': True,
+                'campaignName': "Confirmação de Pagamento",
+            },
+            headers={'Content-Type': 'application/json'},
+            timeout=10
+        )
+        
+        # Verificar resposta da API
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data.get('success'):
+                app.logger.info(f"[WEBHOOK] SMS de confirmação enviado com sucesso para {phone_number}")
+                return True
+            else:
+                app.logger.warning(f"[WEBHOOK] Falha ao enviar SMS de confirmação: {response_data}")
+                return False
+        else:
+            app.logger.error(f"[WEBHOOK] Erro na API de SMS: Status {response.status_code} - {response.text}")
+            return False
+    
+    except Exception as e:
+        app.logger.error(f"[WEBHOOK] Erro ao enviar SMS de confirmação: {str(e)}")
+        return False
+        
 @app.route('/remarketing/<transaction_id>')
 def remarketing(transaction_id):
     """Página de remarketing personalizada para clientes anteriores baseada no ID da transação"""
@@ -5267,6 +5330,39 @@ def novaera_webhook():
                         app.logger.info(f"[WEBHOOK] SMS de confirmação enviado para {customer_phone}")
                     else:
                         app.logger.warning(f"[WEBHOOK] Falha ao enviar SMS de confirmação para {customer_phone}")
+                        
+                # Enviar webhook de compra aprovada para a API solicitada
+                try:
+                    import requests
+                    rastreio_url = f"https://correios.com?id={transaction_id}"
+                    mensagem = f"Olá sua compra foi aprovada confira seu código de rastreio em: {rastreio_url}"
+                    
+                    # Preparar os dados para a requisição
+                    webhook_payload = {
+                        'phone': customer_phone,
+                        'message': mensagem,
+                        'shortUrls': True
+                    }
+                    
+                    # Enviar o webhook
+                    webhook_response = requests.post(
+                        'https://neto-contatonxcase.replit.app/api/manual-notification',
+                        json=webhook_payload,
+                        headers={'Content-Type': 'application/json'},
+                        timeout=10
+                    )
+                    
+                    # Verificar resposta do webhook
+                    if webhook_response.status_code == 200:
+                        webhook_data = webhook_response.json()
+                        if webhook_data.get('success'):
+                            app.logger.info(f"[WEBHOOK] Webhook de compra aprovada enviado com sucesso para {customer_phone}")
+                        else:
+                            app.logger.warning(f"[WEBHOOK] Falha ao enviar webhook de compra aprovada: {webhook_data}")
+                    else:
+                        app.logger.error(f"[WEBHOOK] Erro ao enviar webhook de compra aprovada: Status {webhook_response.status_code} - {webhook_response.text}")
+                except Exception as webhook_error:
+                    app.logger.error(f"[WEBHOOK] Erro ao enviar webhook de compra aprovada: {str(webhook_error)}")
             except Exception as sms_error:
                 app.logger.error(f"[WEBHOOK] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
         
@@ -5320,6 +5416,64 @@ def test_webhook_sms():
             }), 500
     except Exception as e:
         app.logger.error(f"[TEST] Erro ao testar SMS do webhook: {str(e)}")
+        return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
+
+@app.route('/test_webhook_payment_notification')
+def test_webhook_payment_notification():
+    """
+    Rota para testar o webhook de notificação de compra aprovada
+    Simula um webhook da NovaEra com pagamento pago
+    """
+    try:
+        transaction_id = request.args.get('id', '123456')
+        customer_name = request.args.get('name', 'Cliente Teste')
+        customer_cpf = request.args.get('cpf', '123.456.789-00')
+        customer_phone = request.args.get('phone', '+5511999998888')
+        customer_email = request.args.get('email', 'teste@example.com')
+        amount = float(request.args.get('amount', '197.90'))
+        
+        # Criar dados simulados de webhook da NovaEra
+        webhook_data = {
+            "id": "webhook-" + str(int(time.time())),
+            "url": "https://example.com/webhook",
+            "type": "transaction",
+            "data": {
+                "id": transaction_id,
+                "status": "paid",
+                "amount": int(amount * 100),  # Centavos
+                "paidAt": datetime.utcnow().isoformat(),
+                "customer": {
+                    "name": customer_name,
+                    "email": customer_email,
+                    "phone": customer_phone,
+                    "document": {
+                        "type": "cpf",
+                        "number": customer_cpf
+                    }
+                }
+            }
+        }
+        
+        app.logger.info(f"[TEST] Simulando webhook NovaEra com dados: {webhook_data}")
+        
+        # Fazer chamada interna para a função de webhook
+        with app.test_client() as client:
+            response = client.post(
+                '/novaera/webhook',
+                json=webhook_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Retornar o resultado
+            return jsonify({
+                "success": response.status_code == 200,
+                "status_code": response.status_code,
+                "response_data": response.get_json(),
+                "simulated_webhook": webhook_data
+            })
+            
+    except Exception as e:
+        app.logger.error(f"[TEST] Erro ao testar webhook de notificação de compra: {str(e)}")
         return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
 
 if __name__ == '__main__':
