@@ -329,7 +329,12 @@ def processar_pagamento_mounjaro():
             return jsonify({'success': False, 'message': 'Erro de configuração do serviço de pagamento'}), 500
 
         # Obter e processar os dados necessários
-        nome = payment_data.get('name') or session.get('nome', 'Cliente Anvisa')
+        nome = payment_data.get('name') or session.get('nome', '')
+        # Se ainda não tiver nome, verificar se houve erro
+        if not nome:
+            app.logger.warning("[PROD] Nome do cliente não fornecido nos dados de pagamento ou na sessão")
+            return jsonify({'success': False, 'message': 'Nome do cliente é obrigatório'}), 400
+            
         cpf = payment_data.get('cpf') or session.get('cpf', '')
         phone = payment_data.get('phone', '')
         email = payment_data.get('email', '')
@@ -357,7 +362,7 @@ def processar_pagamento_mounjaro():
             'cpf': cpf,
             'phone': phone,
             'amount': float(payment_data['amount']),
-            'product_title': 'Kit Shopee: Dia das Mães',
+            'product_title': payment_data.get('product', 'Mounjaro - Tirzepatida 5mg'),
             'shipping_fee': float(payment_data.get('shipping_fee', 0))
         }
         
@@ -392,7 +397,7 @@ def processar_pagamento_mounjaro():
                     customer_name=nome,
                     customer_email=email,
                     customer_document=cpf,
-                    product_name='Kit Shopee: Dia das Mães',
+                    product_name=payment_data.get('product', 'Mounjaro - Tirzepatida 5mg'),
                     product_price_cents=int(float(payment_data['amount']) * 100),
                     quantity=1
                 )
