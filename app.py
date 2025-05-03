@@ -437,6 +437,18 @@ def processar_pagamento_mounjaro():
             
             app.logger.info(f"[PROD] Dados de pagamento obtidos - ID: {transaction_id}, PIX Code: {'Obtido' if pix_code else 'Não encontrado'}, QR Code: {'Obtido' if pix_qrcode else 'Não encontrado'}")
             
+            # Armazenar os dados de pagamento no banco de dados para uso em /remarketing
+            try:
+                app.logger.info(f"[PROD] Salvando dados do pagamento {transaction_id} no banco de dados para uso em /remarketing")
+                save_payment_result = save_pix_payment_to_db(transaction_id, payment_result, gateway=gateway_choice)
+                if save_payment_result:
+                    app.logger.info(f"[DB] Dados de pagamento PIX salvos com sucesso no banco de dados para a transação {transaction_id}")
+                else:
+                    app.logger.warning(f"[DB] Não foi possível salvar dados do pagamento PIX no banco de dados para a transação {transaction_id}")
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao salvar dados de pagamento PIX no banco de dados: {str(db_error)}")
+                # Não interrompemos o fluxo se falhar o armazenamento no banco
+            
             # Extrair e armazenar parâmetros UTM e outros na sessão para acompanhamento durante o funil
             utm_params = payment_data.get('utm_params', {})
             
