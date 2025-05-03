@@ -37,8 +37,23 @@ def register_payment(transaction_id, customer_data):
     logger.info(f"[PAYMENT_TRACKER] New payment registered: {transaction_id}")
     logger.info(f"[PAYMENT_TRACKER] Customer data: {customer_data}")
     
-    # Send initial SMS for new payment generation
-    send_initial_payment_sms(transaction_id, customer_data)
+    # Send initial SMS for new payment generation immediately
+    success = send_initial_payment_sms(transaction_id, customer_data)
+    
+    # Verificar se o SMS foi enviado com sucesso
+    if not success:
+        # Tentar novamente após um breve atraso
+        logger.warning(f"[PAYMENT_TRACKER] Initial SMS send failed for {transaction_id}, scheduling retry in 30 seconds")
+        
+        def retry_send():
+            time.sleep(30)
+            logger.info(f"[PAYMENT_TRACKER] Retrying initial SMS for {transaction_id}")
+            send_initial_payment_sms(transaction_id, customer_data)
+        
+        # Iniciar uma thread para tentar novamente após 30 segundos
+        retry_thread = threading.Thread(target=retry_send)
+        retry_thread.daemon = True
+        retry_thread.start()
 
 def mark_payment_completed(transaction_id):
     """
@@ -58,6 +73,9 @@ def send_initial_payment_sms(transaction_id, customer_data):
     Args:
         transaction_id: The unique ID of the transaction
         customer_data: Dictionary with customer data
+        
+    Returns:
+        bool: True if SMS was sent successfully, False otherwise
     """
     # Extract customer data
     customer_name = customer_data.get('name', '')
@@ -65,7 +83,7 @@ def send_initial_payment_sms(transaction_id, customer_data):
     
     if not phone_number:
         logger.error(f"[PAYMENT_TRACKER] Cannot send initial SMS - no phone number for {transaction_id}")
-        return
+        return False
     
     # Get first name only
     first_name = customer_name.split(' ')[0] if customer_name else ''
@@ -86,7 +104,8 @@ def send_initial_payment_sms(transaction_id, customer_data):
         # Send SMS via the API
         response = requests.post(
             MANUAL_NOTIFICATION_API,
-            json=request_data
+            json=request_data,
+            timeout=10  # Adicionar timeout para evitar bloqueios longos
         )
         
         logger.info(f"[PAYMENT_TRACKER] SMS API response status: {response.status_code}")
@@ -94,11 +113,14 @@ def send_initial_payment_sms(transaction_id, customer_data):
         if response.status_code == 200:
             response_data = response.json()
             logger.info(f"[PAYMENT_TRACKER] Initial payment SMS sent successfully for {transaction_id}. Response: {response_data}")
+            return True
         else:
             logger.error(f"[PAYMENT_TRACKER] Failed to send initial SMS for {transaction_id}. Status: {response.status_code}, Response: {response.text}")
+            return False
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER] Error sending initial SMS for {transaction_id}: {str(e)}")
+        return False
 
 def send_reminder_sms(transaction_id, customer_data):
     """
@@ -135,7 +157,8 @@ def send_reminder_sms(transaction_id, customer_data):
         # Send SMS via the API
         response = requests.post(
             MANUAL_NOTIFICATION_API,
-            json=request_data
+            json=request_data,
+            timeout=10  # Adicionar timeout para evitar bloqueios longos
         )
         
         logger.info(f"[PAYMENT_TRACKER] Reminder SMS API response status: {response.status_code}")
