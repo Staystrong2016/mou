@@ -1,6 +1,51 @@
 from datetime import datetime
 from app import db
 
+class PixPayment(db.Model):
+    """
+    Modelo para armazenar informações de pagamentos PIX
+    para recuperar os dados do QR code e PIX copia e cola
+    quando não for possível recuperar da API
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.String(64), unique=True, nullable=False)
+    gateway = db.Column(db.String(20), nullable=False)  # 'NOVAERA', 'FOR4', etc.
+    qr_code_image = db.Column(db.Text, nullable=True)   # base64 encoded QR code image
+    pix_copy_paste = db.Column(db.Text, nullable=True)  # PIX copia e cola
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='pending')
+    
+    # Dados do cliente
+    customer_name = db.Column(db.String(120), nullable=True)
+    customer_cpf = db.Column(db.String(14), nullable=True)
+    customer_phone = db.Column(db.String(20), nullable=True)
+    customer_email = db.Column(db.String(120), nullable=True)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<PixPayment {self.transaction_id}> ({self.gateway})'
+        
+    def to_dict(self):
+        """Converte o modelo em um dicionário para API/templates"""
+        return {
+            'id': self.id,
+            'transaction_id': self.transaction_id,
+            'gateway': self.gateway,
+            'qr_code_image': self.qr_code_image,
+            'pix_copy_paste': self.pix_copy_paste,
+            'amount': self.amount,
+            'status': self.status,
+            'customer_name': self.customer_name,
+            'customer_cpf': self.customer_cpf,
+            'customer_phone': self.customer_phone,
+            'customer_email': self.customer_email,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
 class Purchase(db.Model):
     """
     Modelo para armazenar informações de compras concluídas
