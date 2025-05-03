@@ -626,6 +626,14 @@ def verificar_pagamento_mounjaro():
 
             # Mapear os possíveis status de pagamento
             if status in ['paid', 'confirmed', 'approved', 'completed']:
+                # Marcar o pagamento como completo no sistema de lembretes SMS
+                try:
+                    from payment_reminder import mark_payment_completed
+                    mark_payment_completed(transaction_id)
+                    app.logger.info(f"[PROD] Pagamento {transaction_id} marcado como completo no sistema de lembretes")
+                except Exception as sms_error:
+                    app.logger.error(f"[PROD] Erro ao marcar pagamento como completo no sistema de lembretes: {str(sms_error)}")
+                
                 # Atualizar status na Utmify quando o pagamento for confirmado
                 try:
                     from utmify_integration import update_order_status_in_utmify
