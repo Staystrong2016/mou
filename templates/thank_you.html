@@ -697,7 +697,7 @@
             // Usar headers aleatórios para cada requisição
             const randomHeaders = getRandomHeaders();
             
-            fetch(`/check-for4payments-status?transaction_id=${encodeURIComponent(transactionId)}`, {
+            fetch(`/check-for4-payment-status?transaction_id=${encodeURIComponent(transactionId)}`, {
                 headers: randomHeaders
             })
                 .then(response => response.json())
