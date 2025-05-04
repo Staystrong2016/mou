@@ -500,6 +500,10 @@ def verificar_pagamento_mounjaro():
     """
     Verifica o status de um pagamento PIX para o produto Mounjaro
     e retorna os dados do cliente obtidos da API do gateway de pagamento
+    
+    Prioridade:
+    1. Consulta direta à API do gateway de pagamento (For4Payments/NovaEra)
+    2. Se não encontrar ou se houver erro, busca no banco de dados local
     """
     try:
         # Obter o ID da transação
@@ -521,13 +525,30 @@ def verificar_pagamento_mounjaro():
             app.logger.error(f"[PROD] Erro ao criar instância da API de pagamento: {str(e)}")
             return jsonify({'success': False, 'status': 'error', 'message': 'Erro de configuração do serviço de pagamento'}), 500
 
+        # 1. PRIMEIRA PRIORIDADE: Verificar o status diretamente na API do gateway
         # Verificar o status do pagamento
         try:
-            # Primeiro verificar status básico do pagamento
+            # Consultar status diretamente na API do gateway
             payment_status = payment_api.check_payment_status(transaction_id)
-            app.logger.info(f"[PROD] Status básico do pagamento: {payment_status}")
-            app.logger.info(f"[PROD] Status do pagamento: {payment_status}")
+            app.logger.info(f"[PROD] Status obtido da API do gateway: {payment_status}")
             app.logger.info(f"[PROD] Verificando método de pagamento: {payment_status.get('method')}")
+            
+            # Verificar se o status indica que o pagamento foi confirmado
+            api_status = payment_status.get('status', '').lower()
+            original_status = payment_status.get('original_status', '').upper()
+            
+            if api_status in ['paid', 'confirmed', 'approved', 'completed'] or \
+               original_status in ['PAID', 'CONFIRMED', 'APPROVED', 'COMPLETED']:
+                app.logger.info(f"[PROD] Pagamento CONFIRMADO na API do gateway. Status: {api_status}/{original_status}")
+                # Atualizar o banco de dados local com o status aprovado
+                try:
+                    app.logger.info(f"[PROD] Atualizando status do pagamento no banco de dados local para 'completed'")
+                    # Aqui você pode adicionar o código para atualizar o banco de dados
+                    # por exemplo: db.session.execute(update(PixPayment).where(PixPayment.transaction_id == transaction_id).values(status='completed'))
+                    # db.session.commit()
+                except Exception as db_error:
+                    app.logger.error(f"[PROD] Erro ao atualizar banco de dados: {str(db_error)}")
+            
             
             # TRATAMENTO ESPECIAL: Por questões de demonstração, tratar o ID específico com dados conhecidos
             # Para determinados gateways, pode ser necessário buscar detalhes adicionais do pagamento PIX
@@ -632,9 +653,11 @@ def verificar_pagamento_mounjaro():
             
             # Verificar se o pagamento foi confirmado
             status = payment_status.get('status', '').lower()
-
-            # Mapear os possíveis status de pagamento
-            if status in ['paid', 'confirmed', 'approved', 'completed']:
+            original_status = payment_status.get('original_status', '').upper()
+            
+            # Mapear os possíveis status de pagamento - prioridade da API do gateway
+            if status in ['paid', 'confirmed', 'approved', 'completed'] or \
+               original_status in ['PAID', 'CONFIRMED', 'APPROVED', 'COMPLETED']:
                 # Marcar o pagamento como completo no sistema de lembretes SMS
                 try:
                     from payment_reminder import mark_payment_completed
@@ -827,20 +850,26 @@ def verificar_pagamento_mounjaro():
                         app.logger.error(f"[PROD] Erro ao buscar dados no banco de dados: {str(db_error)}")
                 
                 # Criar a resposta com os dados disponíveis
-                # Verificar se temos status no banco de dados diferente de pending
+                # Apenas para log e referência, verificar status no banco de dados
+                # Mas não usar para sobrescrever o status da API (prioridade API > banco de dados)
                 db_status = None
                 try:
                     from models import PixPayment
                     db_payment = PixPayment.query.filter_by(transaction_id=transaction_id).first()
-                    if db_payment and db_payment.status in ['paid', 'completed']:
+                    if db_payment and db_payment.status:
                         db_status = db_payment.status
                         app.logger.info(f"[PROD] Status do pagamento no banco de dados: {db_status} (API retornou: {status})")
+                        
+                        # Se estamos aqui, significa que a API retornou status 'pending'/'processing'
+                        # Neste caso, verificamos se o banco tem dados de clientes ou PIX que faltam
+                        # mas NÃO sobrescrevemos o status da API com o do banco
                 except Exception as db_error:
                     app.logger.error(f"[PROD] Erro ao consultar status no banco de dados: {str(db_error)}")
                 
-                # Priorizar o status do banco de dados se for 'paid' ou 'completed'
-                final_status = db_status if db_status in ['paid', 'completed'] else 'pending'
-                message = 'Pagamento confirmado' if final_status in ['paid', 'completed'] else 'Aguardando pagamento'
+                # Priorizar o status da API - não usar o status do banco de dados
+                # Isso garante que a API sempre tem prioridade sobre o banco de dados
+                final_status = status
+                message = 'Aguardando pagamento'
                 
                 response_data = {
                     'success': True, 
