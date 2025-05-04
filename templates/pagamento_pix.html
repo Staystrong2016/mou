@@ -726,7 +726,19 @@
     }
     
     function checkPaymentStatus(transaction_id, isAutoCheck = false) {
-      fetch(`/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`)
+      // Verificar qual gateway está sendo usado
+      const gatewayChoice = '{{ gateway_choice|default("NOVAERA") }}';
+      
+      // Escolher a rota correta baseada no gateway
+      let checkUrl = `/verificar_pagamento_mounjaro?transaction_id=${transaction_id}`;
+      
+      // Se o gateway for FOR4, usar a rota específica
+      if (gatewayChoice.toUpperCase() === 'FOR4') {
+        console.log("Usando rota específica para verificação de pagamento FOR4");
+        checkUrl = `/check-for4-payment-status?transaction_id=${transaction_id}`;
+      }
+      
+      fetch(checkUrl)
         .then(response => response.json())
         .then(data => {
           if (data.status === 'paid' || data.status === 'confirmed' || data.status === 'completed') {

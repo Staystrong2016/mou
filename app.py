@@ -292,8 +292,12 @@ def pagamento_pix():
             app.logger.info("[FACEBOOK] Evento InitiateCheckout enviado para /pagamento_pix")
         except Exception as fb_error:
             app.logger.error(f"[FACEBOOK] Erro ao enviar evento InitiateCheckout: {str(fb_error)}")
+        
+        # Obter o gateway de pagamento configurado
+        gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
+        app.logger.info(f"[PROD] Usando gateway de pagamento: {gateway_choice}")
             
-        return render_template('pagamento_pix.html')
+        return render_template('pagamento_pix.html', gateway_choice=gateway_choice)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento PIX: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
