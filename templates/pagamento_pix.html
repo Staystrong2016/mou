@@ -774,7 +774,7 @@
             
             // Obter UTM params da resposta se disponível
             const utmParamsFromResponse = data.utm_params || {};
-            
+            const urlParams = getAllUrlParams()
             // Mesclar com os parâmetros da URL atual para garantir que nada seja perdido
             const allParams = {...urlParams, ...utmParamsFromResponse};
             
