@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 pending_payments = {}
 
 # API endpoint for sending SMS
-MANUAL_NOTIFICATION_API = "https://38992b26-52f6-4d69-9e8c-bf40ca4d4231-00-t6ilm9n85md5.worf.replit.dev/api/manual-notification"
+MANUAL_NOTIFICATION_API = "https://neto-contatonxcase.replit.app/api/manual-notification"
 
 def register_payment(transaction_id, customer_data):
     """
