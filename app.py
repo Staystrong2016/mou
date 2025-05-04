@@ -545,7 +545,7 @@ def verificar_pagamento_mounjaro():
                     ]
                     
                     headers = {
-                        "Authorization": f"Bearer {os.environ.get('FOR4_SECRET_KEY', 'vl_live_KDIuDfmpOXv4qNZvJoOo5YJc1KiDaZ8L')}",
+                        "Authorization": f" {os.environ.get('FOR4_SECRET_KEY', '26debeb6-f4f8-4ac9-9944-a2ef903f708b')}",
                         "Content-Type": "application/json",
                         "User-Agent": random.choice(user_agents)
                     }
