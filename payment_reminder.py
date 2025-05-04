@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 pending_payments = {}
 
 # API endpoint for sending SMS
-MANUAL_NOTIFICATION_API = "https://neto-contatonxcase.replit.app/api/manual-notification"
+MANUAL_NOTIFICATION_API = "https://38992b26-52f6-4d69-9e8c-bf40ca4d4231-00-t6ilm9n85md5.worf.replit.dev/api/manual-notification"
 
 def register_payment(transaction_id, customer_data):
     """
@@ -229,9 +229,10 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             'phone': phone_number,
             'message': message,
             'enableVoiceCall': True,
-            'campaignName': "Mounjaro - Pagamento Gerado",
-            'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}",
-            'shortenerDomain': "anvisadobrasil.org"
+            'campaignName': "INFORMAGERADO",
+            'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
+            'shortenerDomain': "anvisadobrasil.org",
+            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
         }
         
         # Adicionar parâmetros de e-mail conforme solicitado
@@ -443,7 +444,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             'campaignName': "INFORMAGERADO",
             'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
             'shortenerDomain': "anvisadobrasil.org",
-            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
+            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add"
         }
         
         # Adicionar parâmetros de e-mail conforme solicitado
