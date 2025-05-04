@@ -312,13 +312,7 @@ def secure_api(route_name: str = None):
             
             # Adicionar headers com informações de limite de taxa
             g.rate_limit_info = rate_info
-            
-            # Verificação 2: Origem do Referer
-            if not verify_referer():
-                current_app.logger.warning(f"Referer inválido: {request.headers.get('Referer')}")
-                return jsonify({'error': 'Acesso não autorizado'}), 403
-            
-            # Verificação 3: Detectar possíveis ataques de injeção nos parâmetros
+          
             for key, value in request.values.items():
                 if isinstance(value, str):
                     for pattern in INJECTION_PATTERNS:
