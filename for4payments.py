@@ -1,11 +1,32 @@
 import os
 import requests
+import time
 from datetime import datetime
 from flask import current_app, request
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import random
 import string
 from transaction_tracker import track_transaction_attempt, get_client_ip, is_transaction_ip_banned
+
+# Lista de user agents para variar as requisições
+MOBILE_USER_AGENTS = [
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/101.0.4951.44 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 12; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 10; VOG-L29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Mobile Safari/537.36",
+    "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/99.0",
+    "Mozilla/5.0 (iPad; CPU OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1"
+]
+
+DESKTOP_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+]
 
 class For4PaymentsAPI:
     API_URL = "https://app.for4payments.com.br/api/v1"
@@ -13,6 +34,26 @@ class For4PaymentsAPI:
     def __init__(self, secret_key: str):
         self.secret_key = secret_key
         self.extra_headers = {}  # Headers adicionais para evitar problemas de 403 Forbidden
+        
+    def _get_random_user_agent(self, mobile_preference: Optional[bool] = None) -> str:
+        """Retorna um User-Agent aleatório da lista.
+        
+        Args:
+            mobile_preference: Se True, prefere user agents mobile. 
+                              Se False, prefere desktop. 
+                              Se None, escolhe aleatoriamente.
+        
+        Returns:
+            str: Um User-Agent aleatório.
+        """
+        if mobile_preference is None:
+            # 70% de chance de usar um mobile user agent
+            mobile_preference = random.random() < 0.7
+            
+        if mobile_preference:
+            return random.choice(MOBILE_USER_AGENTS)
+        else:
+            return random.choice(DESKTOP_USER_AGENTS)
 
     def _get_headers(self) -> Dict[str, str]:
         headers = {
@@ -158,19 +199,7 @@ class For4PaymentsAPI:
             current_app.logger.info("Enviando requisição para API For4Payments...")
 
             try:
-                # Gerar headers aleatórios para evitar bloqueios
-                import random
-                import time
-                
-                # Lista de user agents para variar os headers
-                user_agents = [
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15",
-                    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
-                    "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/94.0",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0"
-                ]
+                # Gerar headers aleatórios com preferência por mobile user agents para evitar bloqueios
                 
                 # Lista de idiomas para variar nos headers
                 languages = [
@@ -179,9 +208,13 @@ class For4PaymentsAPI:
                     "es-ES,es;q=0.9,pt;q=0.8,en;q=0.7"
                 ]
                 
+                # Usar prioritariamente user agents mobile (true=mobile)
+                user_agent = self._get_random_user_agent(mobile_preference=True)
+                current_app.logger.info(f"Utilizando User-Agent mobile: {user_agent[:30]}...")
+                
                 # Configurar headers extras aleatórios
                 extra_headers = {
-                    "User-Agent": random.choice(user_agents),
+                    "User-Agent": user_agent,
                     "Accept-Language": random.choice(languages),
                     "Cache-Control": random.choice(["max-age=0", "no-cache"]),
                     "X-Requested-With": "XMLHttpRequest",
@@ -189,14 +222,15 @@ class For4PaymentsAPI:
                     "Referer": "https://encceja2025.com.br/pagamento",
                     "Sec-Fetch-Site": "same-origin",
                     "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Dest": "empty"
+                    "Sec-Fetch-Dest": "empty",
+                    "Connection": "keep-alive"
                 }
                 
                 # Combinar com headers base
                 headers = self._get_headers()
                 headers.update(extra_headers)
                 
-                current_app.logger.info(f"Usando headers aleatórios para For4Payments API")
+                current_app.logger.info(f"Usando headers aleatórios para For4Payments API com User-Agent mobile")
                 
                 response = requests.post(
                     f"{self.API_URL}/transaction.purchase",
@@ -302,19 +336,7 @@ class For4PaymentsAPI:
         """Check the status of a payment"""
         try:
             current_app.logger.info(f"[PROD] Verificando status do pagamento {payment_id}")
-            # Gerar headers aleatórios para evitar bloqueios
-            import random
-            import time
-            
-            # Lista de user agents para variar os headers
-            user_agents = [
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15",
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36",
-                "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/94.0",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0"
-            ]
+            # Gerar headers aleatórios com preferência por mobile user agents para evitar bloqueios
             
             # Lista de idiomas para variar nos headers
             languages = [
@@ -331,12 +353,16 @@ class For4PaymentsAPI:
                 "https://encceja2025.com.br/pagamento"
             ]
             
+            # Usar prioritariamente user agents mobile
+            user_agent = self._get_random_user_agent(mobile_preference=True)
+            current_app.logger.info(f"Verificando status com User-Agent mobile: {user_agent[:30]}...")
+            
             # Gerar um ID único para cada requisição para evitar padrões
             unique_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
             
             # Configurar headers extras aleatórios
             extra_headers = {
-                "User-Agent": random.choice(user_agents),
+                "User-Agent": user_agent,
                 "Accept-Language": random.choice(languages),
                 "Cache-Control": random.choice(["max-age=0", "no-cache"]),
                 "X-Requested-With": "XMLHttpRequest",
@@ -345,14 +371,15 @@ class For4PaymentsAPI:
                 "Referer": random.choice(referers),
                 "Sec-Fetch-Site": "same-origin",
                 "Sec-Fetch-Mode": "cors",
-                "Sec-Fetch-Dest": "empty"
+                "Sec-Fetch-Dest": "empty",
+                "Connection": "keep-alive"
             }
             
             # Combinar com headers base
             headers = self._get_headers()
             headers.update(extra_headers)
             
-            current_app.logger.info(f"Usando headers aleatórios para For4Payments API - verificação de status")
+            current_app.logger.info(f"Usando headers aleatórios para For4Payments API - verificação de status com User-Agent mobile")
             
             # Usando a rota transaction.getPaymentDetails conforme especificado na documentação
             response = requests.get(
