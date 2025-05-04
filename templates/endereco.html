@@ -386,6 +386,25 @@
           </div>
           
           <div class="form-group">
+            <label for="email" class="form-label">E-mail</label>
+            <div class="input-icon-wrapper">
+              <i class="fas fa-envelope input-icon"></i>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                class="form-input with-icon" 
+                placeholder="Digite seu e-mail" 
+                autocomplete="off"
+                required
+              >
+              <div id="emailSuggestions" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                <!-- Sugestões de email serão inseridas aqui pelo JavaScript -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
             <label for="reference" class="form-label">Ponto de referência (opcional)</label>
             <input type="text" id="reference" name="reference" class="form-input" placeholder="Ex: Próximo ao supermercado...">
           </div>
@@ -481,6 +500,96 @@
         e.target.classList.remove('border-red-500', 'border-green-500');
       }
     });
+    
+    // Configurar autocompletar de e-mail
+    const emailInput = document.getElementById('email');
+    const suggestionsContainer = document.getElementById('emailSuggestions');
+    
+    // Lista de domínios comuns para autocompletar
+    const emailDomains = [
+      'gmail.com',
+      'hotmail.com',
+      'outlook.com',
+      'yahoo.com.br',
+      'yahoo.com',
+      'icloud.com',
+      'uol.com.br',
+      'bol.com.br',
+      'globo.com',
+      'terra.com.br',
+      'ig.com.br'
+    ];
+    
+    // Função para mostrar sugestões de domínios de e-mail
+    function showEmailSuggestions(inputValue) {
+      // Limpar sugestões anteriores
+      suggestionsContainer.innerHTML = '';
+      suggestionsContainer.classList.add('hidden');
+      
+      // Verificar se o usuário está digitando a parte do usuário do e-mail (antes do @)
+      if (!inputValue.includes('@')) {
+        return;
+      }
+      
+      // Extrair a parte antes do @
+      const userPart = inputValue.split('@')[0];
+      // Extrair a parte após o @ (se existir)
+      const domainPart = inputValue.split('@')[1] || '';
+      
+      // Filtrar domínios que correspondem ao que o usuário já digitou
+      const matchingDomains = emailDomains.filter(domain => 
+        domain.startsWith(domainPart.toLowerCase())
+      );
+      
+      // Se não houver correspondências ou o usuário já digitou um domínio completo, não mostrar sugestões
+      if (matchingDomains.length === 0 || domainPart.includes('.')) {
+        return;
+      }
+      
+      // Criar e adicionar cada sugestão ao container
+      matchingDomains.forEach(domain => {
+        const suggestion = document.createElement('div');
+        suggestion.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+        suggestion.textContent = `${userPart}@${domain}`;
+        
+        // Adicionar evento de clique para selecionar a sugestão
+        suggestion.addEventListener('click', () => {
+          emailInput.value = `${userPart}@${domain}`;
+          suggestionsContainer.classList.add('hidden');
+          emailInput.focus();
+        });
+        
+        suggestionsContainer.appendChild(suggestion);
+      });
+      
+      // Mostrar o container de sugestões se houver sugestões
+      if (matchingDomains.length > 0) {
+        suggestionsContainer.classList.remove('hidden');
+      }
+    }
+    
+    // Eventos para o campo de e-mail
+    if (emailInput) {
+      // Atualizar sugestões enquanto o usuário digita
+      emailInput.addEventListener('input', function() {
+        showEmailSuggestions(this.value);
+      });
+      
+      // Esconder sugestões quando o campo perde o foco
+      emailInput.addEventListener('blur', function() {
+        // Pequeno atraso para permitir que o clique na sugestão seja registrado
+        setTimeout(() => {
+          suggestionsContainer.classList.add('hidden');
+        }, 200);
+      });
+      
+      // Mostrar sugestões quando o campo recebe foco
+      emailInput.addEventListener('focus', function() {
+        if (this.value.includes('@')) {
+          showEmailSuggestions(this.value);
+        }
+      });
+    }
     
     // Consulta de CEP via ViaCEP
     document.getElementById('cep').addEventListener('blur', function() {
