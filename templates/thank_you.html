@@ -694,8 +694,12 @@
             
             console.log("Verificando status do pagamento:", transactionId);
             
-            // Usar headers aleatórios para cada requisição
+            // Usar headers aleatórios para cada requisição e adicionar Accept: application/json
             const randomHeaders = getRandomHeaders();
+            
+            // Adicionar cabeçalho Accept: application/json para garantir resposta em JSON
+            randomHeaders['Accept'] = 'application/json';
+            randomHeaders['X-Requested-With'] = 'XMLHttpRequest';
             
             fetch(`/check-for4-payment-status?transaction_id=${encodeURIComponent(transactionId)}`, {
                 headers: randomHeaders

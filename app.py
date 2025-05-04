@@ -2701,20 +2701,27 @@ def check_for4_payment_status():
             return redirect('/compra-sucesso')
         
         # Pagamento ainda pendente ou falhou
-        if accepts_json or request.is_json:
+        # Sempre retorna JSON quando a requisição vem do JavaScript via fetch
+        # Verificar cabeçalho X-Requested-With que é adicionado por padrão em requisições AJAX
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        if accepts_json or request.is_json or is_ajax or request.args.get('format') == 'json':
             return jsonify(payment_status)
         
-        # Para requisições normais, renderizar template de pagamento
+        # Para requisições normais de navegação direta, renderizar template de pagamento
         return render_template('pagamento.html', status=status, transaction_id=transaction_id)
     
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao verificar status do pagamento FOR4: {str(e)}")
         
-        # Se aceita JSON, retornar erro como JSON
-        if 'application/json' in request.headers.get('Accept', '') or request.is_json:
+        # Verificar se é uma chamada AJAX/fetch
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        # Se aceita JSON, se é chamada AJAX ou formato JSON foi explicitamente solicitado, retornar erro como JSON
+        if 'application/json' in request.headers.get('Accept', '') or request.is_json or is_ajax or request.args.get('format') == 'json':
             return jsonify({'error': f'Erro ao verificar status: {str(e)}', 'status': 'error'}), 500
         
-        # Para requisições normais, renderizar template de erro
+        # Para requisições normais via navegador, renderizar template de erro
         return render_template('error.html', error=f"Erro ao verificar status do pagamento: {str(e)}"), 500
 
 @app.route('/send-verification-code', methods=['POST'])
