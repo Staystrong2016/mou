@@ -2583,7 +2583,7 @@ def check_payment_status_api():
                     # Este campo extra será usado pelo JavaScript para redirecionar
                     status_result['redirect_to'] = '/livro'
             except Exception as e:
-                app.logger.error(f"Erro ao verificar valor do pagamento: {str(e)}")
+                app.logger.error(f"[PROD] Erro ao verificar valor do pagamento: {str(e)}")
             
             app.logger.info(f"[PROD] Pagamento {transaction_id} aprovado. Enviando SMS com link de agradecimento.")
             
@@ -2630,6 +2630,88 @@ def check_payment_status_api():
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao verificar status do pagamento: {str(e)}")
         return jsonify({'status': 'pending', 'error': str(e)})
+
+@app.route('/check-for4-payment-status', methods=['GET', 'POST'])
+@secure_api('check_payment_status')  # Usar o limite específico mais alto para verificação de pagamento
+def check_for4_payment_status():
+    """
+    Rota específica para verificar o status de pagamento quando o GATEWAY_CHOICE é FOR4
+    Verifica se o pagamento foi aprovado e redireciona para /compra-sucesso
+    
+    Essa rota pode ser usada tanto pelo frontend via fetch quanto por redirecionamento direto
+    """
+    try:
+        # Verificar se o GATEWAY_CHOICE é FOR4
+        gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA').upper()
+        if gateway_choice != 'FOR4':
+            app.logger.warning(f"[PROD] Rota de verificação FOR4 chamada com gateway incorreto: {gateway_choice}")
+            # Continuar com a verificação mesmo assim
+        
+        # Obter o ID da transação
+        transaction_id = request.args.get('transaction_id') or request.form.get('transaction_id')
+        
+        if not transaction_id:
+            # Verificar se foi enviado no corpo da requisição JSON
+            data = request.get_json(silent=True)
+            if data and data.get('transactionId'):
+                transaction_id = data.get('transactionId')
+            else:
+                app.logger.error("[PROD] ID da transação não fornecido para verificação FOR4")
+                return jsonify({'error': 'ID da transação é obrigatório', 'status': 'error'}), 400
+        
+        app.logger.info(f"[PROD] Verificando status do pagamento FOR4: {transaction_id}")
+        
+        # Inicializar a API For4Payments
+        from for4payments import create_payment_api
+        try:
+            api = create_payment_api()
+        except ValueError as e:
+            app.logger.error(f"[PROD] Erro ao inicializar API For4Payments: {str(e)}")
+            return jsonify({'error': 'Serviço de pagamento indisponível. Tente novamente mais tarde', 'status': 'error'}), 500
+        
+        # Verificar o status do pagamento
+        payment_status = api.check_payment_status(transaction_id)
+        app.logger.info(f"[PROD] Status do pagamento FOR4: {payment_status}")
+        
+        # Verificar se o pagamento foi aprovado
+        status = payment_status.get('status')
+        original_status = payment_status.get('original_status')
+        
+        # Se a requisição aceita JSON, retornar os dados como JSON
+        accepts_json = 'application/json' in request.headers.get('Accept', '')
+        
+        # Verificar se o pagamento foi aprovado
+        if status == 'completed' or original_status in ['APPROVED', 'COMPLETED', 'PAID']:
+            app.logger.info(f"[PROD] Pagamento FOR4 aprovado: {transaction_id}")
+            
+            # Se aceita JSON, retornar resposta JSON
+            if accepts_json or request.is_json:
+                return jsonify({
+                    'status': status,
+                    'original_status': original_status,
+                    'redirect_to': '/compra-sucesso',
+                    'message': 'Pagamento aprovado com sucesso!'
+                })
+            
+            # Se não aceita JSON, redirecionar para página de sucesso
+            return redirect('/compra-sucesso')
+        
+        # Pagamento ainda pendente ou falhou
+        if accepts_json or request.is_json:
+            return jsonify(payment_status)
+        
+        # Para requisições normais, renderizar template de pagamento
+        return render_template('pagamento.html', status=status, transaction_id=transaction_id)
+    
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao verificar status do pagamento FOR4: {str(e)}")
+        
+        # Se aceita JSON, retornar erro como JSON
+        if 'application/json' in request.headers.get('Accept', '') or request.is_json:
+            return jsonify({'error': f'Erro ao verificar status: {str(e)}', 'status': 'error'}), 500
+        
+        # Para requisições normais, renderizar template de erro
+        return render_template('error.html', error=f"Erro ao verificar status do pagamento: {str(e)}"), 500
 
 @app.route('/send-verification-code', methods=['POST'])
 def send_verification_code_route():

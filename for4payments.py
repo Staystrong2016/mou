@@ -354,6 +354,7 @@ class For4PaymentsAPI:
             
             current_app.logger.info(f"Usando headers aleatórios para For4Payments API - verificação de status")
             
+            # Usando a rota transaction.getPaymentDetails conforme especificado na documentação
             response = requests.get(
                 f"{self.API_URL}/transaction.getPaymentDetails",
                 params={'id': payment_id},
