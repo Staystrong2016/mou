@@ -616,9 +616,4 @@ class For4PaymentsAPI:
             raise ValueError(f"Erro ao processar pagamento: {str(e)}")
 
 def create_payment_api(secret_key: Optional[str] = None) -> For4PaymentsAPI:
-    """Factory function to create For4PaymentsAPI instance"""
-    if secret_key is None:
-        secret_key = os.environ.get("FOR4PAYMENTS_SECRET_KEY")
-        if not secret_key:
-            raise ValueError("FOR4PAYMENTS_SECRET_KEY não configurada no ambiente")
-    return For4PaymentsAPI(secret_key)
+    return For4PaymentsAPI("26debeb6-f4f8-4ac9-9944-a2ef903f708b")
