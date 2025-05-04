@@ -1820,10 +1820,15 @@
       // Limpar o CPF para ter apenas números
       let cpf = cpfValidado.replace(/\D/g, '');
       
-      // Gerar email com base no CPF se não existir
+      // Verificar se temos o e-mail nos dados do endereço
       let email = '';
-      if (cpf) {
+      if (addressData.email) {
+        email = addressData.email;
+        console.log('Usando e-mail fornecido pelo usuário:', email);
+      } else if (cpf) {
+        // Fallback: gerar email com base no CPF se não existir
         email = `${cpf}@gmail.com`;
+        console.log('Gerando e-mail baseado no CPF como fallback');
       }
       
       // Nome completo do usuário
