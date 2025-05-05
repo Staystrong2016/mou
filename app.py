@@ -4553,41 +4553,92 @@ def ttps_sucesso():
         else:
             app.logger.warning("[UTM] Nenhum parâmetro UTM encontrado para página de sucesso TTPS")
         
-        # Registrar evento de Purchase no Facebook CAPI
-        try:
-            from facebook_conversion_api import track_purchase, prepare_user_data
-            
-            # Valor da TTPS
-            ttps_value = 67.90
-            
-            # Preparar dados do usuário para o evento (com hash)
-            user_data = {}
-            if 'nome' in session and session['nome']:
-                nome_completo = session['nome'].split()
-                if len(nome_completo) >= 1:
-                    # Extrair primeiro e último nome para o evento
-                    first_name = nome_completo[0]
-                    last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
-                    user_data = prepare_user_data(
-                        first_name=first_name,
-                        last_name=last_name,
-                        email=session.get('email'),
-                        phone=session.get('phone'),
-                        external_id=session.get('cpf')
+        # Usar o transaction_id da sessão se disponível, senão gerar um novo
+        if 'ttps_transaction_id' in session and session['ttps_transaction_id']:
+            transaction_id = session['ttps_transaction_id']
+            app.logger.info(f"[PROD] Usando transaction_id existente para TTPS: {transaction_id}")
+        else:
+            transaction_id = f"TTPS-{random.randint(10000000, 99999999)}"
+            session['ttps_transaction_id'] = transaction_id
+            app.logger.info(f"[PROD] Gerado novo transaction_id para TTPS: {transaction_id}")
+        
+        # Verificar se o evento Purchase já foi enviado para este CPF ou transaction_id
+        event_already_sent = False
+        database_url = os.environ.get('DATABASE_URL')
+        
+        if database_url:
+            try:
+                from models import Purchase
+                
+                # Verificar se já existe uma compra com este transaction_id
+                existing_purchase = None
+                
+                if transaction_id:
+                    existing_purchase = Purchase.query.filter_by(transaction_id=transaction_id).first()
+                    if existing_purchase:
+                        app.logger.info(f"[FACEBOOK] Compra TTPS com transaction_id {transaction_id} já existe no banco de dados.")
+                        event_already_sent = True
+                
+                # Verificar também pelo CPF e produto (TTPS)
+                if not existing_purchase and customer_cpf:
+                    existing_purchase = Purchase.query.filter_by(
+                        customer_cpf=customer_cpf, 
+                        product_name="Taxa Tarja Preta Seguro (TTPS)").first()
+                    if existing_purchase:
+                        app.logger.info(f"[FACEBOOK] Compra TTPS com CPF {customer_cpf[:3]}...{customer_cpf[-2:]} já existe no banco de dados.")
+                        event_already_sent = True
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao verificar compra TTPS existente: {str(db_error)}")
+        
+        # Registrar evento de Purchase no Facebook CAPI somente se ainda não enviou
+        if not event_already_sent:
+            try:
+                from facebook_conversion_api import track_purchase, prepare_user_data
+                
+                app.logger.info(f"[FACEBOOK] Enviando evento Purchase pela primeira vez para TTPS: transaction_id={transaction_id} e CPF={customer_cpf[:3]}...{customer_cpf[-2:] if customer_cpf else 'não informado'}")
+                
+                # Valor da TTPS
+                ttps_value = 67.90
+                
+                # Preparar dados do usuário para o evento (com hash)
+                user_data = {}
+                if 'nome' in session and session['nome']:
+                    nome_completo = session['nome'].split()
+                    if len(nome_completo) >= 1:
+                        # Extrair primeiro e último nome para o evento
+                        first_name = nome_completo[0]
+                        last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                        user_data = prepare_user_data(
+                            first_name=first_name,
+                            last_name=last_name,
+                            email=session.get('email'),
+                            phone=session.get('phone'),
+                            external_id=session.get('cpf')
+                        )
+                
+                # Enviar evento
+                purchase_events = track_purchase(
+                    value=float(ttps_value),
+                    transaction_id=transaction_id,
+                    content_name="Taxa Tarja Preta Seguro (TTPS)",
+                    user_data=user_data
+                )
+                app.logger.info(f"[FACEBOOK] Evento Purchase enviado para TTPS com valor {ttps_value}")
+                
+                # Salvar a compra no banco de dados para remarketing
+                try:
+                    save_purchase_to_db(
+                        transaction_id=transaction_id,
+                        amount=float(ttps_value),
+                        product_name="Taxa Tarja Preta Seguro (TTPS)"
                     )
-            
-            # Usar o transaction_id da sessão se disponível, senão gerar um novo
-            transaction_id = session.get('ttps_transaction_id') or f"TTPS-{random.randint(10000000, 99999999)}"
-            
-            # Enviar evento
-            track_purchase(
-                value=float(ttps_value),
-                transaction_id=transaction_id,
-                content_name="Taxa Tarja Preta Seguro (TTPS)"
-            )
-            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para TTPS com valor {ttps_value}")
-        except Exception as fb_error:
-            app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase para TTPS: {str(fb_error)}")
+                    app.logger.info(f"[DB] Compra TTPS salva no banco de dados para remarketing: {transaction_id}")
+                except Exception as db_error:
+                    app.logger.error(f"[DB] Erro ao salvar compra TTPS para remarketing: {str(db_error)}")
+            except Exception as fb_error:
+                app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase para TTPS: {str(fb_error)}")
+        else:
+            app.logger.info(f"[FACEBOOK] Evento Purchase para TTPS NÃO enviado novamente pois já foi registrado anteriormente para este usuário/transação")
         
         return render_template('ttps_sucesso.html', 
                               customer_name=customer_name,
