@@ -451,8 +451,9 @@
           <div class="certificate-footer">
             <p>Este documento é válido em todo o território nacional durante o período de validade indicado.</p>
             <div class="certificate-validation">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{customer_name}}" class="certificate-qr" id="certificate-qr">
-              </img> 
+              <div class="certificate-qr">
+                QR Code
+              </div>
               <div>
                 <p>Código de Verificação:</p>
                 <p class="certificate-code" id="verificationCode">ANVTTPS-8A54-F832-9C17</p>
@@ -536,7 +537,7 @@
   </main>
   
   <div class="w-full mt-6">
-    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+    <img src="https://i.ibb.co/DHjL5PH/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
   </div>
   
   <a href="#" class="vlibras-icon">
@@ -555,7 +556,7 @@
     const patientCPFElement = document.getElementById('patientCPF');
     const verificationCodeElement = document.getElementById('verificationCode');
     const paymentProtocolElement = document.getElementById('paymentProtocol');
-    const certificateQr = document.getElementById('certificate-qr');
+    
     // Função para gerar número de registro
     function generateRegistrationNumber() {
       const prefix = "TTPS-";
@@ -597,10 +598,6 @@
     // Atualizar elementos na página
     if (registrationNumberElement) {
       registrationNumberElement.textContent = generateRegistrationNumber();
-    }
-
-    if(certificateQr) {
-      certificateQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${storedName}-${generateRegistrationNumber()}`;
     }
     
     if (issueDateElement) {
