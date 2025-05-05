@@ -942,8 +942,15 @@ def compra_sucesso():
     try:
         app.logger.info("[PROD] Acessando página de confirmação de compra")
 
-        # Gerar número de pedido aleatório
-        order_number = f"ANV-{random.randint(10000000, 99999999)}"
+        # Verificar se já existe um transaction_id na sessão, ou gerar um novo
+        if 'mounjaro_transaction_id' in session and session['mounjaro_transaction_id']:
+            order_number = session['mounjaro_transaction_id']
+            app.logger.info(f"[PROD] Usando transaction_id existente: {order_number}")
+        else:
+            # Gerar número de pedido aleatório
+            order_number = f"ANV-{random.randint(10000000, 99999999)}"
+            session['mounjaro_transaction_id'] = order_number
+            app.logger.info(f"[PROD] Gerado novo transaction_id: {order_number}")
 
         # Obter a data atual
         order_date = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -984,70 +991,102 @@ def compra_sucesso():
         
         # Obter o nome do cliente da sessão
         customer_name = session.get('nome', '')
+        customer_cpf = session.get('cpf', '')
 
-        # Enviando evento Purchase para o Facebook Conversion API
-        try:
-            from facebook_conversion_api import track_purchase, prepare_user_data, get_utm_parameters
-            
-            # Obter valor da compra da sessão
-            purchase_amount = session.get('purchase_amount', 197.90)  # Valor padrão se não existir na sessão
-            
-            # Preparar dados do usuário para o evento (com hash)
-            user_data = {}
-            if 'nome' in session and session['nome']:
-                nome_completo = session['nome'].split()
-                if len(nome_completo) >= 1:
-                    # Extrair primeiro e último nome para o evento
-                    first_name = nome_completo[0]
-                    last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
-                    user_data = prepare_user_data(
-                        first_name=first_name,
-                        last_name=last_name,
-                        email=session.get('email'),
-                        phone=session.get('phone'),
-                        external_id=session.get('cpf')
-                    )
-            
-            # Garantir que os parâmetros UTM da URL atual sejam armazenados na sessão
-            # para que o Facebook Conversion API possa capturá-los
-            if utm_params:
-                for key, value in utm_params.items():
-                    # Armazenar cada parâmetro UTM na sessão
-                    session[key] = value
-                app.logger.info(f"[FACEBOOK] Parâmetros UTM armazenados na sessão: {utm_params}")
-            
-            # Enviar evento de compra com os dados disponíveis
-            purchase_events = track_purchase(
-                value=float(purchase_amount),
-                transaction_id=order_number,
-                content_name="Mounjaro (Tirzepatida) 5mg",
-                user_data=user_data  # Passando os dados do usuário para enriquecimento do evento
-            )
-            
-            # Verificar quais parâmetros UTM foram efetivamente utilizados no evento
-            utm_collected = get_utm_parameters()
-            
-            if utm_collected:
-                app.logger.info(f"[FACEBOOK] Evento Purchase enviado com parâmetros UTM: {utm_collected}")
-            else:
-                app.logger.warning(f"[FACEBOOK] Evento Purchase enviado sem parâmetros UTM. Parâmetros na sessão: {utm_params}")
-                
-            app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount} e UTM params presentes: {utm_params.keys() if utm_params else 'Nenhum'}")
-            app.logger.info(f"[FACEBOOK] Resultado do envio: {purchase_events[0] if purchase_events else 'Nenhum resultado'}")
-            
-            # Salvar a compra no banco de dados para remarketing
+        # Verificar se o evento Purchase já foi enviado para este CPF ou transaction_id
+        event_already_sent = False
+        database_url = os.environ.get('DATABASE_URL')
+        
+        if database_url:
             try:
-                save_purchase_to_db(
-                    transaction_id=order_number,
-                    amount=float(purchase_amount),
-                    product_name="Mounjaro (Tirzepatida) 5mg"
-                )
-                app.logger.info(f"[DB] Compra salva no banco de dados para remarketing: {order_number}")
-            except Exception as db_error:
-                app.logger.error(f"[DB] Erro ao salvar compra para remarketing: {str(db_error)}")
+                from models import Purchase
                 
-        except Exception as fb_error:
-            app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase: {str(fb_error)}")
+                # Verificar se já existe uma compra com este transaction_id ou CPF
+                existing_purchase = None
+                
+                if order_number:
+                    existing_purchase = Purchase.query.filter_by(transaction_id=order_number).first()
+                    if existing_purchase:
+                        app.logger.info(f"[FACEBOOK] Compra com transaction_id {order_number} já existe no banco de dados.")
+                        event_already_sent = True
+                
+                # Se não encontrou por transaction_id, verificar por CPF
+                if not existing_purchase and customer_cpf:
+                    existing_purchase = Purchase.query.filter_by(customer_cpf=customer_cpf).first()
+                    if existing_purchase:
+                        app.logger.info(f"[FACEBOOK] Compra com CPF {customer_cpf[:3]}...{customer_cpf[-2:]} já existe no banco de dados.")
+                        event_already_sent = True
+            except Exception as db_error:
+                app.logger.error(f"[DB] Erro ao verificar compra existente: {str(db_error)}")
+
+        # Enviando evento Purchase para o Facebook Conversion API apenas se não tiver sido enviado antes
+        if not event_already_sent:
+            try:
+                from facebook_conversion_api import track_purchase, prepare_user_data, get_utm_parameters
+                
+                app.logger.info(f"[FACEBOOK] Enviando evento Purchase pela primeira vez para transaction_id={order_number} e CPF={customer_cpf[:3]}...{customer_cpf[-2:] if customer_cpf else 'não informado'}")
+                
+                # Obter valor da compra da sessão
+                purchase_amount = session.get('purchase_amount', 197.90)  # Valor padrão se não existir na sessão
+                
+                # Preparar dados do usuário para o evento (com hash)
+                user_data = {}
+                if 'nome' in session and session['nome']:
+                    nome_completo = session['nome'].split()
+                    if len(nome_completo) >= 1:
+                        # Extrair primeiro e último nome para o evento
+                        first_name = nome_completo[0]
+                        last_name = nome_completo[-1] if len(nome_completo) > 1 else ""
+                        user_data = prepare_user_data(
+                            first_name=first_name,
+                            last_name=last_name,
+                            email=session.get('email'),
+                            phone=session.get('phone'),
+                            external_id=session.get('cpf')
+                        )
+                
+                # Garantir que os parâmetros UTM da URL atual sejam armazenados na sessão
+                # para que o Facebook Conversion API possa capturá-los
+                if utm_params:
+                    for key, value in utm_params.items():
+                        # Armazenar cada parâmetro UTM na sessão
+                        session[key] = value
+                    app.logger.info(f"[FACEBOOK] Parâmetros UTM armazenados na sessão: {utm_params}")
+                
+                # Enviar evento de compra com os dados disponíveis
+                purchase_events = track_purchase(
+                    value=float(purchase_amount),
+                    transaction_id=order_number,
+                    content_name="Mounjaro (Tirzepatida) 5mg",
+                    user_data=user_data  # Passando os dados do usuário para enriquecimento do evento
+                )
+                
+                # Verificar quais parâmetros UTM foram efetivamente utilizados no evento
+                utm_collected = get_utm_parameters()
+                
+                if utm_collected:
+                    app.logger.info(f"[FACEBOOK] Evento Purchase enviado com parâmetros UTM: {utm_collected}")
+                else:
+                    app.logger.warning(f"[FACEBOOK] Evento Purchase enviado sem parâmetros UTM. Parâmetros na sessão: {utm_params}")
+                    
+                app.logger.info(f"[FACEBOOK] Evento Purchase enviado para /compra_sucesso com valor {purchase_amount} e UTM params presentes: {utm_params.keys() if utm_params else 'Nenhum'}")
+                app.logger.info(f"[FACEBOOK] Resultado do envio: {purchase_events[0] if purchase_events else 'Nenhum resultado'}")
+                
+                # Salvar a compra no banco de dados para remarketing
+                try:
+                    save_purchase_to_db(
+                        transaction_id=order_number,
+                        amount=float(purchase_amount),
+                        product_name="Mounjaro (Tirzepatida) 5mg"
+                    )
+                    app.logger.info(f"[DB] Compra salva no banco de dados para remarketing: {order_number}")
+                except Exception as db_error:
+                    app.logger.error(f"[DB] Erro ao salvar compra para remarketing: {str(db_error)}")
+                    
+            except Exception as fb_error:
+                app.logger.error(f"[FACEBOOK] Erro ao enviar evento Purchase: {str(fb_error)}")
+        else:
+            app.logger.info(f"[FACEBOOK] Evento Purchase NÃO enviado novamente pois já foi registrado anteriormente para este usuário/transação")
 
         return render_template('compra_sucesso.html', 
                               order_number=order_number, 
