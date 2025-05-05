@@ -934,11 +934,10 @@
         const pixData = getPixData();
         const baseAmount = pixData && pixData.amount ? parseFloat(pixData.amount) : 197.90;
         
-        // Calcular o total (produto + frete)
-        const total = baseAmount + shippingCostValue;
+        // Não calcular o total com frete novamente, o valor já vem com frete incluído
         
-        // Atualizar no elemento HTML
-        totalAmount.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        // Atualizar no elemento HTML usando o valor original
+        totalAmount.textContent = `R$ ${baseAmount.toFixed(2).replace('.', ',')}`;
         console.log(`Valor atualizado: Produto R$ ${baseAmount.toFixed(2)} + Frete R$ ${shippingCostValue.toFixed(2)} = R$ ${total.toFixed(2)}`);
       }
       
@@ -1031,9 +1030,9 @@
         shippingCost = 47.90;
       }
       
-      // Atualizar o valor total
-      const newTotal = parseFloat(baseAmount) + shippingCost;
-      totalAmount.textContent = `R$ ${newTotal.toFixed(2).replace('.', ',')}`;
+      // Não recalcular o valor total, o valor já inclui o frete
+      // O valor em baseAmount já é o valor total completo
+      totalAmount.textContent = `R$ ${parseFloat(baseAmount).toFixed(2).replace('.', ',')}`;
       
       // Atualizar as datas de entrega novamente após modificar o HTML
       updateDeliveryDates();
