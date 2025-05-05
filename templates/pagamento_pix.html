@@ -878,6 +878,17 @@
       // Obter a opção de frete selecionada do localStorage
       const shippingOption = localStorage.getItem('shippingOption') || 'normal';
       
+      // Selecionar o botão de rádio correspondente à opção de frete
+      const radioInput = document.querySelector(`input[name="shipping_option"][value="${shippingOption}"]`);
+      if (radioInput) {
+        radioInput.checked = true;
+        // Atualizar a aparência do card selecionado
+        document.querySelectorAll('.shipping-option').forEach(card => {
+          card.classList.toggle('border-green-500', card.contains(radioInput));
+          card.classList.toggle('bg-green-50', card.contains(radioInput));
+        });
+      }
+      
       // Elementos da UI
       const shippingMethod = document.getElementById('shipping-method');
       const shippingDetails = document.getElementById('shipping-details');
@@ -938,7 +949,7 @@
         
         // Atualizar no elemento HTML usando o valor original
         totalAmount.textContent = `R$ ${baseAmount.toFixed(2).replace('.', ',')}`;
-        console.log(`Valor atualizado: Produto R$ ${baseAmount.toFixed(2)} + Frete R$ ${shippingCostValue.toFixed(2)} = R$ ${total.toFixed(2)}`);
+        console.log(`Valor atualizado: Produto R$ ${baseAmount.toFixed(2)}`);
       }
       
       // Atualizar a interface
@@ -1198,6 +1209,10 @@
             card.classList.toggle('bg-green-50', card.contains(this) && this.checked);
           });
           
+          // Salvar a opção selecionada no localStorage para persistência
+          localStorage.setItem('shippingOption', this.value);
+          console.log('Opção de frete atualizada para:', this.value);
+          
           // Atualizar o resumo do pedido
           updateShippingSummary();
           
@@ -1214,21 +1229,34 @@
         });
       });
       
-      // Disparar o evento change para a opção pré-selecionada
-      const selectedOption = document.querySelector('input[name="shipping_option"]:checked');
-      if (selectedOption) {
-        selectedOption.closest('.shipping-option').classList.add('border-green-500');
-        selectedOption.closest('.shipping-option').classList.add('bg-green-50');
-        
-        // Se a opção selecionada for "Retirada em Farmácia", verificar farmácias próximas
-        if (selectedOption.value === 'pharmacy') {
-          checkNearbyPharmacies();
+      // Verificar e selecionar a opção salva no localStorage
+      const savedOption = localStorage.getItem('shippingOption');
+      if (savedOption) {
+        const optionToSelect = document.querySelector(`input[name="shipping_option"][value="${savedOption}"]`);
+        if (optionToSelect && !optionToSelect.checked) {
+          optionToSelect.checked = true;
+          
+          // Atualizar a aparência visual
+          document.querySelectorAll('.shipping-option').forEach(card => {
+            card.classList.toggle('border-green-500', card.contains(optionToSelect));
+            card.classList.toggle('bg-green-50', card.contains(optionToSelect));
+          });
+          
+          // Se a opção for farmácia, verificar farmácias próximas
+          if (savedOption === 'pharmacy') {
+            setTimeout(() => {
+              checkNearbyPharmacies();
+            }, 500);
+          }
         }
       }
     }
     
     window.onload = function() {
       initializePageData();
+      
+      // Configurar eventos para opções de entrega
+      setupShippingOptions();
       
       // Carregar informações de frete selecionadas anteriormente
       loadShippingInfo();
