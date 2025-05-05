@@ -722,46 +722,18 @@ def register_facebook_conversion_events(app):
         logger.warning("Configure FB_PIXEL_ID e FB_ACCESS_TOKEN nas variáveis de ambiente.")
         return
     
-    logger.info(f"Registrando eventos de conversão do Facebook para Pixel ID: {FB_PIXEL_ID}")
+    logger.info(f"Facebook Pixel ID configurado: {FB_PIXEL_ID}")
     
-    # Mapeamento de rotas para eventos
-    route_event_mapping = {
-        '/anvisa': 'PageView',
-        '/cadastro': 'ViewContent',
-        '/compra': 'AddPaymentInfo',
-        '/pagamento_pix': 'InitiateCheckout',
-    }
-    
-    # Adicionar o evento automaticamente para cada rota
-    for route, event in route_event_mapping.items():
-        # Registrar evento antes da resposta
-        app.before_request_funcs.setdefault(None, []).append(
-            lambda r=route, e=event: _check_route_and_track_event(r, e)
-        )
-    
-    # Registrar evento de Lead para botão de prosseguir na rota /endereco
-    # Isto precisará ser implementado no template com JavaScript
-    # Também, o evento Purchase precisará ser chamado manualmente em /confirmacao_compra
+    # NOTA: O mapeamento automático de rotas para eventos foi removido
+    # para evitar duplicação de eventos, já que os eventos estão sendo enviados
+    # diretamente nas rotas específicas em app.py
+    #
+    # Eventos que precisam ser enviados manualmente em app.py:
+    # - PageView: para /anvisa
+    # - ViewContent: para /cadastro
+    # - AddPaymentInfo: para /compra 
+    # - InitiateCheckout: para /pagamento_pix
+    # - Purchase: para transações confirmadas
 
-def _check_route_and_track_event(route: str, event_type: str):
-    """
-    Verifica se a rota atual corresponde e registra o evento apropriado
-    """
-    if request.path == route:
-        try:
-            if event_type == 'PageView':
-                track_page_view()
-            elif event_type == 'ViewContent':
-                track_view_content()
-            elif event_type == 'Lead':
-                # Lead específico para a rota /endereco - será acionado via JavaScript
-                pass
-            elif event_type == 'AddPaymentInfo':
-                track_add_payment_info()
-            elif event_type == 'InitiateCheckout':
-                track_initiate_checkout()
-            # Purchase requer value, será acionado manualmente
-            
-            logger.info(f"✅ Evento {event_type} registrado automaticamente para rota {route}")
-        except Exception as e:
-            logger.error(f"❌ Erro ao registrar evento {event_type} para rota {route}: {str(e)}")
+# A função _check_route_and_track_event foi removida para evitar duplicação de eventos
+# Os eventos agora são enviados manualmente nas rotas específicas em app.py
