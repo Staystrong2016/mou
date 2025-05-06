@@ -702,7 +702,7 @@
       try {
         console.log('Consultando CPF:', cpf);
         // Fazer requisição para o proxy
-        const response = await fetch('/proxy-consulta-cpf', {
+        const response = await fetch('/consulta-propria-cpf', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

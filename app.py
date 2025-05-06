@@ -2089,7 +2089,7 @@ def buscar_cpf():
         app.logger.error(f"[PROD] Erro ao acessar busca de CPF: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
         
-@app.route('/proxy-consulta-cpf', methods=['POST'])
+@app.route('/consulta-propria-cpf', methods=['POST'])
 def proxy_consulta_cpf():
     """API proxy para consulta de CPF na API Exato Digital"""
     try:
