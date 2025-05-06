@@ -66,20 +66,43 @@
         fbq('init', '1226790281278977'); // Novo pixel adicionado
         fbq('track', 'PageView');
         
-        // Track purchase conversion
-        const eventData = {
-            value: 143.10,
-            currency: 'BRL',
-            content_name: 'Tarifa Regional de Aplicação da Prova ENCCEJA 2025',
-            content_type: 'product',
-            content_ids: ['encceja-2025-tarifa-regional']
-        };
+        // Obter o CPF da URL ou cookies
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
         
-        fbq('track', 'Purchase', eventData);
-        fbq('trackSingle', '1345433039826605', 'Purchase', eventData);
-        fbq('trackSingle', '1390026985502891', 'Purchase', eventData);
-        fbq('trackSingle', '190097557439571', 'Purchase', eventData);
-        fbq('trackSingle', '1226790281278977', 'Purchase', eventData);
+        // Track purchase conversion
+        const cpf = getUrlParameter('cpf') || '';
+        const purchaseEventKey = `fb_purchase_${cpf.replace(/\D/g, '')}_encceja_livro`;
+        const alreadySentPurchaseEvent = localStorage.getItem(purchaseEventKey);
+        
+        console.log('Verificando se podemos enviar evento de conversão no Facebook Pixel');
+        if (!alreadySentPurchaseEvent && cpf) {
+            console.log('Enviando novo evento Purchase para o CPF:', cpf.substring(0, 3) + '...' + cpf.substring(cpf.length-2));
+            
+            const eventData = {
+                value: 143.10,
+                currency: 'BRL',
+                content_name: 'Tarifa Regional de Aplicação da Prova ENCCEJA 2025',
+                content_type: 'product',
+                content_ids: ['encceja-2025-tarifa-regional']
+            };
+            
+            fbq('track', 'Purchase', eventData);
+            fbq('trackSingle', '1345433039826605', 'Purchase', eventData);
+            fbq('trackSingle', '1390026985502891', 'Purchase', eventData);
+            fbq('trackSingle', '190097557439571', 'Purchase', eventData);
+            fbq('trackSingle', '1226790281278977', 'Purchase', eventData);
+            
+            // Marcar como enviado para este CPF
+            localStorage.setItem(purchaseEventKey, 'true');
+            console.log('Evento Purchase enviado e registrado no localStorage');
+        } else if (alreadySentPurchaseEvent) {
+            console.log('Evento Purchase já foi enviado anteriormente para este CPF. Ignorando duplicado.');
+        } else {
+            console.log('Não foi possível identificar o CPF. Evento de compra não enviado.');
+        }
     </script>
     <noscript>
         <img height="1" width="1" style="display:none"

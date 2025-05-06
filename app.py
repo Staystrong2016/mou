@@ -5260,6 +5260,16 @@ def save_purchase_to_db(transaction_id, amount, product_name='Produto'):
         customer_phone = session.get('phone', '') or session.get('customer_phone', '')
         customer_email = session.get('email', '') or session.get('customer_email', '')
         
+        # Verificar se já existe uma compra para este CPF e produto
+        if customer_cpf:
+            existing_purchase_by_cpf = Purchase.query.filter_by(customer_cpf=customer_cpf, product_name=product_name).first()
+            if existing_purchase_by_cpf:
+                app.logger.info(f"[DB] Já existe uma compra para o CPF {customer_cpf[:3]}...{customer_cpf[-2:]} e produto {product_name}.")
+                # Atualizar o status da compra existente para garantir consistência
+                existing_purchase_by_cpf.status = 'completed'
+                db.session.commit()
+                return True
+        
         # Obter UTM params da sessão
         utm_source = session.get('utm_source', '')
         utm_medium = session.get('utm_medium', '')

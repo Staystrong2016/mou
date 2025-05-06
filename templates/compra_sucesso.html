@@ -944,8 +944,13 @@
           console.log('Evento enviado para o Google Analytics');
         }
         
-        // Exemplo: se o Facebook Pixel estiver disponível
-        if (typeof fbq === 'function') {
+        // Verificar se já enviamos um evento de compra para este CPF
+        const cpfValidado = localStorage.getItem('cpfValidado') || '';
+        const purchaseEventKey = `fb_purchase_${cpfValidado}_mounjaro`;
+        const alreadySentPurchaseEvent = localStorage.getItem(purchaseEventKey);
+        
+        // Só enviar o evento se ainda não foi enviado para este CPF
+        if (typeof fbq === 'function' && !alreadySentPurchaseEvent && cpfValidado) {
           // Enviar evento de conversão para o Facebook
           fbq('track', 'Purchase', {
             content_name: 'Mounjaro (Tirzepatida) 5mg',
@@ -957,7 +962,12 @@
             utm_medium: utmParams.medium,
             utm_campaign: utmParams.campaign
           });
-          console.log('Evento enviado para o Facebook Pixel');
+          
+          // Marcar como enviado para este CPF
+          localStorage.setItem(purchaseEventKey, 'true');
+          console.log('Evento Purchase enviado para o Facebook Pixel');
+        } else if (alreadySentPurchaseEvent) {
+          console.log('Evento Purchase já foi enviado anteriormente para este CPF. Ignorando duplicado.');
         }
       } catch(error) {
         console.error("Erro ao processar parâmetros UTM:", error);

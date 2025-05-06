@@ -338,46 +338,59 @@
                     paymentDetailsContainer.insertBefore(successMessage, paymentDetailsContainer.firstChild);
 
                     // Disparar evento de conversão no Facebook Pixel
-                    console.log('Disparando evento de conversão no Facebook Pixel');
+                    console.log('Verificando se podemos enviar evento de conversão no Facebook Pixel');
                     if (typeof fbq !== 'undefined') {
                         // Obter dados do localStorage para o evento
                         const userData = JSON.parse(localStorage.getItem('paymentData') || '{}');
                         const nome = userData.nome || '';
                         const cpf = userData.cpf || '';
+                        
+                        // Verificar se já enviamos um evento para este CPF
+                        const purchaseEventKey = `fb_purchase_${cpf.replace(/\D/g, '')}_encceja`;
+                        const alreadySentPurchaseEvent = localStorage.getItem(purchaseEventKey);
+                        
+                        if (!alreadySentPurchaseEvent && cpf) {
+                            console.log('Enviando novo evento Purchase para o CPF:', cpf.substring(0, 3) + '...' + cpf.substring(cpf.length-2));
 
-                        // Definir dados do evento
-                        const eventData = {
-                            value: 39.70,
-                            currency: 'BRL',
-                            content_name: 'Taxa de Inscrição ENCCEJA 2025',
-                            content_type: 'product',
-                            content_ids: ['encceja-2025-taxa'],
-                            content_category: 'Taxa de Inscrição',
-                            user_data: {
-                                name: nome,
-                                external_id: cpf.replace(/\D/g, '')
+                            // Definir dados do evento
+                            const eventData = {
+                                value: 39.70,
+                                currency: 'BRL',
+                                content_name: 'Taxa de Inscrição ENCCEJA 2025',
+                                content_type: 'product',
+                                content_ids: ['encceja-2025-taxa'],
+                                content_category: 'Taxa de Inscrição',
+                                user_data: {
+                                    name: nome,
+                                    external_id: cpf.replace(/\D/g, '')
+                                }
+                            };
+
+                            try {
+                                // Enviar para o pixel principal
+                                fbq('track', 'Purchase', eventData);
+                                console.log('Evento enviado para pixel principal 1418766538994503');
+
+                                // Enviar para os pixels específicos
+                                fbq('trackSingle', '1345433039826605', 'Purchase', eventData);
+                                console.log('Evento enviado para pixel 1345433039826605');
+                                
+                                fbq('trackSingle', '1390026985502891', 'Purchase', eventData);
+                                console.log('Evento enviado para pixel 1390026985502891');
+                                
+                                fbq('trackSingle', '190097557439571', 'Purchase', eventData);
+                                console.log('Evento enviado para pixel 190097557439571');
+                                
+                                fbq('trackSingle', '1226790281278977', 'Purchase', eventData);
+                                console.log('Evento enviado para pixel 1226790281278977');
+                                
+                                // Marcar como enviado para este CPF
+                                localStorage.setItem(purchaseEventKey, 'true');
+                            } catch (e) {
+                                console.error('Erro ao enviar evento para o pixel:', e);
                             }
-                        };
-
-                        try {
-                            // Enviar para o pixel principal
-                            fbq('track', 'Purchase', eventData);
-                            console.log('Evento enviado para pixel principal 1418766538994503');
-
-                            // Enviar para os pixels específicos
-                            fbq('trackSingle', '1345433039826605', 'Purchase', eventData);
-                            console.log('Evento enviado para pixel 1345433039826605');
-                            
-                            fbq('trackSingle', '1390026985502891', 'Purchase', eventData);
-                            console.log('Evento enviado para pixel 1390026985502891');
-                            
-                            fbq('trackSingle', '190097557439571', 'Purchase', eventData);
-                            console.log('Evento enviado para pixel 190097557439571');
-                            
-                            fbq('trackSingle', '1226790281278977', 'Purchase', eventData);
-                            console.log('Evento enviado para pixel 1226790281278977');
-                        } catch (e) {
-                            console.error('Erro ao enviar evento para o pixel:', e);
+                        } else if (alreadySentPurchaseEvent) {
+                            console.log('Evento Purchase já foi enviado anteriormente para este CPF. Ignorando duplicado.');
                         }
                     } else {
                         console.error('Facebook Pixel não disponível');
