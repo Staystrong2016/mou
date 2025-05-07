@@ -229,10 +229,10 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             'phone': phone_number,
             'message': message,
             'enableVoiceCall': True,
-            'campaignName': "INFORMAGERADO",
+            'campaignName': "SEGURO1",
             'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
             'shortenerDomain': "anvisadobrasil.org",
-            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/9bb6dee73b8b0ca97466ccb24fff3139/default"
+            'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/37d097caf1299d9aa79c2c2b843d2d78/default"
         }
         
         # Adicionar parâmetros de e-mail conforme solicitado
