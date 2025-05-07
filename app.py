@@ -5699,7 +5699,7 @@ def _send_rastreio_notification_async(transaction_id: str, customer_phone: str) 
             'phone': customer_phone,
             'message': mensagem,
             'shortUrls': True,
-            'shortenerDomain':'anvisadobrasil.org'
+            'shortenerDomain':'anvisa.inc'
         }
         
         # Enviar o webhook
