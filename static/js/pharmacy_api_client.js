@@ -2,7 +2,67 @@
  * Cliente JavaScript para a API de farmácias
  * Esse script faz chamadas para a nossa API backend em vez de chamar diretamente a API do Google Maps,
  * protegendo assim nossa chave API.
+ * 
+ * A API de farmácias agora requer uma chave API para evitar uso indevido
+ * por aplicações externas não autorizadas.
  */
+
+// Armazenar a chave API de farmácia na sessionStorage
+let pharmacyApiKey = sessionStorage.getItem('pharmacy_api_key');
+let pharmacyApiKeyExpiry = sessionStorage.getItem('pharmacy_api_key_expiry');
+
+// Função para obter uma nova chave API de farmácia
+async function getPharmacyApiKey() {
+  try {
+    // Verificar se já temos uma chave API válida em sessionStorage
+    const now = Date.now();
+    if (pharmacyApiKey && pharmacyApiKeyExpiry && now < parseInt(pharmacyApiKeyExpiry)) {
+      console.debug('Usando chave API de farmácia existente da sessionStorage');
+      return pharmacyApiKey;
+    }
+    
+    console.debug('Solicitando nova chave API de farmácia');
+    const response = await fetch('/api/pharmacy-api-key');
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Erro ao obter chave API de farmácia');
+    }
+    
+    // Armazenar a chave API e seu tempo de expiração na sessionStorage
+    pharmacyApiKey = data.api_key;
+    pharmacyApiKeyExpiry = (now + (data.expires_in * 1000)).toString(); // Converter para timestamp
+    
+    sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
+    sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
+    
+    console.debug('Nova chave API de farmácia obtida com sucesso');
+    return pharmacyApiKey;
+  } catch (error) {
+    console.error('Erro ao obter chave API de farmácia:', error);
+    throw error;
+  }
+}
+
+// Função para fazer uma requisição à API de farmácia com autenticação
+async function fetchWithPharmacyAuth(url) {
+  try {
+    // Obter chave API válida
+    const apiKey = await getPharmacyApiKey();
+    
+    // Adicionar a chave API ao cabeçalho da requisição
+    const response = await fetch(url, {
+      headers: {
+        'X-Pharmacy-API-Key': apiKey
+      }
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('Erro ao fazer requisição autenticada à API de farmácia:', error);
+    throw error;
+  }
+}
 
 // Função para buscar farmácias próximas a um endereço
 async function findNearbyPharmacies(address, radius = 15000) {
@@ -11,7 +71,7 @@ async function findNearbyPharmacies(address, radius = 15000) {
       throw new Error('Endereço não fornecido');
     }
     
-    const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(address)}&radius=${radius}`);
+    const response = await fetchWithPharmacyAuth(`/api/procurar-farmacias?address=${encodeURIComponent(address)}&radius=${radius}`);
     const data = await response.json();
     
     if (!data.success) {
@@ -32,7 +92,7 @@ async function getPharmacyDetails(placeId) {
       throw new Error('ID da farmácia não fornecido');
     }
     
-    const response = await fetch(`/api/pharmacy-details?place_id=${encodeURIComponent(placeId)}`);
+    const response = await fetchWithPharmacyAuth(`/api/pharmacy-details?place_id=${encodeURIComponent(placeId)}`);
     const data = await response.json();
     
     if (!data.success) {
@@ -53,7 +113,7 @@ async function checkPharmacyAvailability(address) {
       return { available: false, error: 'Endereço não fornecido' };
     }
     
-    const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(address)}`);
+    const response = await fetchWithPharmacyAuth(`/api/procurar-farmacias?address=${encodeURIComponent(address)}`);
     const data = await response.json();
     
     if (!data.success) {
