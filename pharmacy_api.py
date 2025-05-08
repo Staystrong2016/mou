@@ -58,7 +58,12 @@ def init_pharmacy_routes(app):
         """
         # Verificar referer para garantir que a requisição vem do nosso próprio frontend
         referer = request.headers.get('Referer', '')
-        if not referer:
+        
+        # Em ambiente de desenvolvimento, permitir acesso mesmo sem referer
+        if os.environ.get('DEVELOPING') == 'true' and not referer:
+            current_app.logger.info("Permitindo acesso à API key em ambiente de desenvolvimento sem referer")
+            referer = "http://localhost:5000/"  # Fingir que é uma referência local válida
+        elif not referer:
             return jsonify({
                 'success': False,
                 'error': 'Referer não fornecido. Acesso negado.'
@@ -73,12 +78,26 @@ def init_pharmacy_routes(app):
             "replit.app",
             "replit.dev",
             "app.portalencceja.org",
-            "portalencceja.org"
+            "portalencceja.org",
+            "worf.replit.dev"  # Adicionar o domínio do Replit para desenvolvimento
         ]
         
         from urllib.parse import urlparse
         referer_domain = urlparse(referer).netloc
-        if not any(referer_domain.endswith(domain) for domain in allowed_domains):
+        
+        # Verificar se o domínio do referer está na lista de permitidos ou é um subdomínio
+        is_allowed = False
+        for domain in allowed_domains:
+            if referer_domain == domain or referer_domain.endswith('.' + domain):
+                is_allowed = True
+                break
+                
+        # Em ambiente de desenvolvimento, ser mais permissivo
+        if os.environ.get('DEVELOPING') == 'true' and not is_allowed:
+            current_app.logger.info(f"Permitindo acesso à API key em ambiente de desenvolvimento para domínio: {referer_domain}")
+            is_allowed = True
+            
+        if not is_allowed:
             current_app.logger.warning(f"Tentativa de acesso à API key com referer inválido: {referer}")
             return jsonify({
                 'success': False,
