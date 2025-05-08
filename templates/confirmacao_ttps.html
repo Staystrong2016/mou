@@ -3,6 +3,7 @@
 {% block title %}Confirmação de Envio | ANVISA{% endblock %}
 
 {% block additional_styles %}
+/* Estilos básicos */
 .main-title {
   font-size: 24px;
   font-weight: 700;
@@ -13,7 +14,7 @@
 .subtitle {
   font-size: 16px;
   color: #666666;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .sticky-header {
@@ -21,10 +22,6 @@
   top: 0;
   background-color: white;
   z-index: 50;
-  transition: box-shadow 0.3s ease;
-}
-
-.sticky-header.shadow {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -43,11 +40,11 @@
   margin-right: 4px;
 }
 
+/* Container principal */
 .confirmation-container {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  overflow: hidden;
   max-width: 700px;
   margin: 0 auto;
   text-align: center;
@@ -55,48 +52,49 @@
 
 .confirmation-header {
   background-color: #dcfce7;
-  padding: 20px;
+  padding: 16px;
   border-bottom: 1px solid #bbf7d0;
 }
 
 .confirmation-content {
-  padding: 40px 30px;
+  padding: 20px;
 }
 
 .confirmation-icon {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   background-color: #dcfce7;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
+  margin: 0 auto 16px;
 }
 
 .confirmation-icon i {
-  font-size: 40px;
+  font-size: 30px;
   color: #16a34a;
 }
 
 .confirmation-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: #16a34a;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .confirmation-subtitle {
   font-size: 16px;
   color: #4b5563;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
+/* Caixa de envio */
 .shipping-box {
   background-color: #f9fafb;
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 16px;
+  margin-bottom: 20px;
   border: 1px solid #e5e7eb;
   text-align: left;
 }
@@ -105,51 +103,49 @@
   font-size: 18px;
   font-weight: 600;
   color: #1351b4;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
 }
 
 .shipping-title i {
-  margin-right: 10px;
-  color: #1351b4;
+  margin-right: 8px;
 }
 
 .shipping-info {
   color: #4b5563;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .shipping-options {
-  margin-top: 16px;
+  margin-top: 12px;
   border-top: 1px solid #e5e7eb;
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .shipping-option {
   display: flex;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   align-items: center;
 }
 
 .shipping-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   background-color: #eff6ff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
-  flex-shrink: 0;
+  margin-right: 10px;
 }
 
 .shipping-icon i {
-  font-size: 20px;
+  font-size: 16px;
   color: #1351b4;
 }
 
@@ -159,13 +155,10 @@
 
 .shipping-name {
   font-weight: 600;
-  color: #1f2937;
   font-size: 14px;
-  margin-bottom: 4px;
 }
 
 .shipping-time {
-  color: #4b5563;
   font-size: 12px;
 }
 
@@ -173,120 +166,46 @@
   font-weight: 600;
   color: #16a34a;
   font-size: 14px;
-  margin-left: 12px;
 }
 
-.info-box {
-  background-color: #eff6ff;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 24px;
-  border: 1px solid #bfdbfe;
-  border-left: 4px solid #3b82f6;
-  text-align: left;
-}
-
-.info-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1351b4;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-}
-
-.info-title i {
-  margin-right: 8px;
-  color: #3b82f6;
-}
-
-.info-text {
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-.btn {
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background-color: #1351b4;
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #0c3d8a;
-}
-
-.btn i {
-  margin-right: 8px;
-}
-
-.vlibras-icon {
-  position: fixed;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-}
-
-.track-box {
+/* Caixa de informações */
+.info-box, .track-box {
   background-color: #f0f9ff;
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 16px;
+  margin-bottom: 20px;
   border: 1px solid #bae6fd;
   border-left: 4px solid #0ea5e9;
   text-align: left;
 }
 
-.track-title {
+.info-title, .track-title {
   font-size: 16px;
   font-weight: 600;
-  color: #0369a1;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
 }
 
-.track-title i {
+.info-title i, .track-title i {
   margin-right: 8px;
-  color: #0ea5e9;
 }
 
-.track-code {
-  font-family: monospace;
-  font-size: 16px;
-  font-weight: 600;
-  color: #0c4a6e;
-  background-color: #e0f2fe;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin: 12px 0;
-  display: inline-block;
+.info-text {
+  font-size: 14px;
+  line-height: 1.5;
 }
 
+/* Status de rastreamento */
 .track-status {
-  display: flex;
   margin-top: 16px;
 }
 
 .status-bar {
   display: flex;
-  flex: 1;
   justify-content: space-between;
   position: relative;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .status-bar::before {
@@ -295,7 +214,7 @@
   top: 8px;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   background-color: #e5e7eb;
   z-index: 1;
 }
@@ -306,15 +225,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100px;
 }
 
 .status-point {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background-color: #e5e7eb;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.status-label {
+  font-size: 11px;
+  text-align: center;
+  max-width: 70px;
 }
 
 .status-step.active .status-point,
@@ -322,22 +246,38 @@
   background-color: #0ea5e9;
 }
 
-.status-step.completed ~ .status-step.completed::before,
-.status-step.completed ~ .status-step.active::before,
-.status-step.active ~ .status-step.active::before {
-  background-color: #0ea5e9;
-}
-
-.status-label {
-  font-size: 12px;
-  color: #4b5563;
-  text-align: center;
-}
-
 .status-step.active .status-label,
 .status-step.completed .status-label {
-  color: #0c4a6e;
   font-weight: 600;
+}
+
+/* Botões */
+.btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: #1351b4;
+  color: white;
+  border: none;
+}
+
+.btn i {
+  margin-right: 6px;
+}
+
+.vlibras-icon {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 {% endblock %}
 
