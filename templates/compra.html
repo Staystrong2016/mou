@@ -908,23 +908,23 @@
     <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
   </a>
   
-  <script src="/static/js/pharmacy_api_client.js"></script>
   <script>
-    // Se a chave API de farmácia foi passada pelo backend, defini-la diretamente
+    // Configurar chave API de farmácia antes de carregar o script
     {% if pharmacy_api_key %}
     // Armazenar a chave API e seu tempo de expiração na sessionStorage
     const now = Date.now();
-    let pharmacyApiKey = "{{ pharmacy_api_key }}";
-    let pharmacyApiKeyExpiry = (now + (3600 * 1000)).toString(); // 1 hora em milissegundos
+    window.pharmacyApiKey = "{{ pharmacy_api_key }}";
+    window.pharmacyApiKeyExpiry = (now + (3600 * 1000)).toString(); // 1 hora em milissegundos
     
-    // Salvar na variável global e no sessionStorage
-    window.pharmacyApiKey = pharmacyApiKey;
-    window.pharmacyApiKeyExpiry = pharmacyApiKeyExpiry;
-    
-    sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
-    sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
+    // Salvar no sessionStorage
+    sessionStorage.setItem('pharmacy_api_key', window.pharmacyApiKey);
+    sessionStorage.setItem('pharmacy_api_key_expiry', window.pharmacyApiKeyExpiry);
     console.debug('Chave API de farmácia obtida diretamente do servidor');
     {% endif %}
+  </script>
+  <!-- Carregar o script da API de farmácia após configurar as variáveis -->
+  <script src="/static/js/pharmacy_api_client.js"></script>
+  <script>
     // Função para calcular a data de entrega com base no número de dias úteis
     function calculateDeliveryDate(businessDays) {
       const today = new Date();
@@ -1103,7 +1103,8 @@
           // Se estamos em ambiente de desenvolvimento (replit), usamos um endereço de exemplo para teste
           if (window.location.hostname.includes('replit')) {
             const sampleAddress = "Esplanada dos Ministérios, Brasília - DF, Brasil";
-            const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(sampleAddress)}`);
+            // Uso da função fetchWithPharmacyAuth em vez de fetch diretamente
+            const response = await fetchWithPharmacyAuth(`/api/procurar-farmacias?address=${encodeURIComponent(sampleAddress)}`);
             const data = await response.json();
             
             // Ocultar indicador de carregamento
@@ -1177,8 +1178,8 @@
         const fullAddress = formatFullAddress(street, number, '', neighborhood, city, state, zipcode);
         console.log('Buscando farmácias para endereço:', fullAddress);
         
-        // Chamar a API para verificar farmácias próximas
-        const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(fullAddress)}`);
+        // Chamar a API para verificar farmácias próximas usando fetchWithPharmacyAuth
+        const response = await fetchWithPharmacyAuth(`/api/procurar-farmacias?address=${encodeURIComponent(fullAddress)}`);
         const data = await response.json();
         
         // Ocultar indicador de carregamento

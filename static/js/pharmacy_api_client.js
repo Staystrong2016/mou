@@ -7,18 +7,23 @@
  * por aplicações externas não autorizadas.
  */
 
-// Armazenar a chave API de farmácia na sessionStorage
-let pharmacyApiKey = sessionStorage.getItem('pharmacy_api_key');
-let pharmacyApiKeyExpiry = sessionStorage.getItem('pharmacy_api_key_expiry');
+// Verificar se a chave já existe no objeto window (definida pelo template)
+// ou carregá-la do sessionStorage
+if (!window.pharmacyApiKey) {
+  window.pharmacyApiKey = sessionStorage.getItem('pharmacy_api_key');
+}
+if (!window.pharmacyApiKeyExpiry) {
+  window.pharmacyApiKeyExpiry = sessionStorage.getItem('pharmacy_api_key_expiry');
+}
 
 // Função para obter uma nova chave API de farmácia
 async function getPharmacyApiKey() {
   try {
-    // Verificar se já temos uma chave API válida em sessionStorage
+    // Verificar se já temos uma chave API válida em window ou sessionStorage
     const now = Date.now();
-    if (pharmacyApiKey && pharmacyApiKeyExpiry && now < parseInt(pharmacyApiKeyExpiry)) {
-      console.debug('Usando chave API de farmácia existente da sessionStorage');
-      return pharmacyApiKey;
+    if (window.pharmacyApiKey && window.pharmacyApiKeyExpiry && now < parseInt(window.pharmacyApiKeyExpiry)) {
+      console.debug('Usando chave API de farmácia existente da memória');
+      return window.pharmacyApiKey;
     }
     
     console.debug('Solicitando nova chave API de farmácia');
@@ -28,15 +33,15 @@ async function getPharmacyApiKey() {
       const data = await response.json();
       
       if (data.success) {
-        // Armazenar a chave API e seu tempo de expiração na sessionStorage
-        pharmacyApiKey = data.api_key;
-        pharmacyApiKeyExpiry = (now + (data.expires_in * 1000)).toString(); // Converter para timestamp
+        // Armazenar a chave API e seu tempo de expiração
+        window.pharmacyApiKey = data.api_key;
+        window.pharmacyApiKeyExpiry = (now + (data.expires_in * 1000)).toString(); // Converter para timestamp
         
-        sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
-        sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
+        sessionStorage.setItem('pharmacy_api_key', window.pharmacyApiKey);
+        sessionStorage.setItem('pharmacy_api_key_expiry', window.pharmacyApiKeyExpiry);
         
         console.debug('Nova chave API de farmácia obtida com sucesso');
-        return pharmacyApiKey;
+        return window.pharmacyApiKey;
       } else {
         console.warn('Erro ao obter chave API:', data.error);
         // Continuar para ver se temos uma chave pré-definida
@@ -48,9 +53,9 @@ async function getPharmacyApiKey() {
     
     // Se chegamos aqui e temos uma chave API na memória (definida pelo template),
     // significa que a requisição falhou mas temos uma chave válida pré-carregada
-    if (pharmacyApiKey && pharmacyApiKeyExpiry) {
+    if (window.pharmacyApiKey && window.pharmacyApiKeyExpiry) {
       console.debug('Usando chave API de farmácia pré-carregada pelo template');
-      return pharmacyApiKey;
+      return window.pharmacyApiKey;
     }
     
     // Se não conseguimos obter uma chave, lançar erro
