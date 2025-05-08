@@ -33,7 +33,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 def init_pharmacy_routes(app):
     """Inicializa as rotas da API de farmácias"""
     
-    @app.route('/api/find-pharmacies', methods=['GET'])
+    @app.route('/api/procurar-farmacias', methods=['GET'])
     def find_pharmacies():
         """Encontra farmácias próximas a um endereço"""
         address = request.args.get('address')

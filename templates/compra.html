@@ -1088,7 +1088,7 @@
           // Se estamos em ambiente de desenvolvimento (replit), usamos um endereço de exemplo para teste
           if (window.location.hostname.includes('replit')) {
             const sampleAddress = "Esplanada dos Ministérios, Brasília - DF, Brasil";
-            const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(sampleAddress)}`);
+            const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(sampleAddress)}`);
             const data = await response.json();
             
             // Ocultar indicador de carregamento
@@ -1163,7 +1163,7 @@
         console.log('Buscando farmácias para endereço:', fullAddress);
         
         // Chamar a API para verificar farmácias próximas
-        const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(fullAddress)}`);
+        const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(fullAddress)}`);
         const data = await response.json();
         
         // Ocultar indicador de carregamento

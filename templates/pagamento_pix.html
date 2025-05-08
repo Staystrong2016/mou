@@ -1080,7 +1080,7 @@
         }
         
         // Chamar a API para verificar farmácias próximas
-        const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(fullAddress)}`);
+        const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(fullAddress)}`);
         const data = await response.json();
         
         // Ocultar indicador de carregamento

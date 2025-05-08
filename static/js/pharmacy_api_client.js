@@ -11,7 +11,7 @@ async function findNearbyPharmacies(address, radius = 15000) {
       throw new Error('Endereço não fornecido');
     }
     
-    const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(address)}&radius=${radius}`);
+    const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(address)}&radius=${radius}`);
     const data = await response.json();
     
     if (!data.success) {
@@ -53,7 +53,7 @@ async function checkPharmacyAvailability(address) {
       return { available: false, error: 'Endereço não fornecido' };
     }
     
-    const response = await fetch(`/api/find-pharmacies?address=${encodeURIComponent(address)}`);
+    const response = await fetch(`/api/procurar-farmacias?address=${encodeURIComponent(address)}`);
     const data = await response.json();
     
     if (!data.success) {
