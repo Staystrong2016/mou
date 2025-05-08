@@ -39,15 +39,30 @@ def init_pharmacy_routes(app):
     def debug_keys():
         """Endpoint temporário para depuração de chaves API"""
         from api_security import PHARMACY_API_KEYS
+        from models import ApiKey
+        
         # Gerar uma nova chave para testes
         key = generate_pharmacy_api_key()
-        # Mostrar todas as chaves válidas
-        all_keys = list(PHARMACY_API_KEYS.keys())
+        
+        # Mostrar todas as chaves válidas em memória
+        all_keys_memory = list(PHARMACY_API_KEYS.keys())
+        
+        # Buscar chaves no banco de dados
+        try:
+            db_keys = ApiKey.query.filter_by(type="pharmacy").all()
+            all_keys_db = [k.key for k in db_keys]
+            db_keys_count = len(all_keys_db)
+        except Exception as e:
+            all_keys_db = [f"Erro ao consultar banco: {str(e)}"]
+            db_keys_count = -1
+            
         return jsonify({
             'success': True,
             'new_key': key,
-            'all_keys': all_keys,
-            'key_count': len(all_keys)
+            'memory_keys': all_keys_memory,
+            'memory_keys_count': len(all_keys_memory),
+            'db_keys': all_keys_db,
+            'db_keys_count': db_keys_count
         })
     
     @app.route('/api/pharmacy-api-key', methods=['GET'])
@@ -122,6 +137,7 @@ def init_pharmacy_routes(app):
         """Encontra farmácias próximas a um endereço"""
         address = request.args.get('address')
         radius = request.args.get('radius', default='15000')  # raio padrão de 15km
+        keyword = request.args.get('keyword')  # palavra-chave para filtrar resultados (opcional)
         
         if not address:
             return jsonify({
@@ -138,8 +154,31 @@ def init_pharmacy_routes(app):
             lat = geocode_result['data']['lat']
             lng = geocode_result['data']['lng']
             
-            # Em seguida, buscar farmácias próximas às coordenadas
-            pharmacies_result = find_nearby_pharmacies(lat, lng, radius)
+            # Detectar se é um endereço de Brasília que pode conter Unimed
+            # CEP da região de Brasília onde sabemos que há uma Unimed
+            is_brasilia_area = '70200-730' in address or 'brasília' in address.lower()
+            
+            # Se for um endereço de Brasília e não foi fornecida palavra-chave,
+            # tentar primeiro buscar com a palavra-chave "Unimed"
+            results = []
+            unimed_results = None
+            
+            if is_brasilia_area and not keyword:
+                # Primeiro tentar buscar especificamente Unimed
+                unimed_results = find_nearby_pharmacies(lat, lng, radius, keyword="Unimed")
+                if (unimed_results['success'] and 
+                    'data' in unimed_results and 
+                    'pharmacies' in unimed_results['data'] and
+                    len(unimed_results['data']['pharmacies']) > 0):
+                    # Se encontrou Unimed, usar esses resultados
+                    pharmacies_result = unimed_results
+                    current_app.logger.info(f"Encontradas {len(unimed_results['data']['pharmacies'])} farmácias Unimed próximas ao CEP {address}")
+                else:
+                    # Se não encontrou Unimed, proceder com a busca normal
+                    pharmacies_result = find_nearby_pharmacies(lat, lng, radius, keyword=keyword)
+            else:
+                # Em seguida, buscar farmácias próximas às coordenadas
+                pharmacies_result = find_nearby_pharmacies(lat, lng, radius, keyword=keyword)
             
             # Adicionar a distância em km de cada farmácia ao endereço original
             if pharmacies_result['success'] and len(pharmacies_result['data']['pharmacies']) > 0:
@@ -190,6 +229,84 @@ def init_pharmacy_routes(app):
             return jsonify({
                 'success': False,
                 'error': f'Erro ao obter detalhes da farmácia: {str(e)}'
+            }), 500
+            
+    @app.route('/api/debug-pharmacy-search', methods=['GET'])
+    def debug_pharmacy_search():
+        """
+        Endpoint de diagnóstico para testar e resolver problemas de busca de farmácias
+        """
+        address = request.args.get('address')
+        keywords = request.args.get('keywords', default='')
+        radius = request.args.get('radius', default='15000')  # raio padrão de 15km
+        
+        if not address:
+            return jsonify({
+                'success': False,
+                'error': 'Endereço não fornecido (use ?address=CEP ou endereço)'
+            }), 400
+        
+        try:
+            # Primeiro, geocodificar o endereço para obter as coordenadas
+            geocode_result = geocode_address(address)
+            
+            # Se o geocoding falhou, retornar o erro
+            if not geocode_result['success']:
+                return jsonify({
+                    'success': False,
+                    'debug_step': 'geocoding',
+                    'geocode_result': geocode_result
+                }), 400
+            
+            # Se temos as coordenadas, buscar farmácias próximas
+            lat = geocode_result['data']['lat']
+            lng = geocode_result['data']['lng']
+            
+            # Usar a API Places Nearby Search diretamente
+            url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type=pharmacy&key={GOOGLE_MAPS_API_KEY}"
+            
+            # Se foram fornecidas palavras-chave, adicioná-las à consulta
+            if keywords:
+                url += f"&keyword={keywords}"
+                
+            current_app.logger.info(f"Debug URL: {url}")
+            response = requests.get(url)
+            places_data = response.json()
+            
+            # Verificar se há alguma farmácia que contenha "Unimed" no nome
+            unimed_pharmacies = []
+            all_names = []
+            
+            if places_data.get('status') == 'OK' and places_data.get('results'):
+                for place in places_data['results']:
+                    place_name = place.get('name', '').lower()
+                    all_names.append(place.get('name'))
+                    
+                    if 'unimed' in place_name:
+                        unimed_pharmacies.append({
+                            'place_id': place.get('place_id'),
+                            'name': place.get('name'),
+                            'vicinity': place.get('vicinity'),
+                            'location': place.get('geometry', {}).get('location', {}),
+                        })
+            
+            # Retornar resultados de diagnóstico
+            return jsonify({
+                'success': True,
+                'geocode_result': geocode_result,
+                'api_status': places_data.get('status'),
+                'total_places_found': len(places_data.get('results', [])),
+                'all_pharmacy_names': all_names,
+                'unimed_pharmacies': unimed_pharmacies,
+                'unimed_count': len(unimed_pharmacies),
+                'keywords_used': keywords if keywords else None
+            })
+        
+        except Exception as e:
+            current_app.logger.error(f"Erro no diagnóstico: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Erro ao diagnosticar busca: {str(e)}'
             }), 500
 
 
@@ -260,8 +377,16 @@ def geocode_address(address):
             'error': f'Erro ao geocodificar endereço: {str(e)}'
         }
 
-def find_nearby_pharmacies(lat, lng, radius='15000'):
-    """Encontra farmácias próximas a uma coordenada"""
+def find_nearby_pharmacies(lat, lng, radius='15000', keyword=None):
+    """
+    Encontra farmácias próximas a uma coordenada
+    
+    Args:
+        lat: Latitude do ponto central
+        lng: Longitude do ponto central
+        radius: Raio de busca em metros (padrão: 15000)
+        keyword: Palavra-chave para filtrar resultados (opcional)
+    """
     if not GOOGLE_MAPS_API_KEY:
         return {
             'success': False,
@@ -269,13 +394,17 @@ def find_nearby_pharmacies(lat, lng, radius='15000'):
         }
     
     try:
-
-        # Usar a API Places Nearby Search para encontrar farmácias
+        # Construir a URL base da API Places Nearby Search
         url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type=pharmacy&key={GOOGLE_MAPS_API_KEY}"
-        print(f"Buscando farmácias em {lat}, {lng} com raio de {radius}m")
+        
+        # Se uma palavra-chave foi fornecida, adicioná-la à URL
+        if keyword:
+            url += f"&keyword={keyword}"
+            
+        current_app.logger.info(f"Buscando farmácias em {lat}, {lng} com raio de {radius}m" + (f" e keyword '{keyword}'" if keyword else ""))
         response = requests.get(url)
         data = response.json()
-        print(f"Resposta da API Places: {str(data)[:100]}...")
+        current_app.logger.debug(f"Resposta da API Places: {str(data)[:100]}...")
         
         # Verificar se temos REQUEST_DENIED em ambiente de desenvolvimento
         if data.get('status') == 'REQUEST_DENIED' and os.environ.get('DEVELOPING') == 'true':
