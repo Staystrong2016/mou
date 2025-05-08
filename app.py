@@ -4518,6 +4518,49 @@ def verificar_pagamento_ttps():
             'message': 'Erro interno do servidor'
         }), 500
 
+@app.route('/confirmacao-ttps')
+def confirmacao_ttps():
+    """
+    Página de confirmação de envio do medicamento após o pagamento da taxa TTPS
+    Informa ao usuário o prazo estimado de entrega (3-7 dias úteis)
+    """
+    try:
+        app.logger.info("[PROD] Acessando página de confirmação de envio do medicamento TTPS")
+        
+        # Recuperar dados da sessão
+        customer_name = session.get('nome', '')
+        customer_cpf = session.get('cpf', '')
+        
+        # Capturar e preservar parâmetros UTM
+        utm_params = {}
+        utm_keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid', 'ttclid']
+        
+        # Verificar UTMs na URL atual
+        for key in utm_keys:
+            if key in request.args:
+                utm_params[key] = request.args.get(key)
+                # Atualizar também na sessão
+                session[key] = request.args.get(key)
+        
+        # Se não houver UTMs na URL, verificar na sessão
+        if not utm_params and 'utm_params' in session:
+            utm_params = session.get('utm_params', {})
+        
+        # Log dos parâmetros UTM encontrados
+        if utm_params:
+            app.logger.info(f"[UTM] Parâmetros UTM preservados na página de confirmação de envio: {utm_params}")
+            # Atualizar a sessão com os UTMs
+            session['utm_params'] = utm_params
+        else:
+            app.logger.warning("[UTM] Nenhum parâmetro UTM encontrado para página de confirmação de envio")
+        
+        return render_template('confirmacao_ttps.html', 
+                              customer_name=customer_name, 
+                              customer_cpf=customer_cpf)
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página de confirmação de envio: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
 @app.route('/ttps_sucesso')
 def ttps_sucesso():
     """
