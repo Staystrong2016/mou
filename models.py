@@ -1,6 +1,40 @@
 from datetime import datetime
 from app import db
 
+class ApiKey(db.Model):
+    """
+    Modelo para armazenar chaves API temporárias para serviços diversos.
+    Usado principalmente para autenticação em APIs internas e externas.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    type = db.Column(db.String(20), nullable=False)  # 'pharmacy', 'payment', etc.
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    
+    # Opcional: informações adicionais sobre a chave
+    user_id = db.Column(db.String(64), nullable=True)  # ID do usuário ou sessão
+    user_ip = db.Column(db.String(45), nullable=True)  # IP do usuário
+    
+    def __repr__(self):
+        return f'<ApiKey {self.key[:8]}... ({self.type})>'
+    
+    def is_expired(self):
+        """Verifica se a chave expirou"""
+        return datetime.utcnow() > self.expires_at
+    
+    def to_dict(self):
+        """Converte o modelo em um dicionário para API/templates"""
+        return {
+            'id': self.id,
+            'key': self.key,
+            'type': self.type,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'is_expired': self.is_expired(),
+            'expires_in': int((self.expires_at - datetime.utcnow()).total_seconds()) if not self.is_expired() else 0
+        }
+
 class PixPayment(db.Model):
     """
     Modelo para armazenar informações de pagamentos PIX
