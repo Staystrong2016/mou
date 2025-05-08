@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 import re
 
 from flask import request, g, current_app, jsonify, abort
+from app import db
+from models import ApiKey
 
 # Lista de tokens CSRF válidos com tempo de expiração
 # Formato: {token: expiration_timestamp}
@@ -310,38 +312,127 @@ def generate_pharmacy_api_key(expiry_seconds: Optional[int] = None) -> str:
     # Se o tempo de expiração não for fornecido, usar o valor padrão
     if expiry_seconds is None:
         expiry_seconds = PHARMACY_API_KEY_EXPIRY
-        
-    expiry = time.time() + expiry_seconds
-    PHARMACY_API_KEYS[api_key] = expiry
     
-    # Registrar a criação da chave
+    # Calcular a data de expiração
+    expires_at = datetime.utcnow() + timedelta(seconds=expiry_seconds)
+    
+    # Criar o registro da chave API no banco de dados
     try:
-        current_app.logger.info(f"Chave API de farmácia gerada com expiração de {expiry_seconds/3600:.1f} horas")
-    except:
-        # Se não estiver em um contexto de aplicação Flask, ignorar
-        pass
+        # Capturar IP do cliente e fingerprint se possível (para rastreabilidade)
+        user_ip = None
+        user_id = None
         
+        try:
+            if request:
+                user_ip = request.remote_addr
+                user_id = get_client_fingerprint()
+        except:
+            # Se não estiver em um contexto de requisição, ignorar
+            pass
+            
+        # Criar o objeto ApiKey e salvá-lo no banco de dados
+        new_api_key = ApiKey(
+            key=api_key,
+            type="pharmacy",
+            expires_at=expires_at,
+            user_ip=user_ip,
+            user_id=user_id
+        )
+        
+        db.session.add(new_api_key)
+        db.session.commit()
+        
+        # Registrar a criação da chave
+        try:
+            current_app.logger.info(f"Chave API de farmácia gerada com expiração de {expiry_seconds/3600:.1f} horas")
+        except:
+            # Se não estiver em um contexto de aplicação Flask, ignorar
+            pass
+            
+    except Exception as e:
+        # Em caso de erro, tentar fazer fallback para o método antigo usando memória
+        # Isso permite que o sistema continue funcionando mesmo que o banco esteja indisponível
+        expiry = time.time() + expiry_seconds
+        PHARMACY_API_KEYS[api_key] = expiry
+        
+        try:
+            current_app.logger.error(f"Erro ao salvar chave API no banco de dados, usando fallback em memória: {str(e)}")
+        except:
+            pass
+    
     return api_key
 
 def verify_pharmacy_api_key(api_key: Optional[str]) -> bool:
     """
     Verifica se uma chave API de farmácia é válida
+    
+    Verificação feita primariamente no banco de dados, com fallback para memória
     """
     if not api_key or not isinstance(api_key, str):
         return False
+    
+    # Buscar a chave no banco de dados
+    try:
+        # Buscar a chave com filtro por tipo 'pharmacy'
+        api_key_obj = ApiKey.query.filter_by(key=api_key, type="pharmacy").first()
         
-    if api_key in PHARMACY_API_KEYS:
-        if time.time() < PHARMACY_API_KEYS[api_key]:
+        # Se a chave existe e não expirou
+        if api_key_obj and not api_key_obj.is_expired():
             return True
-        else:
-            # Chave expirada
-            PHARMACY_API_KEYS.pop(api_key, None)
+            
+        # Se a chave existe mas expirou, removê-la
+        elif api_key_obj:
+            db.session.delete(api_key_obj)
+            db.session.commit()
+            return False
+    except Exception as e:
+        # Em caso de erro no banco de dados, tentar o fallback para memória
+        try:
+            current_app.logger.error(f"Erro ao verificar chave API no banco de dados, usando fallback em memória: {str(e)}")
+        except:
+            pass
+            
+        # Verificar no dicionário em memória como fallback
+        if api_key in PHARMACY_API_KEYS:
+            if time.time() < PHARMACY_API_KEYS[api_key]:
+                return True
+            else:
+                # Chave expirada
+                PHARMACY_API_KEYS.pop(api_key, None)
+                
     return False
 
 def clean_expired_pharmacy_api_keys() -> None:
     """
-    Remove chaves API de farmácia expiradas
+    Remove chaves API de farmácia expiradas do banco de dados e da memória
     """
+    # Limpar chaves expiradas do banco de dados
+    try:
+        # Encontrar todas as chaves expiradas
+        expired_keys = ApiKey.query.filter(
+            ApiKey.type == "pharmacy",
+            ApiKey.expires_at < datetime.utcnow()
+        ).all()
+        
+        # Se houver chaves expiradas, removê-las
+        if expired_keys:
+            for key in expired_keys:
+                db.session.delete(key)
+            
+            db.session.commit()
+            
+            try:
+                current_app.logger.info(f"Removidas {len(expired_keys)} chaves API de farmácia expiradas do banco de dados")
+            except:
+                pass
+    except Exception as e:
+        # Se houver erro no banco de dados, registrar
+        try:
+            current_app.logger.error(f"Erro ao limpar chaves API expiradas do banco de dados: {str(e)}")
+        except:
+            pass
+    
+    # Limpar chaves expiradas da memória (fallback)
     now = time.time()
     expired_keys = [key for key, expiry in PHARMACY_API_KEYS.items() if expiry < now]
     for key in expired_keys:
