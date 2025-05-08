@@ -231,6 +231,27 @@ logging.basicConfig(level=logging.DEBUG)
 # Configuração para escolher qual API SMS usar: 'SMSDEV' ou 'OWEN'
 SMS_API_CHOICE = os.environ.get('SMS_API_CHOICE', 'OWEN')
 
+@app.route('/g1')
+@app.route('/g1/')
+@confirm_genuity()  # Aplicando o decorador ConfirmGenuity para verificar adsetid
+def g1():
+    """Página principal do site da ANVISA sobre o produto Monjauros"""
+    try:
+        app.logger.info("[PROD] Acessando página da ANVISA")
+
+        # Enviando evento PageView para o Facebook Conversion API
+        try:
+            from facebook_conversion_api import track_page_view
+            track_page_view(url=request.url)
+            app.logger.info("[FACEBOOK] Evento PageView enviado para /g1")
+        except Exception as fb_error:
+            app.logger.error(f"[FACEBOOK] Erro ao enviar evento PageView: {str(fb_error)}")
+
+        return render_template('g1.html')
+    except Exception as e:
+        app.logger.error(f"[PROD] Erro ao acessar página da ANVISA: {str(e)}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
+
 
 @app.route('/anvisa')
 @app.route('/anvisa/')
