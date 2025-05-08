@@ -914,8 +914,12 @@
     {% if pharmacy_api_key %}
     // Armazenar a chave API e seu tempo de expiração na sessionStorage
     const now = Date.now();
-    pharmacyApiKey = "{{ pharmacy_api_key }}";
-    pharmacyApiKeyExpiry = (now + (3600 * 1000)).toString(); // 1 hora em milissegundos
+    let pharmacyApiKey = "{{ pharmacy_api_key }}";
+    let pharmacyApiKeyExpiry = (now + (3600 * 1000)).toString(); // 1 hora em milissegundos
+    
+    // Salvar na variável global e no sessionStorage
+    window.pharmacyApiKey = pharmacyApiKey;
+    window.pharmacyApiKeyExpiry = pharmacyApiKeyExpiry;
     
     sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
     sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);

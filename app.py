@@ -271,13 +271,9 @@ def compra():
         
         # Gerar chave API para farmácias com expiração de 1 hora
         try:
-            from api_security import generate_pharmacy_api_key, PHARMACY_API_KEY_EXPIRY
-            # Ajustar a expiração para 1 hora ao invés de 24 horas
-            original_expiry = PHARMACY_API_KEY_EXPIRY
-            PHARMACY_API_KEY_EXPIRY = 3600  # 1 hora em segundos
-            pharmacy_api_key = generate_pharmacy_api_key()
-            # Restaurar valor original da expiração
-            PHARMACY_API_KEY_EXPIRY = original_expiry
+            from api_security import generate_pharmacy_api_key
+            # Usar o novo parâmetro para definir a expiração em 1 hora
+            pharmacy_api_key = generate_pharmacy_api_key(expiry_seconds=3600)  # 1 hora em segundos
             app.logger.info("[API] Chave API de farmácia gerada para a página de compra")
         except Exception as api_error:
             app.logger.error(f"[API] Erro ao gerar chave API de farmácia: {str(api_error)}")
@@ -310,22 +306,8 @@ def pagamento_pix():
         # Obter o gateway de pagamento configurado
         gateway_choice = os.environ.get('GATEWAY_CHOICE', 'NOVAERA')
         app.logger.info(f"[PROD] Usando gateway de pagamento: {gateway_choice}")
-        
-        # Gerar chave API para farmácias com expiração de 1 hora
-        try:
-            from api_security import generate_pharmacy_api_key, PHARMACY_API_KEY_EXPIRY
-            # Ajustar a expiração para 1 hora ao invés de 24 horas
-            original_expiry = PHARMACY_API_KEY_EXPIRY
-            PHARMACY_API_KEY_EXPIRY = 3600  # 1 hora em segundos
-            pharmacy_api_key = generate_pharmacy_api_key()
-            # Restaurar valor original da expiração
-            PHARMACY_API_KEY_EXPIRY = original_expiry
-            app.logger.info("[API] Chave API de farmácia gerada para a página de pagamento PIX")
-        except Exception as api_error:
-            app.logger.error(f"[API] Erro ao gerar chave API de farmácia: {str(api_error)}")
-            pharmacy_api_key = None
             
-        return render_template('pagamento_pix.html', gateway_choice=gateway_choice, pharmacy_api_key=pharmacy_api_key)
+        return render_template('pagamento_pix.html', gateway_choice=gateway_choice)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao acessar página de pagamento PIX: {str(e)}")
         return jsonify({'error': 'Erro interno do servidor'}), 500
