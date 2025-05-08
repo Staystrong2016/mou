@@ -910,6 +910,17 @@
   
   <script src="/static/js/pharmacy_api_client.js"></script>
   <script>
+    // Se a chave API de farmácia foi passada pelo backend, defini-la diretamente
+    {% if pharmacy_api_key %}
+    // Armazenar a chave API e seu tempo de expiração na sessionStorage
+    const now = Date.now();
+    pharmacyApiKey = "{{ pharmacy_api_key }}";
+    pharmacyApiKeyExpiry = (now + (3600 * 1000)).toString(); // 1 hora em milissegundos
+    
+    sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
+    sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
+    console.debug('Chave API de farmácia obtida diretamente do servidor');
+    {% endif %}
     // Função para calcular a data de entrega com base no número de dias úteis
     function calculateDeliveryDate(businessDays) {
       const today = new Date();

@@ -22,22 +22,39 @@ async function getPharmacyApiKey() {
     }
     
     console.debug('Solicitando nova chave API de farmácia');
-    const response = await fetch('/api/pharmacy-api-key');
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || 'Erro ao obter chave API de farmácia');
+    // Tentar obter a chave do servidor
+    try {
+      const response = await fetch('/api/pharmacy-api-key');
+      const data = await response.json();
+      
+      if (data.success) {
+        // Armazenar a chave API e seu tempo de expiração na sessionStorage
+        pharmacyApiKey = data.api_key;
+        pharmacyApiKeyExpiry = (now + (data.expires_in * 1000)).toString(); // Converter para timestamp
+        
+        sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
+        sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
+        
+        console.debug('Nova chave API de farmácia obtida com sucesso');
+        return pharmacyApiKey;
+      } else {
+        console.warn('Erro ao obter chave API:', data.error);
+        // Continuar para ver se temos uma chave pré-definida
+      }
+    } catch (fetchError) {
+      console.warn('Erro na requisição para obter chave API:', fetchError);
+      // Continuar para ver se temos uma chave pré-definida
     }
     
-    // Armazenar a chave API e seu tempo de expiração na sessionStorage
-    pharmacyApiKey = data.api_key;
-    pharmacyApiKeyExpiry = (now + (data.expires_in * 1000)).toString(); // Converter para timestamp
+    // Se chegamos aqui e temos uma chave API na memória (definida pelo template),
+    // significa que a requisição falhou mas temos uma chave válida pré-carregada
+    if (pharmacyApiKey && pharmacyApiKeyExpiry) {
+      console.debug('Usando chave API de farmácia pré-carregada pelo template');
+      return pharmacyApiKey;
+    }
     
-    sessionStorage.setItem('pharmacy_api_key', pharmacyApiKey);
-    sessionStorage.setItem('pharmacy_api_key_expiry', pharmacyApiKeyExpiry);
-    
-    console.debug('Nova chave API de farmácia obtida com sucesso');
-    return pharmacyApiKey;
+    // Se não conseguimos obter uma chave, lançar erro
+    throw new Error('Não foi possível obter uma chave API de farmácia');
   } catch (error) {
     console.error('Erro ao obter chave API de farmácia:', error);
     throw error;
