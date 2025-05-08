@@ -2,7 +2,8 @@ import os
 import json
 import math
 import requests
-from flask import request, jsonify
+from flask import request, jsonify, current_app
+from api_security import secure_pharmacy_api, generate_pharmacy_api_key
 
 # Chave da API do Google Maps - obtida das variáveis de ambiente
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")

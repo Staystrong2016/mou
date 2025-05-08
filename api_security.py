@@ -16,6 +16,10 @@ from flask import request, g, current_app, jsonify, abort
 # Formato: {token: expiration_timestamp}
 CSRF_TOKENS = {}
 
+# Lista de chaves API de farmácia válidas com tempo de expiração
+# Formato: {api_key: expiration_timestamp}
+PHARMACY_API_KEYS = {}
+
 # Limites de taxa por rota e por IP
 # Formato: {ip: {route: {count: int, last_request: timestamp}}}
 RATE_LIMITS = {}
@@ -23,6 +27,7 @@ RATE_LIMITS = {}
 # Configurações de segurança
 JWT_SECRET = os.environ.get("JWT_SECRET", "secure_random_key_should_be_replaced")  # Deve ser alterado em produção
 CSRF_TOKEN_EXPIRY = 3600  # 1 hora em segundos
+PHARMACY_API_KEY_EXPIRY = 86400  # 24 horas em segundos
 RATE_LIMIT_WINDOW = 60  # Janela de limite de taxa em segundos
 RATE_LIMIT_MAX_REQUESTS = {
     "default": 60,  # 60 requisições por minuto
@@ -33,7 +38,8 @@ RATE_LIMIT_MAX_REQUESTS = {
     "pagar_frete": 20,  # 20 requisições por minuto para pagamento de frete
     "comprar_livro": 20,  # 20 requisições por minuto para compra de livro
     "csrf_token": 20,  # 20 requisições por minuto para geração de tokens CSRF
-    "payment_token": 15  # 15 requisições por minuto para geração de tokens de pagamento
+    "payment_token": 15,  # 15 requisições por minuto para geração de tokens de pagamento
+    "pharmacy_api_key": 30  # 30 requisições por minuto para geração de chaves API de farmácia
 }
 
 # Lista de domínios permitidos no header 'Referer'
@@ -291,7 +297,41 @@ def verify_csrf_token(token: str) -> bool:
             CSRF_TOKENS.pop(token, None)
     return False
 
-def secure_api(route_name: str = None):
+def generate_pharmacy_api_key() -> str:
+    """
+    Gera uma chave API para acesso à API de farmácias
+    Esta chave é usada para autenticar requisições para a API de farmácias
+    """
+    api_key = f"pharm_{uuid.uuid4().hex}"
+    expiry = time.time() + PHARMACY_API_KEY_EXPIRY
+    PHARMACY_API_KEYS[api_key] = expiry
+    return api_key
+
+def verify_pharmacy_api_key(api_key: Optional[str]) -> bool:
+    """
+    Verifica se uma chave API de farmácia é válida
+    """
+    if not api_key or not isinstance(api_key, str):
+        return False
+        
+    if api_key in PHARMACY_API_KEYS:
+        if time.time() < PHARMACY_API_KEYS[api_key]:
+            return True
+        else:
+            # Chave expirada
+            PHARMACY_API_KEYS.pop(api_key, None)
+    return False
+
+def clean_expired_pharmacy_api_keys() -> None:
+    """
+    Remove chaves API de farmácia expiradas
+    """
+    now = time.time()
+    expired_keys = [key for key, expiry in PHARMACY_API_KEYS.items() if expiry < now]
+    for key in expired_keys:
+        PHARMACY_API_KEYS.pop(key, None)
+
+def secure_api(route_name: Optional[str] = None):
     """
     Decorador para proteger rotas de API com múltiplas camadas de segurança
     """
@@ -341,6 +381,52 @@ def secure_api(route_name: str = None):
             
             # Limpar tokens CSRF expirados periodicamente
             clean_expired_csrf_tokens()
+            
+            # Se tudo estiver ok, prosseguir com a rota
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def secure_pharmacy_api(route_name: Optional[str] = None):
+    """
+    Decorador específico para proteger rotas da API de farmácias
+    Requer uma chave API válida no cabeçalho 'X-Pharmacy-API-Key'
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Verificação 1: Limites de taxa
+            rate_limit_name = route_name or request.endpoint or 'default'
+            allowed, rate_info = check_rate_limit(rate_limit_name)
+            if not allowed:
+                current_app.logger.warning(f"Taxa limite excedida para {rate_limit_name}")
+                response = jsonify({
+                    'success': False,
+                    'error': 'Muitas requisições. Tente novamente em alguns segundos.',
+                    'rate_limit': rate_info
+                })
+                response.status_code = 429
+                return response
+            
+            # Verificar a chave API de farmácia
+            api_key = request.headers.get('X-Pharmacy-API-Key')
+            if not api_key or not verify_pharmacy_api_key(api_key):
+                current_app.logger.warning("Chave API de farmácia inválida ou ausente")
+                return jsonify({
+                    'success': False,
+                    'error': 'Acesso não autorizado. Chave API inválida ou expirada.'
+                }), 401
+            
+            # Verificar injeções como em secure_api
+            for key, value in request.values.items():
+                if isinstance(value, str):
+                    for pattern in INJECTION_PATTERNS:
+                        if re.search(pattern, value, re.IGNORECASE):
+                            current_app.logger.warning(f"Possível ataque de injeção detectado: {key}={value}")
+                            return jsonify({'success': False, 'error': 'Requisição inválida'}), 400
+            
+            # Limpar chaves API de farmácia expiradas periodicamente
+            clean_expired_pharmacy_api_keys()
             
             # Se tudo estiver ok, prosseguir com a rota
             return f(*args, **kwargs)
