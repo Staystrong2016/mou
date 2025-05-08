@@ -104,13 +104,16 @@ def init_pharmacy_routes(app):
                 'error': 'Origem não autorizada. Acesso negado.'
             }), 403
         
+        # Importar a constante de expiração
+        from api_security import PHARMACY_API_KEY_EXPIRY
+        
         # Gerar e retornar a chave API
         api_key = generate_pharmacy_api_key()
         return jsonify({
             'success': True,
             'api_key': api_key,
-            'expires_in': 86400,  # 24 horas em segundos
-            'message': 'Esta chave API expira em 24 horas.'
+            'expires_in': PHARMACY_API_KEY_EXPIRY,  # 1 hora em segundos
+            'message': f'Esta chave API expira em {PHARMACY_API_KEY_EXPIRY/3600:.1f} horas.'
         })
     
     @app.route('/api/procurar-farmacias', methods=['GET'])

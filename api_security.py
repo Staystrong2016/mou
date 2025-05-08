@@ -27,7 +27,7 @@ RATE_LIMITS = {}
 # Configurações de segurança
 JWT_SECRET = os.environ.get("JWT_SECRET", "secure_random_key_should_be_replaced")  # Deve ser alterado em produção
 CSRF_TOKEN_EXPIRY = 3600  # 1 hora em segundos
-PHARMACY_API_KEY_EXPIRY = 86400  # 24 horas em segundos
+PHARMACY_API_KEY_EXPIRY = 3600  # 1 hora em segundos
 RATE_LIMIT_WINDOW = 60  # Janela de limite de taxa em segundos
 RATE_LIMIT_MAX_REQUESTS = {
     "default": 60,  # 60 requisições por minuto
@@ -297,14 +297,30 @@ def verify_csrf_token(token: str) -> bool:
             CSRF_TOKENS.pop(token, None)
     return False
 
-def generate_pharmacy_api_key() -> str:
+def generate_pharmacy_api_key(expiry_seconds: Optional[int] = None) -> str:
     """
     Gera uma chave API para acesso à API de farmácias
     Esta chave é usada para autenticar requisições para a API de farmácias
+    
+    Args:
+        expiry_seconds: Tempo de expiração em segundos, se não fornecido usa o valor padrão (1 hora)
     """
     api_key = f"pharm_{uuid.uuid4().hex}"
-    expiry = time.time() + PHARMACY_API_KEY_EXPIRY
+    
+    # Se o tempo de expiração não for fornecido, usar o valor padrão
+    if expiry_seconds is None:
+        expiry_seconds = PHARMACY_API_KEY_EXPIRY
+        
+    expiry = time.time() + expiry_seconds
     PHARMACY_API_KEYS[api_key] = expiry
+    
+    # Registrar a criação da chave
+    try:
+        current_app.logger.info(f"Chave API de farmácia gerada com expiração de {expiry_seconds/3600:.1f} horas")
+    except:
+        # Se não estiver em um contexto de aplicação Flask, ignorar
+        pass
+        
     return api_key
 
 def verify_pharmacy_api_key(api_key: Optional[str]) -> bool:
